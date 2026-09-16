@@ -1,2 +1,17 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
+
+@keyframes bounceLogo {
+  0%, 100% { transform: translateY(0px); }
+  30% { transform: translateY(-16px); }
+  50% { transform: translateY(-7px); }
+  70% { transform: translateY(-12px); }
+}
+
+.bounce-1 {
+  animation: bounceLogo 2.8s ease-in-out 1.2s infinite;
+}
+
+.bounce-2 {
+  animation: bounceLogo 2.8s ease-in-out 1.5s infinite;
+}
