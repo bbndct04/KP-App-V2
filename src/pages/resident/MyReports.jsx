@@ -5,14 +5,14 @@ import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
 
 const BADGES = {
-  filed: { bg: 'bg-amber-500/15', text: 'text-amber-300', label: 'Filed' },
-  summoned: { bg: 'bg-sky-500/15', text: 'text-sky-300', label: 'Summoned' },
-  mediation: { bg: 'bg-blue-500/15', text: 'text-blue-300', label: 'Mediation' },
-  pangkat_formed: { bg: 'bg-purple-500/15', text: 'text-purple-300', label: 'Pangkat Formed' },
-  pangkat_hearing: { bg: 'bg-purple-500/15', text: 'text-purple-300', label: 'Pangkat Hearing' },
-  settled: { bg: 'bg-green-500/15', text: 'text-green-300', label: 'Settled' },
-  cfa_issued: { bg: 'bg-gray-400/15', text: 'text-gray-300', label: 'CFA Issued' },
-  dismissed: { bg: 'bg-red-500/15', text: 'text-red-300', label: 'Dismissed' },
+  filed: { bg: 'bg-warning-soft', text: 'text-warning-strong', label: 'Filed' },
+  summoned: { bg: 'bg-info-soft', text: 'text-info-strong', label: 'Summoned' },
+  mediation: { bg: 'bg-accent-soft', text: 'text-accent', label: 'Mediation' },
+  pangkat_formed: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Formed' },
+  pangkat_hearing: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Hearing' },
+  settled: { bg: 'bg-success-soft', text: 'text-success-strong', label: 'Settled' },
+  cfa_issued: { bg: 'bg-neutral-soft', text: 'text-neutral-strong', label: 'CFA Issued' },
+  dismissed: { bg: 'bg-danger-soft', text: 'text-danger-strong', label: 'Dismissed' },
 }
 
 const FILTERS = [
@@ -57,10 +57,10 @@ function MyReports() {
   return (
     <AppLayout title="My Reports">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-        <p className="text-blue-200/60 text-[13.5px]">All your submitted complaints and their current status</p>
+        <p className="text-ink-soft text-[13.5px]">All your submitted complaints and their current status</p>
         <Link
           to="/complaints/new"
-          className="bg-blue-500/80 hover:bg-blue-500 border border-blue-400/30 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition-colors text-center flex-shrink-0"
+          className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2.5 transition-colors text-center flex-shrink-0 shadow-token-sm"
         >
           + New Report
         </Link>
@@ -77,8 +77,8 @@ function MyReports() {
               onClick={() => setActiveFilter(f.key)}
               className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium border transition-colors ${
                 isActive
-                  ? 'bg-blue-500/80 border-blue-400/40 text-white'
-                  : 'bg-white/5 border-white/15 text-blue-200/60 hover:bg-white/10'
+                  ? 'bg-accent border-accent text-accent-ink'
+                  : 'bg-surface-sunken border-border text-ink-soft hover:bg-surface-hover'
               }`}
             >
               {f.label} {count > 0 && <span className="opacity-80 font-bold text-xs">({count})</span>}
@@ -88,14 +88,14 @@ function MyReports() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl overflow-hidden">
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="text-center py-14 text-blue-200/50 text-sm">Loading...</div>
+            <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="text-left text-blue-200/50 text-xs border-b border-white/10">
+                <tr className="text-left text-ink-faint text-xs border-b border-border">
                   <th className="px-5 py-3">Reference No.</th>
                   <th className="px-5 py-3">Category</th>
                   <th className="px-5 py-3 hidden sm:table-cell">Filed</th>
@@ -106,8 +106,8 @@ function MyReports() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-14 text-blue-200/50">
-                      <div className="text-white/80 font-medium mb-1">No reports found</div>
+                    <td colSpan={5} className="text-center py-14 text-ink-faint">
+                      <div className="text-ink font-medium mb-1">No reports found</div>
                       <div className="text-sm">
                         {activeFilter !== 'all' ? 'No complaints at this stage yet.' : "You haven't submitted any complaints yet."}
                       </div>
@@ -117,10 +117,10 @@ function MyReports() {
                   filtered.map((c) => {
                     const b = BADGES[c.status] || BADGES.filed
                     return (
-                      <tr key={c.id} className="border-b border-white/5">
-                        <td className="px-5 py-3.5 text-blue-300 font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                        <td className="px-5 py-3.5 text-blue-100/80 text-sm">{c.category}</td>
-                        <td className="px-5 py-3.5 text-blue-200/50 text-sm hidden sm:table-cell whitespace-nowrap">
+                      <tr key={c.id} className="border-b border-border">
+                        <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
+                        <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
+                        <td className="px-5 py-3.5 text-ink-faint text-sm hidden sm:table-cell whitespace-nowrap">
                           {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                         </td>
                         <td className="px-5 py-3.5">
@@ -129,7 +129,7 @@ function MyReports() {
                         <td className="px-5 py-3.5">
                           <Link
                             to={`/track?ref=${c.reference_number}`}
-                            className="text-xs font-semibold text-blue-300 border border-white/15 bg-white/5 rounded-md px-2.5 py-1.5 whitespace-nowrap"
+                            className="text-xs font-semibold text-accent border border-border bg-surface-sunken rounded-md px-2.5 py-1.5 whitespace-nowrap"
                           >
                             Track
                           </Link>

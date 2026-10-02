@@ -20,7 +20,7 @@ export function useComplaintForForm() {
 }
 
 export function fmtDate(dateStr, part) {
-  if (!dateStr) return part === 'day' ? '____' : part === 'month' ? '________' : '19__'
+  if (!dateStr) return part === 'day' ? '____' : part === 'month' ? '________' : '20__'
   const d = new Date(dateStr)
   if (part === 'day') return d.toLocaleDateString('en-US', { day: '2-digit' })
   if (part === 'month') return d.toLocaleDateString('en-US', { month: 'long' })
@@ -72,17 +72,19 @@ export function PartiesTable({ complaint }) {
       <tbody>
         <tr>
           <td className="w-1/2 align-top">
-            <div className="border-b border-black w-[180px] h-4" />
+            <div className="border-b border-black w-[200px] text-center pb-0.5">
+              {complaint.complainant_name || '\u00A0'}
+            </div>
             <div className="text-center text-[11px]">Complainant/s</div>
             <br />— against —<br /><br />
-            <div className="border-b border-black w-[180px] h-4" />
+            <div className="border-b border-black w-[200px] text-center pb-0.5">
+              {complaint.respondent_name || '\u00A0'}
+            </div>
             <div className="text-center text-[11px]">Respondent/s</div>
           </td>
           <td className="w-1/2 align-top">
             Barangay Case No.: <strong>{complaint.reference_number}</strong><br />
-            For: <strong>{complaint.category}</strong><br /><br />
-            {complaint.complainant_name}<br /><br /><br />
-            {complaint.respondent_name}
+            For: <strong>{complaint.category}</strong>
           </td>
         </tr>
       </tbody>

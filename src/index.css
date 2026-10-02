@@ -1,6 +1,105 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+:root {
+  --bg: #edf1f8;
+  --surface: #ffffff;
+  --surface-hover: #f5f8fc;
+  --surface-sunken: #eef2f9;
+  --ink: #16213e;
+  --ink-soft: #55607a;
+  --ink-faint: #8a93ab;
+  --border: #dde3ee;
+  --border-strong: #c3cce0;
+  --accent: #1a5fd4;
+  --accent-hover: #124db0;
+  --accent-soft: #e3edfd;
+  --accent-ink: #ffffff;
+
+  --warning-soft: #fef3c7;
+  --warning-strong: #92400e;
+  --info-soft: #e0f2fe;
+  --info-strong: #075985;
+  --success-soft: #dcfce7;
+  --success-strong: #166534;
+  --danger-soft: #fee2e2;
+  --danger-strong: #991b1b;
+  --purple-soft: #ede9fe;
+  --purple-strong: #5b21b6;
+  --neutral-soft: #f1f5f9;
+  --neutral-strong: #334155;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 6px 16px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.14);
+}
+
+[data-theme='dark'] {
+  --bg: #050f2e;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-hover: rgba(255, 255, 255, 0.1);
+  --surface-sunken: rgba(255, 255, 255, 0.08);
+  --ink: #ffffff;
+  --ink-soft: rgba(255, 255, 255, 0.6);
+  --ink-faint: rgba(255, 255, 255, 0.4);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --accent: #5ba0f5;
+  --accent-hover: #2b7eed;
+  --accent-soft: rgba(43, 126, 237, 0.18);
+  --accent-ink: #ffffff;
+
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --warning-strong: #fcd34d;
+  --info-soft: rgba(14, 165, 233, 0.15);
+  --info-strong: #7dd3fc;
+  --success-soft: rgba(34, 197, 94, 0.15);
+  --success-strong: #86efac;
+  --danger-soft: rgba(239, 68, 68, 0.15);
+  --danger-strong: #fca5a5;
+  --purple-soft: rgba(168, 85, 247, 0.15);
+  --purple-strong: #d8b4fe;
+  --neutral-soft: rgba(156, 163, 175, 0.15);
+  --neutral-strong: #d1d5db;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-strong: var(--warning-strong);
+  --color-info-soft: var(--info-soft);
+  --color-info-strong: var(--info-strong);
+  --color-success-soft: var(--success-soft);
+  --color-success-strong: var(--success-strong);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-strong: var(--danger-strong);
+  --color-purple-soft: var(--purple-soft);
+  --color-purple-strong: var(--purple-strong);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-neutral-strong: var(--neutral-strong);
+
+  --shadow-token-sm: var(--shadow-sm);
+  --shadow-token-md: var(--shadow-md);
+  --shadow-token-lg: var(--shadow-lg);
+}
+
 @keyframes bounceLogo {
   0%, 100% { transform: translateY(0px); }
   30% { transform: translateY(-16px); }

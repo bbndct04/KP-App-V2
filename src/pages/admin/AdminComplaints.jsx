@@ -4,14 +4,14 @@ import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
 
 const BADGES = {
-  filed: { bg: 'bg-amber-500/15', text: 'text-amber-300', label: 'Filed' },
-  summoned: { bg: 'bg-sky-500/15', text: 'text-sky-300', label: 'Summoned' },
-  mediation: { bg: 'bg-blue-500/15', text: 'text-blue-300', label: 'Mediation' },
-  pangkat_formed: { bg: 'bg-purple-500/15', text: 'text-purple-300', label: 'Pangkat Formed' },
-  pangkat_hearing: { bg: 'bg-purple-500/15', text: 'text-purple-300', label: 'Pangkat Hearing' },
-  settled: { bg: 'bg-green-500/15', text: 'text-green-300', label: 'Settled' },
-  cfa_issued: { bg: 'bg-gray-400/15', text: 'text-gray-300', label: 'CFA Issued' },
-  dismissed: { bg: 'bg-red-500/15', text: 'text-red-300', label: 'Dismissed' },
+  filed: { bg: 'bg-warning-soft', text: 'text-warning-strong', label: 'Filed' },
+  summoned: { bg: 'bg-info-soft', text: 'text-info-strong', label: 'Summoned' },
+  mediation: { bg: 'bg-accent-soft', text: 'text-accent', label: 'Mediation' },
+  pangkat_formed: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Formed' },
+  pangkat_hearing: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Hearing' },
+  settled: { bg: 'bg-success-soft', text: 'text-success-strong', label: 'Settled' },
+  cfa_issued: { bg: 'bg-neutral-soft', text: 'text-neutral-strong', label: 'CFA Issued' },
+  dismissed: { bg: 'bg-danger-soft', text: 'text-danger-strong', label: 'Dismissed' },
 }
 
 const STATUS_OPTIONS = [
@@ -59,20 +59,20 @@ function AdminComplaints() {
 
   return (
     <AdminLayout title="All Complaints">
-      <p className="text-blue-200/60 text-[13.5px] mb-4">Track and manage all barangay cases</p>
+      <p className="text-ink-soft text-[13.5px] mb-4">Track and manage all barangay cases</p>
 
       {/* Search + Filter */}
-      <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-4 mb-5 flex gap-2.5 flex-wrap items-center">
+      <div className="bg-surface border border-border rounded-2xl p-4 mb-5 flex gap-2.5 flex-wrap items-center shadow-token-md">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by ref, resident, or category..."
-          className="flex-1 min-w-[220px] bg-white/10 border border-white/20 text-white placeholder-blue-200/30 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+          className="flex-1 min-w-[220px] bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-white/10 border border-white/20 text-white rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 [color-scheme:dark]"
+          className="bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
         >
           <option value="all">All Stages</option>
           {STATUS_OPTIONS.map((s) => (
@@ -82,14 +82,14 @@ function AdminComplaints() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl overflow-hidden">
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="text-center py-14 text-blue-200/50 text-sm">Loading...</div>
+            <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="text-left text-blue-200/50 text-xs border-b border-white/10">
+                <tr className="text-left text-ink-faint text-xs border-b border-border">
                   <th className="px-5 py-3">Ref. No.</th>
                   <th className="px-5 py-3">Resident</th>
                   <th className="px-5 py-3">Category</th>
@@ -101,17 +101,17 @@ function AdminComplaints() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-14 text-blue-200/50">No complaints found</td>
+                    <td colSpan={6} className="text-center py-14 text-ink-faint">No complaints found</td>
                   </tr>
                 ) : (
                   filtered.map((c) => {
                     const b = BADGES[c.status] || BADGES.filed
                     return (
-                      <tr key={c.id} className="border-b border-white/5">
-                        <td className="px-5 py-3.5 text-blue-300 font-mono text-sm">{c.reference_number}</td>
-                        <td className="px-5 py-3.5 text-white text-sm">{c.profiles?.full_name || '—'}</td>
-                        <td className="px-5 py-3.5 text-blue-100/80 text-sm">{c.category}</td>
-                        <td className="px-5 py-3.5 text-blue-200/50 text-xs">
+                      <tr key={c.id} className="border-b border-border">
+                        <td className="px-5 py-3.5 text-accent font-mono text-sm">{c.reference_number}</td>
+                        <td className="px-5 py-3.5 text-ink text-sm">{c.profiles?.full_name || '—'}</td>
+                        <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
+                        <td className="px-5 py-3.5 text-ink-faint text-xs">
                           {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                         </td>
                         <td className="px-5 py-3.5">
@@ -120,7 +120,7 @@ function AdminComplaints() {
                         <td className="px-5 py-3.5">
                           <Link
                             to={`/admin/complaints/${c.id}`}
-                            className="text-xs font-semibold text-blue-300 border border-white/15 bg-white/5 rounded-md px-3 py-1.5"
+                            className="text-xs font-semibold text-accent border border-border bg-surface-sunken rounded-md px-3 py-1.5"
                           >
                             Manage case →
                           </Link>

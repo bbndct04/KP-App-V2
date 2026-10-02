@@ -5,14 +5,14 @@ import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
 
 const BADGES = {
-  filed: { bg: 'bg-amber-500/15', text: 'text-amber-300', label: 'Filed' },
-  summoned: { bg: 'bg-sky-500/15', text: 'text-sky-300', label: 'Summoned' },
-  mediation: { bg: 'bg-blue-500/15', text: 'text-blue-300', label: 'Mediation' },
-  pangkat_formed: { bg: 'bg-purple-500/15', text: 'text-purple-300', label: 'Pangkat Formed' },
-  pangkat_hearing: { bg: 'bg-purple-500/15', text: 'text-purple-300', label: 'Pangkat Hearing' },
-  settled: { bg: 'bg-green-500/15', text: 'text-green-300', label: 'Settled' },
-  cfa_issued: { bg: 'bg-gray-400/15', text: 'text-gray-300', label: 'CFA Issued' },
-  dismissed: { bg: 'bg-red-500/15', text: 'text-red-300', label: 'Dismissed' },
+  filed: { bg: 'bg-warning-soft', text: 'text-warning-strong', label: 'Filed' },
+  summoned: { bg: 'bg-info-soft', text: 'text-info-strong', label: 'Summoned' },
+  mediation: { bg: 'bg-accent-soft', text: 'text-accent', label: 'Mediation' },
+  pangkat_formed: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Formed' },
+  pangkat_hearing: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Hearing' },
+  settled: { bg: 'bg-success-soft', text: 'text-success-strong', label: 'Settled' },
+  cfa_issued: { bg: 'bg-neutral-soft', text: 'text-neutral-strong', label: 'CFA Issued' },
+  dismissed: { bg: 'bg-danger-soft', text: 'text-danger-strong', label: 'Dismissed' },
 }
 
 const IN_PROGRESS = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
@@ -50,18 +50,18 @@ function Dashboard() {
   return (
     <AppLayout title="Dashboard">
       {/* Welcome Banner */}
-      <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-5 md:px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="bg-surface border border-border rounded-2xl px-5 md:px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-token-md">
         <div>
-          <h2 className="text-white font-sans text-lg font-bold mb-0.5">
+          <h2 className="text-ink font-sans text-lg font-bold mb-0.5">
             Welcome back, {firstName}! 👋
           </h2>
-          <p className="text-blue-200/60 font-sans text-sm">
+          <p className="text-ink-soft font-sans text-sm">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
         <Link
           to="/complaints/new"
-          className="bg-blue-500/80 hover:bg-blue-500 border border-blue-400/30 text-white text-sm font-semibold rounded-lg px-5 py-2.5 transition-colors text-center"
+          className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2.5 transition-colors text-center shadow-token-sm"
         >
           + New Report
         </Link>
@@ -70,14 +70,14 @@ function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-5">
         {[
-          { label: 'Total Reports', val: stats.total, color: 'text-blue-300' },
-          { label: 'Filed', val: stats.filed, color: 'text-amber-300' },
-          { label: 'In Progress', val: stats.inProgress, color: 'text-sky-300' },
-          { label: 'Closed', val: stats.closed, color: 'text-green-300' },
+          { label: 'Total Reports', val: stats.total, color: 'text-accent' },
+          { label: 'Filed', val: stats.filed, color: 'text-warning-strong' },
+          { label: 'In Progress', val: stats.inProgress, color: 'text-info-strong' },
+          { label: 'Closed', val: stats.closed, color: 'text-success-strong' },
         ].map((s) => (
-          <div key={s.label} className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-4 md:p-5">
+          <div key={s.label} className="bg-surface border border-border rounded-2xl p-4 md:p-5 shadow-token-md">
             <div className={`text-2xl md:text-3xl font-bold mb-1 ${s.color}`}>{s.val}</div>
-            <div className="text-blue-200/60 text-xs md:text-sm">{s.label}</div>
+            <div className="text-ink-soft text-xs md:text-sm">{s.label}</div>
           </div>
         ))}
       </div>
@@ -85,26 +85,26 @@ function Dashboard() {
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_290px] gap-4 items-start">
         {/* Recent Reports */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-2">
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2">
             <div>
-              <div className="text-white text-[15px] font-semibold">Recent Reports</div>
-              <div className="text-blue-200/50 text-xs mt-0.5">Your latest complaint submissions</div>
+              <div className="text-ink text-[15px] font-semibold">Recent Reports</div>
+              <div className="text-ink-faint text-xs mt-0.5">Your latest complaint submissions</div>
             </div>
-            <Link to="/my-reports" className="text-blue-300 text-sm font-semibold border border-white/20 bg-white/5 rounded-lg px-3 py-1.5 flex-shrink-0">
+            <Link to="/my-reports" className="text-accent text-sm font-semibold border border-border bg-surface-sunken rounded-lg px-3 py-1.5 flex-shrink-0">
               View All →
             </Link>
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-blue-200/50 text-sm">Loading...</div>
+            <div className="text-center py-12 text-ink-faint text-sm">Loading...</div>
           ) : recent.length === 0 ? (
             <div className="text-center py-12 px-6">
-              <div className="text-white/80 font-medium mb-1">No reports yet</div>
-              <div className="text-blue-200/50 text-sm mb-4">Submit your first complaint to get started</div>
+              <div className="text-ink font-medium mb-1">No reports yet</div>
+              <div className="text-ink-faint text-sm mb-4">Submit your first complaint to get started</div>
               <Link
                 to="/complaints/new"
-                className="inline-block bg-blue-500/80 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg px-5 py-2.5 border border-blue-400/30"
+                className="inline-block bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2.5 shadow-token-sm"
               >
                 + Submit Complaint
               </Link>
@@ -113,7 +113,7 @@ function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-blue-200/50 text-xs border-b border-white/10">
+                  <tr className="text-left text-ink-faint text-xs border-b border-border">
                     <th className="px-5 py-2.5">Reference No.</th>
                     <th className="px-5 py-2.5">Category</th>
                     <th className="px-5 py-2.5 hidden sm:table-cell">Date Filed</th>
@@ -125,10 +125,10 @@ function Dashboard() {
                   {recent.map((c) => {
                     const style = BADGES[c.status] || BADGES.filed
                     return (
-                      <tr key={c.id} className="border-b border-white/5">
-                        <td className="px-5 py-3 text-blue-300 font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                        <td className="px-5 py-3 text-blue-100/80 text-sm">{c.category}</td>
-                        <td className="px-5 py-3 text-blue-200/50 text-xs hidden sm:table-cell whitespace-nowrap">
+                      <tr key={c.id} className="border-b border-border">
+                        <td className="px-5 py-3 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
+                        <td className="px-5 py-3 text-ink-soft text-sm">{c.category}</td>
+                        <td className="px-5 py-3 text-ink-faint text-xs hidden sm:table-cell whitespace-nowrap">
                           {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                         </td>
                         <td className="px-5 py-3">
@@ -137,7 +137,7 @@ function Dashboard() {
                           </span>
                         </td>
                         <td className="px-5 py-3">
-                          <Link to={`/track?ref=${c.reference_number}`} className="text-blue-300 text-xs font-semibold whitespace-nowrap">
+                          <Link to={`/track?ref=${c.reference_number}`} className="text-accent text-xs font-semibold whitespace-nowrap">
                             Track →
                           </Link>
                         </td>
@@ -152,38 +152,38 @@ function Dashboard() {
 
         {/* Right Column */}
         <div className="flex flex-col gap-3.5">
-          <div className="bg-blue-500/15 backdrop-blur-xl border border-blue-400/20 rounded-2xl p-5">
-            <div className="text-white text-sm font-bold mb-1.5">📝 File a Complaint</div>
-            <div className="text-blue-200/60 text-[13px] mb-3.5 leading-relaxed">
+          <div className="bg-accent-soft border border-accent/20 rounded-2xl p-5 shadow-token-md">
+            <div className="text-ink text-sm font-bold mb-1.5">📝 File a Complaint</div>
+            <div className="text-ink-soft text-[13px] mb-3.5 leading-relaxed">
               Submit a new complaint or incident report online.
             </div>
             <Link
               to="/complaints/new"
-              className="block text-center bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-lg py-2.5 text-sm font-semibold transition-colors"
+              className="block text-center bg-surface hover:bg-surface-hover text-ink border border-border rounded-lg py-2.5 text-sm font-semibold transition-colors"
             >
               + New Report
             </Link>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-4.5">
-            <div className="text-white text-sm font-semibold mb-1">🔍 Quick Track</div>
-            <div className="text-blue-200/50 text-xs mb-2.5">Enter your reference number</div>
+          <div className="bg-surface border border-border rounded-2xl p-4.5 shadow-token-md">
+            <div className="text-ink text-sm font-semibold mb-1">🔍 Quick Track</div>
+            <div className="text-ink-faint text-xs mb-2.5">Enter your reference number</div>
             <form className="flex gap-2">
               <input
                 type="text"
                 placeholder="KP-2026-XXX"
-                className="flex-1 min-w-0 bg-white/10 border border-white/20 text-white placeholder-blue-200/30 rounded-md px-2.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                className="flex-1 min-w-0 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-md px-2.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-accent/40"
               />
-              <button type="submit" className="bg-blue-500/80 hover:bg-blue-500 text-white rounded-md px-4 py-2 text-[13px] font-semibold flex-shrink-0">
+              <button type="submit" className="bg-accent hover:bg-accent-hover text-accent-ink rounded-md px-4 py-2 text-[13px] font-semibold flex-shrink-0">
                 Go
               </button>
             </form>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-4.5">
-            <div className="text-white text-sm font-semibold mb-2">ℹ️ Need Help?</div>
-            <div className="text-blue-200/50 text-[12.5px] leading-relaxed">
-              Visit the barangay office at <strong className="text-blue-200/80">8AM–5PM</strong> Mon–Fri, or call your barangay hotline for urgent concerns.
+          <div className="bg-surface border border-border rounded-2xl p-4.5 shadow-token-md">
+            <div className="text-ink text-sm font-semibold mb-2">ℹ️ Need Help?</div>
+            <div className="text-ink-faint text-[12.5px] leading-relaxed">
+              Visit the barangay office at <strong className="text-ink-soft">8AM–5PM</strong> Mon–Fri, or call your barangay hotline for urgent concerns.
             </div>
           </div>
         </div>
