@@ -15,6 +15,7 @@ import {
   MdArrowForward,
 } from 'react-icons/md'
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
+import ComplaintCards from '../../components/ComplaintCards'
 
 const IN_PROGRESS_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
 const CLOSED_STAGES = ['settled', 'cfa_issued', 'dismissed']
@@ -115,15 +116,17 @@ function AdminDashboard() {
           ) : recent.length === 0 ? (
             <EmptyState icon={MdOutlineInbox} title="No complaints yet" message="New complaints from residents will appear here." />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              <ComplaintCards complaints={recent} linkFor={(c) => `/admin/complaints/${c.id}`} linkLabel="Manage" showResident />
+              <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold">Ref. No.</th>
-                    <th className="px-5 py-3 font-semibold">Resident</th>
-                    <th className="px-5 py-3 font-semibold">Category</th>
-                    <th className="px-5 py-3 font-semibold">Filed</th>
-                    <th className="px-5 py-3 font-semibold">Status</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Ref. No.</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Resident</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Filed</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Status</th>
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
@@ -149,6 +152,7 @@ function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
 

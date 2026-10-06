@@ -168,7 +168,7 @@ function AdminLayout({ title, children }) {
   )
 
   return (
-    <div className="h-screen relative flex bg-bg overflow-hidden">
+    <div className="h-app relative flex bg-bg overflow-hidden">
       <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
 

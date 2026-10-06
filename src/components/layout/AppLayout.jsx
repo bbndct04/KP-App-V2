@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   MdOutlineDashboard,
+  MdOutlineHome,
   MdOutlineNoteAdd,
   MdOutlineFolderCopy,
   MdOutlineManageSearch,
@@ -15,6 +16,7 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
+import BottomNav from './BottomNav'
 import logo from '../../assets/kp-app-logo.png'
 
 const navItems = [
@@ -112,6 +114,14 @@ function AppLayout({ title, children }) {
   const firstInitial = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase()
   const close = () => setMobileOpen(false)
 
+  const bottomItems = [
+    { to: '/dashboard', label: 'Home', icon: MdOutlineHome, end: true },
+    { to: '/my-reports', label: 'Reports', icon: MdOutlineFolderCopy },
+    { to: '/complaints/new', label: 'File', icon: MdOutlineNoteAdd, primary: true },
+    { to: '/track', label: 'Track', icon: MdOutlineManageSearch },
+    { to: '/notifications', label: 'Alerts', icon: MdOutlineNotifications, badge: badgeCount },
+  ]
+
   const SidebarContent = (
     <>
       <div className="px-5 py-4 border-b border-border flex items-center gap-3">
@@ -155,7 +165,7 @@ function AppLayout({ title, children }) {
   )
 
   return (
-    <div className="h-screen relative flex bg-bg overflow-hidden">
+    <div className="h-app relative flex bg-bg overflow-hidden">
       <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -186,7 +196,7 @@ function AppLayout({ title, children }) {
           <NavLink
             to="/notifications"
             aria-label={badgeCount > 0 ? `Notifications, ${badgeCount} unread` : 'Notifications'}
-            className="relative w-10 h-10 rounded-lg hover:bg-surface-hover flex items-center justify-center text-ink-soft transition-colors flex-shrink-0"
+            className="relative w-10 h-10 rounded-lg hover:bg-surface-hover hidden md:flex items-center justify-center text-ink-soft transition-colors flex-shrink-0"
           >
             <MdOutlineNotifications className="text-2xl" aria-hidden="true" />
             {badgeCount > 0 && (
@@ -203,7 +213,8 @@ function AppLayout({ title, children }) {
             {firstInitial}
           </NavLink>
         </header>
-        <main className="flex-1 p-4 md:p-7 overflow-y-auto overflow-x-hidden min-w-0">{children}</main>
+        <main className="flex-1 p-4 pb-8 md:p-7 overflow-y-auto overflow-x-hidden min-w-0">{children}</main>
+        <BottomNav items={bottomItems} />
       </div>
     </div>
   )

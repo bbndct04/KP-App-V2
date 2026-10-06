@@ -16,6 +16,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton, Button, Input } from '../../components/ui'
+import ComplaintCards from '../../components/ComplaintCards'
 
 const IN_PROGRESS = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
 const CLOSED = ['settled', 'cfa_issued', 'dismissed']
@@ -113,14 +114,16 @@ function Dashboard() {
               }
             />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              <ComplaintCards complaints={recent} linkFor={(c) => `/track?ref=${c.reference_number}`} />
+              <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold">Reference No.</th>
-                    <th className="px-5 py-3 font-semibold">Category</th>
-                    <th className="px-5 py-3 font-semibold hidden sm:table-cell">Date Filed</th>
-                    <th className="px-5 py-3 font-semibold">Stage</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Reference No.</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap hidden sm:table-cell">Date Filed</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Stage</th>
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
@@ -148,6 +151,7 @@ function Dashboard() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
 

@@ -4,6 +4,7 @@ import { MdSearch, MdOutlineInbox, MdOutlineSearchOff, MdArrowForward } from 're
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, Input, Select, StatusBadge, EmptyState, SkeletonRows } from '../../components/ui'
+import ComplaintCards from '../../components/ComplaintCards'
 import { STATUS } from '../../components/status'
 
 function AdminComplaints() {
@@ -49,7 +50,7 @@ function AdminComplaints() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by ref no., resident, respondent, or category"
+            placeholder="Search by name or ref. no."
             aria-label="Search complaints"
             className="pl-10"
           />
@@ -79,15 +80,17 @@ function AdminComplaints() {
             <EmptyState icon={MdOutlineInbox} title="No complaints yet" message="Complaints filed by residents will appear here." />
           )
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <ComplaintCards complaints={filtered} linkFor={(c) => `/admin/complaints/${c.id}`} linkLabel="Manage" showResident />
+            <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                  <th className="px-5 py-3 font-semibold">Ref. No.</th>
-                  <th className="px-5 py-3 font-semibold">Resident</th>
-                  <th className="px-5 py-3 font-semibold">Category</th>
-                  <th className="px-5 py-3 font-semibold">Filed</th>
-                  <th className="px-5 py-3 font-semibold">Stage</th>
+                  <th className="px-5 py-3 font-semibold whitespace-nowrap">Ref. No.</th>
+                  <th className="px-5 py-3 font-semibold whitespace-nowrap">Resident</th>
+                  <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
+                  <th className="px-5 py-3 font-semibold whitespace-nowrap">Filed</th>
+                  <th className="px-5 py-3 font-semibold whitespace-nowrap">Stage</th>
                   <th className="px-5 py-3"></th>
                 </tr>
               </thead>
@@ -113,6 +116,7 @@ function AdminComplaints() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
       {!loading && filtered.length > 0 && (
