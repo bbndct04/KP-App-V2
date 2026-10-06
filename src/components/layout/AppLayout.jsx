@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 
 const navItems = [
@@ -42,11 +43,41 @@ function AppLayout({ title, children }) {
   const { profile, user, signOut } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   async function handleLogout() {
     await signOut()
     navigate('/login')
   }
+
+  useEffect(() => {
+    if (!user) return
+
+    async function loadUnread() {
+      const { count } = await supabase
+        .from('complaint_notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+      setUnreadCount(count || 0)
+    }
+    loadUnread()
+
+    // Live update the badge the moment a new notification is inserted for this user —
+    // no need to refresh or navigate to /notifications to see it appear.
+    const channel = supabase
+      .channel(`notif-badge-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'complaint_notifications', filter: `user_id=eq.${user.id}` },
+        () => setUnreadCount((c) => c + 1)
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user])
 
   const firstInitial = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase()
 
@@ -152,10 +183,15 @@ function AppLayout({ title, children }) {
           <div className="flex-1" />
           <NavLink
             to="/notifications"
-            aria-label="Notifications"
-            className="w-9 h-9 rounded-lg bg-surface-sunken border border-border flex items-center justify-center text-ink-soft hover:bg-surface-hover transition-colors flex-shrink-0"
+            aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+            className="relative w-9 h-9 rounded-lg bg-surface-sunken border border-border flex items-center justify-center text-ink-soft hover:bg-surface-hover transition-colors flex-shrink-0"
           >
             🔔
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger-strong text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </NavLink>
           <div className="w-[34px] h-[34px] rounded-full bg-accent flex items-center justify-center text-accent-ink text-sm font-bold flex-shrink-0 shadow-token-sm">
             {firstInitial}

@@ -113,16 +113,24 @@ function SubmitComplaint() {
         relief_requested: reliefRequested,
         attachment_url: attachmentUrl,
       })
-      .select('reference_number')
+      .select('id, reference_number')
       .single()
 
-    setSubmitting(false)
-
     if (insertError) {
+      setSubmitting(false)
       setError(insertError.message)
       return
     }
 
+    await supabase.from('complaint_notifications').insert({
+      complaint_id: inserted.id,
+      user_id: user.id,
+      title: '📥 Complaint Received',
+      type: 'info',
+      message: `Your complaint has been received and filed (Ref: ${inserted.reference_number}). You'll be notified as it progresses.`,
+    })
+
+    setSubmitting(false)
     setSuccessRef(inserted.reference_number)
   }
 

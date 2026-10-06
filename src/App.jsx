@@ -33,6 +33,7 @@ import Form22 from './pages/admin/forms/Form22'
 import Form25 from './pages/admin/forms/Form25'
 import Form27 from './pages/admin/forms/Form27'
 import CaseDetail from './pages/admin/CaseDetail'
+import AdminNotifications from './pages/admin/AdminNotifications'
 
 function App() {
   return (
@@ -245,6 +246,7 @@ function App() {
             }
           />
           <Route path="/admin/complaints/:id" element={<AdminRoute><CaseDetail /></AdminRoute>} />
+          <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>
