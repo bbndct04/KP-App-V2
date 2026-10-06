@@ -232,7 +232,7 @@ function CaseDetail() {
             <div key={s.key} className="flex items-center flex-1 last:flex-none">
               <div className="flex flex-col items-center flex-1">
                 <div className={`w-2.5 h-2.5 rounded-full ${i <= trackerIdx ? 'bg-accent' : 'bg-surface-sunken'}`} />
-                <div className={`text-[11px] mt-1.5 text-center ${i <= trackerIdx ? 'text-ink' : 'text-ink-faint'}`}>{s.label}</div>
+                <div className={`text-xs mt-1.5 text-center ${i <= trackerIdx ? 'text-ink' : 'text-ink-faint'}`}>{s.label}</div>
               </div>
               {i < STAGES.length - 1 && <div className={`flex-1 h-0.5 ${i < trackerIdx ? 'bg-accent' : 'bg-border'}`} />}
             </div>
@@ -243,7 +243,7 @@ function CaseDetail() {
       {/* Next Action */}
       <div className="bg-accent-soft border border-accent/25 rounded-2xl p-5 mb-4">
         <div className="text-accent text-sm font-semibold mb-1.5">Next action</div>
-        <div className="text-ink text-[13.5px] mb-3.5">{meta.action}</div>
+        <div className="text-ink text-sm mb-3.5">{meta.action}</div>
         {meta.next.length > 0 && (
           <button onClick={openAdvanceModal} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2 shadow-token-sm">
             Advance stage ›
@@ -359,8 +359,8 @@ function CaseDetail() {
               <div key={l.id} className="flex gap-2.5">
                 <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${l.entry_type === 'stage_change' ? 'bg-accent' : 'bg-ink-faint'}`} />
                 <div>
-                  <div className="text-[13px] text-ink-soft">{l.remarks}</div>
-                  <div className="text-[11px] text-ink-faint">
+                  <div className="text-sm text-ink-soft">{l.remarks}</div>
+                  <div className="text-xs text-ink-faint">
                     {new Date(l.created_at).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     {l.profiles?.full_name && ` — ${l.profiles.official_title || l.profiles.full_name}`}
                   </div>

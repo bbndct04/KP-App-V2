@@ -64,7 +64,7 @@ function Notifications() {
     <AppLayout title="Notifications">
       <div className="max-w-[700px] mx-auto">
         <div className="flex items-center justify-between mb-5">
-          <p className="text-ink-soft text-[13.5px]">Updates about your complaints</p>
+          <p className="text-ink-soft text-sm">Updates about your complaints</p>
           {unreadCount > 0 && (
             <span className="bg-danger-soft text-danger-strong text-xs font-semibold px-3 py-1 rounded-full">
               {unreadCount} unread
@@ -78,7 +78,7 @@ function Notifications() {
           <div className="bg-surface border border-border rounded-2xl p-14 text-center shadow-token-md">
             <div className="text-4xl mb-3">🔔</div>
             <div className="text-ink text-[15px] font-semibold mb-1.5">No notifications yet</div>
-            <div className="text-ink-faint text-[13px]">You'll be notified here when your complaint status changes.</div>
+            <div className="text-ink-faint text-sm">You'll be notified here when your complaint status changes.</div>
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -99,7 +99,7 @@ function Notifications() {
                       <div className="text-sm font-bold text-ink">{notif.title || 'Notification'}</div>
                       {!notif.is_read && <span className="w-2 h-2 rounded-full bg-danger-strong flex-shrink-0" />}
                     </div>
-                    <div className="text-[13px] text-ink-soft leading-relaxed mb-2">{notif.message}</div>
+                    <div className="text-sm text-ink-soft leading-relaxed mb-2">{notif.message}</div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="text-xs text-ink-faint">{timeAgo(notif.created_at)}</div>
                       {notif.complaints?.reference_number && (

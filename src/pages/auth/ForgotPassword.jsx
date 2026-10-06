@@ -86,7 +86,7 @@ function ForgotPassword() {
               <h2 className="text-ink font-sans text-xl font-semibold mb-2">Check your email</h2>
               <p className="text-ink-soft text-sm leading-relaxed mb-1">We sent a reset link to</p>
               <p className="text-ink font-semibold text-sm mb-4">{email}</p>
-              <p className="text-ink-faint text-[13px] leading-relaxed">
+              <p className="text-ink-faint text-sm leading-relaxed">
                 Click the link in that email to set a new password. It may take a minute to arrive.
               </p>
             </div>

@@ -107,7 +107,7 @@ function Profile() {
               {initials}
             </div>
             <div className="text-ink text-[17px] font-bold mb-1">{fullName || 'Resident'}</div>
-            <div className="text-ink-faint text-[13px] capitalize mb-3.5">
+            <div className="text-ink-faint text-sm capitalize mb-3.5">
               {profile?.official_title || profile?.role || 'resident'}
             </div>
 
@@ -122,7 +122,7 @@ function Profile() {
             )}
 
             <div className="border-t border-border mt-4 pt-4">
-              <div className="text-[11px] font-bold uppercase tracking-wide text-ink-faint mb-3 text-left">
+              <div className="text-xs font-bold uppercase tracking-wide text-ink-faint mb-3 text-left">
                 My Report Summary
               </div>
               {[
@@ -131,7 +131,7 @@ function Profile() {
                 { label: 'Active', val: stats.active, color: 'text-warning-strong', bg: 'bg-warning-soft' },
               ].map((s) => (
                 <div key={s.label} className={`flex justify-between items-center px-3 py-2 rounded-lg mb-1.5 ${s.bg}`}>
-                  <span className="text-[13px] text-ink-soft font-medium">{s.label}</span>
+                  <span className="text-sm text-ink-soft font-medium">{s.label}</span>
                   <span className={`text-[17px] font-bold ${s.color}`}>{s.val}</span>
                 </div>
               ))}

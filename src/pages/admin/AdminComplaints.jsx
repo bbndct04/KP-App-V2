@@ -59,7 +59,7 @@ function AdminComplaints() {
 
   return (
     <AdminLayout title="All Complaints">
-      <p className="text-ink-soft text-[13.5px] mb-4">Track and manage all barangay cases</p>
+      <p className="text-ink-soft text-sm mb-4">Track and manage all barangay cases</p>
 
       {/* Search + Filter */}
       <div className="bg-surface border border-border rounded-2xl p-4 mb-5 flex gap-2.5 flex-wrap items-center shadow-token-md">

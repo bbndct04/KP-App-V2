@@ -51,7 +51,7 @@ function AdminNotifications() {
   return (
     <AdminLayout title="Notifications">
       <div className="max-w-[760px] mx-auto">
-        <p className="text-ink-soft text-[13.5px] mb-5">New complaints, today's hearings, and cases needing attention</p>
+        <p className="text-ink-soft text-sm mb-5">New complaints, today's hearings, and cases needing attention</p>
 
         {loading ? (
           <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
@@ -59,7 +59,7 @@ function AdminNotifications() {
           <div className="bg-surface border border-border rounded-2xl p-14 text-center shadow-token-md">
             <div className="text-4xl mb-3">🔔</div>
             <div className="text-ink text-[15px] font-semibold mb-1.5">No notifications yet</div>
-            <div className="text-ink-faint text-[13px]">You'll be alerted here when residents file complaints or cases need attention.</div>
+            <div className="text-ink-faint text-sm">You'll be alerted here when residents file complaints or cases need attention.</div>
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -80,7 +80,7 @@ function AdminNotifications() {
                       <div className="text-sm font-bold text-ink">{n.title || 'Notification'}</div>
                       {!n.is_read && <span className="w-2 h-2 rounded-full bg-danger-strong flex-shrink-0" />}
                     </div>
-                    <div className="text-[13px] text-ink-soft leading-relaxed mb-2">{n.message}</div>
+                    <div className="text-sm text-ink-soft leading-relaxed mb-2">{n.message}</div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="text-xs text-ink-faint">{timeAgo(n.created_at)}</div>
                       {n.complaint_id ? (

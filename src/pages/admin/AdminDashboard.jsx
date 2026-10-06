@@ -60,7 +60,7 @@ function AdminDashboard() {
   return (
     <AdminLayout title="Admin Dashboard">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <p className="text-ink-soft text-[13.5px]">
+        <p className="text-ink-soft text-sm">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
         <div className="flex gap-2.5">
@@ -158,7 +158,7 @@ function AdminDashboard() {
               { label: 'Residents', val: stats.residents, color: 'text-success-strong' },
             ].map((s) => (
               <div key={s.label} className="flex justify-between items-center px-3 py-2 rounded-lg mb-1.5 bg-surface-sunken">
-                <span className="text-[13px] text-ink-soft font-medium">{s.label}</span>
+                <span className="text-sm text-ink-soft font-medium">{s.label}</span>
                 <span className={`text-lg font-bold ${s.color}`}>{s.val}</span>
               </div>
             ))}
@@ -177,7 +177,7 @@ function AdminDashboard() {
                 return (
                   <div key={cat.category} className="mb-3">
                     <div className="flex justify-between mb-1">
-                      <span className="text-[12px] text-ink-soft truncate pr-2">{cat.category}</span>
+                      <span className="text-xs text-ink-soft truncate pr-2">{cat.category}</span>
                       <span className="text-xs font-bold text-accent flex-shrink-0">{cat.count}</span>
                     </div>
                     <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">

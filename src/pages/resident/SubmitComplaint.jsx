@@ -140,7 +140,7 @@ function SubmitComplaint() {
         {/* Info Banner */}
         <div className="bg-info-soft border border-info-strong/20 rounded-xl px-4 py-3 mb-5 flex items-center gap-2.5">
           <span className="text-info-strong">ℹ️</span>
-          <span className="text-[13.5px] text-info-strong">
+          <span className="text-sm text-info-strong">
             A unique reference number (e.g. <strong className="text-ink">KP-2026-001</strong>) will be automatically generated after submission.
           </span>
         </div>
@@ -384,7 +384,7 @@ function SubmitComplaint() {
               <span className="text-lg flex-shrink-0">⚠️</span>
               <div>
                 <div className="text-sm font-bold text-warning-strong mb-1">Important Notice</div>
-                <div className="text-[13px] text-warning-strong leading-relaxed">
+                <div className="text-sm text-warning-strong leading-relaxed">
                   The complainant must <strong>personally appear at the Barangay Hall</strong> within <strong>24 hours</strong> from submission to formally file this complaint.
                 </div>
                 <div className="text-xs text-warning-strong mt-2 font-semibold leading-relaxed">
@@ -394,7 +394,7 @@ function SubmitComplaint() {
               </div>
             </div>
 
-            <p className="text-[13px] text-ink-soft mb-5 leading-relaxed">
+            <p className="text-sm text-ink-soft mb-5 leading-relaxed">
               Save your reference number. You can use it to track your complaint status anytime.
             </p>
 

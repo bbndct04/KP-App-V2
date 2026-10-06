@@ -154,7 +154,7 @@ function Dashboard() {
         <div className="flex flex-col gap-3.5">
           <div className="bg-accent-soft border border-accent/20 rounded-2xl p-5 shadow-token-md">
             <div className="text-ink text-sm font-bold mb-1.5">📝 File a Complaint</div>
-            <div className="text-ink-soft text-[13px] mb-3.5 leading-relaxed">
+            <div className="text-ink-soft text-sm mb-3.5 leading-relaxed">
               Submit a new complaint or incident report online.
             </div>
             <Link
@@ -172,9 +172,9 @@ function Dashboard() {
               <input
                 type="text"
                 placeholder="KP-2026-XXX"
-                className="flex-1 min-w-0 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-md px-2.5 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="flex-1 min-w-0 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-md px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
               />
-              <button type="submit" className="bg-accent hover:bg-accent-hover text-accent-ink rounded-md px-4 py-2 text-[13px] font-semibold flex-shrink-0">
+              <button type="submit" className="bg-accent hover:bg-accent-hover text-accent-ink rounded-md px-4 py-2 text-sm font-semibold flex-shrink-0">
                 Go
               </button>
             </form>
@@ -182,7 +182,7 @@ function Dashboard() {
 
           <div className="bg-surface border border-border rounded-2xl p-4.5 shadow-token-md">
             <div className="text-ink text-sm font-semibold mb-2">ℹ️ Need Help?</div>
-            <div className="text-ink-faint text-[12.5px] leading-relaxed">
+            <div className="text-ink-faint text-sm leading-relaxed">
               Visit the barangay office at <strong className="text-ink-soft">8AM–5PM</strong> Mon–Fri, or call your barangay hotline for urgent concerns.
             </div>
           </div>

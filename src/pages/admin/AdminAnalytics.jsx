@@ -61,7 +61,7 @@ function AdminAnalytics() {
 
   return (
     <AdminLayout title="Reports & Analytics">
-      <p className="text-ink-soft text-[13.5px] mb-5">System statistics and complaint insights</p>
+      <p className="text-ink-soft text-sm mb-5">System statistics and complaint insights</p>
 
       {loading ? (
         <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
@@ -91,8 +91,8 @@ function AdminAnalytics() {
                 return (
                   <div key={s.label} className="mb-3.5">
                     <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-[13px] text-ink-soft font-medium">{s.label}</span>
-                      <span className="text-[13px] font-bold" style={{ color: s.color }}>{s.val} ({pct}%)</span>
+                      <span className="text-sm text-ink-soft font-medium">{s.label}</span>
+                      <span className="text-sm font-bold" style={{ color: s.color }}>{s.val} ({pct}%)</span>
                     </div>
                     <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${pct}%`, background: s.color }} />
@@ -124,8 +124,8 @@ function AdminAnalytics() {
                   return (
                     <div key={cat.category} className="mb-3.5">
                       <div className="flex justify-between mb-1.5">
-                        <span className="text-[12.5px] text-ink-soft truncate pr-2">{cat.category}</span>
-                        <span className="text-[12px] font-bold flex-shrink-0" style={{ color }}>{cat.count} ({pct}%)</span>
+                        <span className="text-sm text-ink-soft truncate pr-2">{cat.category}</span>
+                        <span className="text-xs font-bold flex-shrink-0" style={{ color }}>{cat.count} ({pct}%)</span>
                       </div>
                       <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
                         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
@@ -145,12 +145,12 @@ function AdminAnalytics() {
                 const heightPct = (count / maxMonth) * 100
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1.5 min-w-[20px]">
-                    <div className="text-[11px] text-ink-soft font-semibold">{count > 0 ? count : ''}</div>
+                    <div className="text-xs text-ink-soft font-semibold">{count > 0 ? count : ''}</div>
                     <div
                       className="w-full rounded-t-md bg-accent/70 hover:bg-accent transition-colors min-h-[2px]"
                       style={{ height: `${heightPct}%` }}
                     />
-                    <div className="text-[11px] text-ink-faint">{MONTHS[i]}</div>
+                    <div className="text-xs text-ink-faint">{MONTHS[i]}</div>
                   </div>
                 )
               })}

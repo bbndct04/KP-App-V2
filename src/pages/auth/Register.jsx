@@ -460,7 +460,7 @@ function Register() {
                 <div
                   ref={termsRef}
                   onScroll={handleTermsScroll}
-                  className="p-3.5 max-h-[200px] overflow-y-auto text-[13px] text-ink-soft leading-relaxed space-y-2.5"
+                  className="p-3.5 max-h-[200px] overflow-y-auto text-sm text-ink-soft leading-relaxed space-y-2.5"
                 >
                   <p><strong className="text-ink">⚠️ Age Requirement</strong><br />
                   This system is exclusively for individuals who are <strong className="text-ink">18 years old and above</strong>. By registering, you confirm that you are at least 18 years of age. Minors are strictly prohibited from using this system in compliance with Philippine law and the Data Privacy Act of 2012.</p>
@@ -512,7 +512,7 @@ function Register() {
                     onChange={(e) => setAgreed(e.target.checked)}
                     className="mt-1 w-5 h-5 accent-[var(--accent)] disabled:opacity-40"
                   />
-                  <span className="text-[13.5px] text-ink-soft leading-relaxed">
+                  <span className="text-sm text-ink-soft leading-relaxed">
                     I have read and agree to the <strong className="text-accent">Terms of Service</strong>, <strong className="text-accent">Data Privacy Act of 2012</strong>, and confirm that I am <strong className="text-accent">18 years old or above</strong>.
                   </span>
                 </label>
@@ -576,7 +576,7 @@ function Register() {
                     <div className="text-[15px] font-bold text-ink mb-1.5">
                       {idType ? 'Click to upload your ID' : 'Select an ID type above first'}
                     </div>
-                    <div className="text-[13px] text-ink-soft mb-1">Any valid Philippine government ID</div>
+                    <div className="text-sm text-ink-soft mb-1">Any valid Philippine government ID</div>
                     <div className="text-xs text-ink-faint">JPG, PNG — Max 10MB</div>
                   </div>
                 ) : (
@@ -660,7 +660,7 @@ function Register() {
                   <div className="p-8 text-center">
                     <div className="text-3xl mb-3">🚫</div>
                     <div className="text-[15px] font-bold text-ink mb-1.5">Camera unavailable</div>
-                    <div className="text-[13px] text-ink-soft max-w-[320px] mx-auto">{cameraError}</div>
+                    <div className="text-sm text-ink-soft max-w-[320px] mx-auto">{cameraError}</div>
                   </div>
                 ) : !facePreview ? (
                   <>
@@ -936,11 +936,11 @@ function Register() {
                 📧
               </div>
               <h2 className="text-ink font-sans text-2xl font-bold mb-2">Check your email</h2>
-              <p className="text-ink-soft text-[13.5px] leading-relaxed mb-1 max-w-[380px] mx-auto">
+              <p className="text-ink-soft text-sm leading-relaxed mb-1 max-w-[380px] mx-auto">
                 We sent a verification link to
               </p>
               <p className="text-ink font-semibold text-sm mb-5">{email}</p>
-              <p className="text-ink-faint text-[13px] leading-relaxed mb-6 max-w-[380px] mx-auto">
+              <p className="text-ink-faint text-sm leading-relaxed mb-6 max-w-[380px] mx-auto">
                 Click the link in that email to activate your account, then come back here to sign in.
               </p>
 

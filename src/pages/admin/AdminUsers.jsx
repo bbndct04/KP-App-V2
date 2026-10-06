@@ -55,7 +55,7 @@ function AdminUsers() {
 
   return (
     <AdminLayout title="Manage Users">
-      <p className="text-ink-soft text-[13.5px] mb-4">Manage roles and access control</p>
+      <p className="text-ink-soft text-sm mb-4">Manage roles and access control</p>
 
       {/* Search + Filter */}
       <div className="bg-surface border border-border rounded-2xl p-4 mb-5 flex gap-2.5 flex-wrap items-center shadow-token-md">
@@ -111,8 +111,8 @@ function AdminUsers() {
                             </div>
                             <div>
                               <div className="text-ink text-sm font-semibold">{u.full_name || '—'}</div>
-                              {u.official_title && <div className="text-ink-faint text-[11px]">{u.official_title}</div>}
-                              {isSelf && <div className="text-ink-faint text-[11px]">(You)</div>}
+                              {u.official_title && <div className="text-ink-faint text-xs">{u.official_title}</div>}
+                              {isSelf && <div className="text-ink-faint text-xs">(You)</div>}
                             </div>
                           </div>
                         </td>

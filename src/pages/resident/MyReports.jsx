@@ -57,7 +57,7 @@ function MyReports() {
   return (
     <AppLayout title="My Reports">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-        <p className="text-ink-soft text-[13.5px]">All your submitted complaints and their current status</p>
+        <p className="text-ink-soft text-sm">All your submitted complaints and their current status</p>
         <Link
           to="/complaints/new"
           className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2.5 transition-colors text-center flex-shrink-0 shadow-token-sm"
@@ -75,7 +75,7 @@ function MyReports() {
             <button
               key={f.key}
               onClick={() => setActiveFilter(f.key)}
-              className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium border transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 isActive
                   ? 'bg-accent border-accent text-accent-ink'
                   : 'bg-surface-sunken border-border text-ink-soft hover:bg-surface-hover'
