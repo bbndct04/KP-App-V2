@@ -1,15 +1,12 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AppSkeleton from './AppSkeleton'
 
 function AdminRoute({ children }) {
   const { profile, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-950">
-        <div className="text-white font-sans">Loading...</div>
-      </div>
-    )
+    return <AppSkeleton />
   }
 
   if (!profile || !['admin', 'staff'].includes(profile.role)) {

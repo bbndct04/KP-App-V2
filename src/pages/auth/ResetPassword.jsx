@@ -69,7 +69,13 @@ function ResetPassword() {
 
         <div className="bg-surface rounded-3xl shadow-token-lg p-8 border border-border">
           {checkingSession ? (
-            <div className="text-center py-6 text-ink-faint text-sm">Verifying your link...</div>
+            <div role="status" aria-label="Verifying your link" className="flex flex-col gap-3 py-2">
+              <div className="h-6 w-2/3 mx-auto animate-pulse rounded-lg bg-surface-sunken" />
+              <div className="h-4 w-full animate-pulse rounded-lg bg-surface-sunken" />
+              <div className="h-11 w-full animate-pulse rounded-lg bg-surface-sunken" />
+              <div className="h-11 w-full animate-pulse rounded-lg bg-surface-sunken" />
+              <span className="sr-only">Verifying your link…</span>
+            </div>
           ) : !validLink ? (
             <div className="text-center py-2">
               <div className="w-[64px] h-[64px] bg-danger-soft border border-danger-strong/30 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">

@@ -1,4 +1,5 @@
 import {
+  MdOutlinePendingActions,
   MdOutlineInbox,
   MdOutlineMarkEmailRead,
   MdOutlineHandshake,
@@ -7,9 +8,11 @@ import {
   MdOutlineCheckCircle,
   MdOutlineDescription,
   MdOutlineCancel,
+  MdOutlineBlock,
 } from 'react-icons/md'
 
 export const STATUS = {
+  submitted: { label: 'Awaiting Review', icon: MdOutlinePendingActions, className: 'bg-warning-soft text-warning-strong' },
   filed: { label: 'Filed', icon: MdOutlineInbox, className: 'bg-warning-soft text-warning-strong' },
   summoned: { label: 'Summoned', icon: MdOutlineMarkEmailRead, className: 'bg-info-soft text-info-strong' },
   mediation: { label: 'Mediation', icon: MdOutlineHandshake, className: 'bg-accent-soft text-accent' },
@@ -18,4 +21,9 @@ export const STATUS = {
   settled: { label: 'Settled', icon: MdOutlineCheckCircle, className: 'bg-success-soft text-success-strong' },
   cfa_issued: { label: 'CFA Issued', icon: MdOutlineDescription, className: 'bg-neutral-soft text-neutral-strong' },
   dismissed: { label: 'Dismissed', icon: MdOutlineCancel, className: 'bg-danger-soft text-danger-strong' },
+  declined: { label: 'Declined', icon: MdOutlineBlock, className: 'bg-danger-soft text-danger-strong' },
 }
+
+export const INTAKE_STATUSES = ['submitted', 'declined']
+export const ACTIVE_STAGES = ['filed', 'summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
+export const CLOSED_STAGES = ['settled', 'cfa_issued', 'dismissed']

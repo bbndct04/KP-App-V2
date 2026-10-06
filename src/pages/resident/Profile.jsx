@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { useToast } from '../../context/toastContext'
 import { MdOutlinePerson, MdOutlineLock, MdOutlineVerified, MdOutlineWarningAmber } from 'react-icons/md'
 
 function Profile() {
   const { user, profile } = useAuth()
+  const toast = useToast()
   const [stats, setStats] = useState({ total: 0, closed: 0, active: 0 })
 
   const [fullName, setFullName] = useState('')
@@ -14,14 +16,12 @@ function Profile() {
   const [address, setAddress] = useState('')
   const [officialTitle, setOfficialTitle] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
-  const [profileMsg, setProfileMsg] = useState('')
   const [profileError, setProfileError] = useState('')
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
-  const [passwordMsg, setPasswordMsg] = useState('')
   const [passwordError, setPasswordError] = useState('')
 
   useEffect(() => {
@@ -39,7 +39,7 @@ function Profile() {
       if (!user) return
       const { data } = await supabase.from('complaints').select('status').eq('user_id', user.id)
       const total = data?.length || 0
-      const closed = data?.filter((c) => ['settled', 'cfa_issued', 'dismissed'].includes(c.status)).length || 0
+      const closed = data?.filter((c) => ['settled', 'cfa_issued', 'dismissed', 'declined'].includes(c.status)).length || 0
       const active = total - closed
       setStats({ total, closed, active })
     }
@@ -54,7 +54,6 @@ function Profile() {
 
   async function handleProfileSave(e) {
     e.preventDefault()
-    setProfileMsg('')
     setProfileError('')
     setSavingProfile(true)
 
@@ -70,13 +69,12 @@ function Profile() {
 
     setSavingProfile(false)
     if (error) setProfileError(error.message)
-    else setProfileMsg('Profile updated successfully.')
+    else toast.success('Your profile has been updated.')
   }
 
   async function handlePasswordSave(e) {
     e.preventDefault()
     setPasswordError('')
-    setPasswordMsg('')
 
     if (!currentPassword) {
       setPasswordError('Enter your current password.')
@@ -104,7 +102,7 @@ function Profile() {
     if (error) {
       setPasswordError(error.message)
     } else {
-      setPasswordMsg('Password updated successfully.')
+      toast.success('Your password has been changed.')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
@@ -167,11 +165,6 @@ function Profile() {
               {profileError && (
                 <div className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-lg px-4 py-2.5 mb-4">
                   {profileError}
-                </div>
-              )}
-              {profileMsg && (
-                <div className="bg-success-soft border border-success-strong/20 text-success-strong text-sm rounded-lg px-4 py-2.5 mb-4">
-                  {profileMsg}
                 </div>
               )}
 
@@ -256,11 +249,6 @@ function Profile() {
               {passwordError && (
                 <div className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-lg px-4 py-2.5 mb-4">
                   {passwordError}
-                </div>
-              )}
-              {passwordMsg && (
-                <div className="bg-success-soft border border-success-strong/20 text-success-strong text-sm rounded-lg px-4 py-2.5 mb-4">
-                  {passwordMsg}
                 </div>
               )}
 

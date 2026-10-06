@@ -33,22 +33,27 @@ function AdminAnalytics() {
   const total = complaints.length
   const stats = {
     total,
+    submitted: complaints.filter((c) => c.status === 'submitted').length,
+    declined: complaints.filter((c) => c.status === 'declined').length,
     filed: complaints.filter((c) => c.status === 'filed').length,
     inProgress: complaints.filter((c) => IN_PROGRESS_STAGES.includes(c.status)).length,
     settled: complaints.filter((c) => c.status === 'settled').length,
     cfaIssued: complaints.filter((c) => c.status === 'cfa_issued').length,
     dismissed: complaints.filter((c) => c.status === 'dismissed').length,
   }
-  const resRate = total > 0 ? Math.round((stats.settled / total) * 100) : 0
+  const accepted = total - stats.submitted - stats.declined
+  const resRate = accepted > 0 ? Math.round((stats.settled / accepted) * 100) : 0
   const activeCases = stats.filed + stats.inProgress
   const denom = total || 1
 
   const statusRows = [
+    { label: 'Awaiting Review', val: stats.submitted, color: '#fcd34d' },
     { label: 'Filed', val: stats.filed, color: '#fbbf24' },
     { label: 'In Progress', val: stats.inProgress, color: '#38bdf8' },
     { label: 'Settled', val: stats.settled, color: '#34d399' },
     { label: 'CFA Issued', val: stats.cfaIssued, color: '#9ca3af' },
     { label: 'Dismissed', val: stats.dismissed, color: '#f87171' },
+    { label: 'Declined', val: stats.declined, color: '#fb923c' },
   ]
 
   const catCounts = {}

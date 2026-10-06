@@ -103,9 +103,12 @@ function SubmitComplaint() {
     if (file) {
       const path = `${user.id}/${Date.now()}-${file.name}`
       const { error: uploadError } = await supabase.storage.from('complaint-attachments').upload(path, file)
-      if (!uploadError) {
-        attachmentUrl = path
+      if (uploadError) {
+        setSubmitting(false)
+        setError("We couldn't upload your evidence file, so the complaint was not submitted. Please try again, or remove the file to submit without it.")
+        return
       }
+      attachmentUrl = path
     }
 
     const { data: inserted, error: insertError } = await supabase
@@ -114,7 +117,7 @@ function SubmitComplaint() {
         user_id: user.id,
         category: finalCategory,
         description,
-        status: 'filed',
+        status: 'submitted',
         complainant_name: complainantName,
         complainant_contact: complainantContact,
         complainant_address: complainantAddress,
@@ -138,9 +141,9 @@ function SubmitComplaint() {
     await supabase.from('complaint_notifications').insert({
       complaint_id: inserted.id,
       user_id: user.id,
-      title: 'Complaint Received',
+      title: 'Complaint Submitted',
       type: 'info',
-      message: `Your complaint has been received and filed (Ref: ${inserted.reference_number}). You'll be notified as it progresses.`,
+      message: `Your complaint (Ref: ${inserted.reference_number}) was submitted and is waiting for the barangay to review it. You'll be notified once it is accepted.`,
     })
 
     setSubmitting(false)

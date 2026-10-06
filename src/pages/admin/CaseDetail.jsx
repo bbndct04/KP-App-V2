@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
+import { useToast } from '../../context/toastContext'
 import {
   MdArrowBack,
   MdArrowForward,
@@ -19,6 +20,8 @@ import {
 } from 'react-icons/md'
 import { Card, StatusBadge, EmptyState, Skeleton, LinkButton, ConfirmDialog } from '../../components/ui'
 import { STATUS } from '../../components/status'
+import ComplaintDetails from '../../components/admin/ComplaintDetails'
+import IdentityPanel from '../../components/admin/IdentityPanel'
 
 const STAGES = [
   { key: 'filed', label: 'Filed' },
@@ -86,6 +89,7 @@ function CaseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { profile } = useAuth()
+  const toast = useToast()
   const [complaint, setComplaint] = useState(null)
   const [logs, setLogs] = useState([])
   const [members, setMembers] = useState([])
@@ -147,7 +151,7 @@ function CaseDetail() {
             icon={MdOutlineSearchOff}
             title="Case not found"
             message="This case may have been removed, or the link is incorrect."
-            action={<LinkButton to="/admin/complaints">Back to All Complaints</LinkButton>}
+            action={<LinkButton to="/admin/cases">Back to Active Cases</LinkButton>}
           />
         </Card>
       </AdminLayout>
@@ -170,7 +174,7 @@ function CaseDetail() {
     if (!selectedNextStage) return
     setSaving(true)
 
-    await supabase
+    const { data: updated, error: updateError } = await supabase
       .from('complaints')
       .update({
         status: selectedNextStage,
@@ -181,6 +185,13 @@ function CaseDetail() {
         cfa_issued_at: selectedNextStage === 'cfa_issued' ? new Date().toISOString() : complaint.cfa_issued_at,
       })
       .eq('id', id)
+      .select('id')
+
+    if (updateError || !updated?.length) {
+      setSaving(false)
+      toast.error(`The case could not be updated. ${updateError?.message || 'You may not have permission.'}`)
+      return
+    }
 
     await supabase.from('case_activity_log').insert({
       complaint_id: id,
@@ -200,49 +211,71 @@ function CaseDetail() {
       dismissed: { title: 'Case Dismissed', type: 'danger', msg: 'Your case has been dismissed.' },
     }
     const n = NOTIF[selectedNextStage]
+    let notifFailed = false
     if (n) {
-      await supabase.from('complaint_notifications').insert({
+      const { error: notifError } = await supabase.from('complaint_notifications').insert({
         complaint_id: id,
         user_id: complaint.user_id,
         title: n.title,
         type: n.type,
         message: `${n.msg} (Ref: ${complaint.reference_number})`,
       })
+      notifFailed = !!notifError
     }
 
     setSaving(false)
     setShowAdvanceModal(false)
+    if (notifFailed) {
+      toast.error(`Case moved to ${STAGE_LABELS[selectedNextStage]}, but the resident could not be notified.`)
+    } else {
+      toast.success(`Case moved to ${STAGE_LABELS[selectedNextStage]}. The resident has been notified.`)
+    }
     loadAll()
   }
 
   async function addNote() {
     if (!noteText.trim()) return
     setSavingNote(true)
-    await supabase.from('case_activity_log').insert({
+    const { error } = await supabase.from('case_activity_log').insert({
       complaint_id: id,
       entry_type: 'note',
       remarks: noteText,
       created_by: profile?.id,
     })
-    setNoteText('')
     setSavingNote(false)
+    if (error) {
+      toast.error(`The note could not be saved. ${error.message}`)
+      return
+    }
+    setNoteText('')
+    toast.success('Note added to the activity log.')
     loadAll()
   }
 
   async function addMember() {
     if (!newMemberName.trim()) return
-    await supabase.from('pangkat_members').insert({
+    const { error } = await supabase.from('pangkat_members').insert({
       complaint_id: id,
       member_name: newMemberName,
       role: newMemberRole,
     })
+    if (error) {
+      toast.error(`The member could not be added. ${error.message}`)
+      return
+    }
     setNewMemberName('')
     setNewMemberRole('member')
+    toast.success('Pangkat member added.')
     loadAll()
   }
 
   async function removeMember(memberId) {
-    await supabase.from('pangkat_members').delete().eq('id', memberId)
+    const { error } = await supabase.from('pangkat_members').delete().eq('id', memberId)
+    if (error) {
+      toast.error(`The member could not be removed. ${error.message}`)
+      return
+    }
+    toast.success('Pangkat member removed.')
     loadAll()
   }
 
@@ -251,8 +284,8 @@ function CaseDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-5">
         <div>
-          <button onClick={() => navigate('/admin/complaints')} className="text-sm text-accent font-semibold mb-3 flex items-center gap-1">
-            <MdArrowBack aria-hidden="true" /> Back to All Complaints
+          <button onClick={() => navigate('/admin/cases')} className="text-sm text-accent font-semibold mb-3 flex items-center gap-1">
+            <MdArrowBack aria-hidden="true" /> Back to Active Cases
           </button>
           <div className="text-ink-faint text-sm font-mono">{complaint.reference_number}</div>
           <div className="text-ink text-xl font-bold">{complaint.category}</div>
@@ -313,6 +346,9 @@ function CaseDetail() {
           <div className="text-ink-faint text-xs mt-1">{complaint.respondent_address}</div>
         </div>
       </div>
+
+      <ComplaintDetails complaint={complaint} className="mb-4" />
+      <IdentityPanel userId={complaint.user_id} collapsible defaultOpen={false} className="mb-4" />
 
       {/* Pangkat Members */}
       {(members.length > 0 || complaint.status === 'pangkat_formed' || complaint.status === 'pangkat_hearing') && (

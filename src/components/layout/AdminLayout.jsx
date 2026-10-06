@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   MdOutlineDashboard,
   MdOutlineAssignment,
+  MdOutlineMoveToInbox,
   MdOutlineNotifications,
   MdOutlineManageAccounts,
   MdOutlineInsights,
@@ -23,7 +24,8 @@ import logo from '../../assets/kp-app-logo.png'
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: MdOutlineDashboard },
-  { to: '/admin/complaints', label: 'Manage Complaints', icon: MdOutlineAssignment },
+  { to: '/admin/complaints', label: 'New Complaints', icon: MdOutlineMoveToInbox },
+  { to: '/admin/cases', label: 'Active Cases', icon: MdOutlineAssignment },
   { to: '/admin/notifications', label: 'Notifications', icon: MdOutlineNotifications },
   { to: '/admin/users', label: 'Manage Users', icon: MdOutlineManageAccounts },
   { to: '/admin/analytics', label: 'Analytics', icon: MdOutlineInsights },
@@ -60,6 +62,7 @@ function AdminLayout({ title, children }) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [awaiting, setAwaiting] = useState(0)
   const [toasts, setToasts] = useState([])
 
   const badgeCount = location.pathname === '/admin/notifications' ? 0 : unreadCount
@@ -86,6 +89,12 @@ function AdminLayout({ title, children }) {
     }
     loadUnread()
 
+    async function loadAwaiting() {
+      const { count } = await supabase.from('complaints').select('*', { count: 'exact', head: true }).eq('status', 'submitted')
+      setAwaiting(count || 0)
+    }
+    loadAwaiting()
+
     const channel = supabase
       .channel(`admin-notif-${user.id}`)
       .on(
@@ -94,6 +103,7 @@ function AdminLayout({ title, children }) {
         (payload) => {
           const n = payload.new
           setUnreadCount((c) => c + 1)
+          loadAwaiting()
           setToasts((t) => [...t.slice(-2), n])
           setTimeout(() => dismissToast(n.id), 7000)
         }
@@ -122,7 +132,8 @@ function AdminLayout({ title, children }) {
         <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2">Menu</div>
         {navItems.map((item) => {
           const Icon = item.icon
-          const showBadge = item.to === '/admin/notifications' && badgeCount > 0
+          const count = item.to === '/admin/notifications' ? badgeCount : item.to === '/admin/complaints' ? awaiting : 0
+          const showBadge = count > 0
           return (
             <NavLink
               key={item.to}
@@ -138,7 +149,7 @@ function AdminLayout({ title, children }) {
               <span className="flex-1">{item.label}</span>
               {showBadge && (
                 <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-danger-strong text-white text-xs font-bold flex items-center justify-center">
-                  {badgeCount > 9 ? '9+' : badgeCount}
+                  {count > 9 ? '9+' : count}
                 </span>
               )}
             </NavLink>

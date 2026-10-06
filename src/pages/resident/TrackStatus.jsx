@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
+  MdOutlineSend,
+  MdOutlineBlock,
+  MdOutlineSchedule,
   MdOutlineInbox,
   MdOutlineMarkEmailRead,
   MdOutlineHandshake,
@@ -22,7 +25,8 @@ import { Card, StatusBadge, EmptyState, Skeleton, Button, Input, LinkButton } fr
 import { STATUS } from '../../components/status'
 
 const STEPS = [
-  { key: 'filed', label: 'Complaint Filed', icon: MdOutlineInbox, desc: 'Your complaint has been received by the Barangay.' },
+  { key: 'submitted', label: 'Complaint Submitted', icon: MdOutlineSend, desc: 'Your complaint was sent. The barangay will review it.' },
+  { key: 'filed', label: 'Accepted and Filed', icon: MdOutlineInbox, desc: 'The barangay accepted your complaint and officially filed it.' },
   { key: 'summoned', label: 'Summons Issued', icon: MdOutlineMarkEmailRead, desc: 'The respondent has been summoned to appear.' },
   { key: 'mediation', label: 'Mediation', icon: MdOutlineHandshake, desc: 'The Punong Barangay is mediating between both parties.' },
   { key: 'pangkat_formed', label: 'Pangkat Formed', icon: MdOutlineGroups, desc: 'A 3-member Pangkat has been formed to continue conciliation.' },
@@ -33,7 +37,7 @@ const STEPS = [
 const OUTCOME_STAGES = ['settled', 'cfa_issued', 'dismissed']
 
 function currentIndex(status) {
-  if (OUTCOME_STAGES.includes(status)) return 5
+  if (OUTCOME_STAGES.includes(status)) return STEPS.length - 1
   return STEPS.findIndex((s) => s.key === status)
 }
 
@@ -83,6 +87,8 @@ function TrackStatus() {
 
   const currentIdx = complaint ? currentIndex(complaint.status) : -1
   const isOutcome = complaint && OUTCOME_STAGES.includes(complaint.status)
+  const isDeclined = complaint?.status === 'declined'
+  const isSubmitted = complaint?.status === 'submitted'
 
   return (
     <AppLayout title="Track Status">
@@ -151,7 +157,7 @@ function TrackStatus() {
               <div className="text-base font-semibold text-ink">{complaint.category}</div>
             </div>
             <div>
-              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Date Filed</div>
+              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Date Submitted</div>
               <div className="text-base font-semibold text-ink">
                 {new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
@@ -159,6 +165,33 @@ function TrackStatus() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-5 items-start">
+            {isDeclined ? (
+              <Card className="p-5 md:p-6 min-w-0 border-danger-strong/30">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-danger-soft text-danger-strong flex items-center justify-center flex-shrink-0">
+                    <MdOutlineBlock className="text-2xl" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-ink text-lg font-bold">Your complaint was not accepted</div>
+                    {complaint.reviewed_at && (
+                      <div className="text-ink-faint text-sm">
+                        Reviewed on {new Date(complaint.reviewed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">Reason</div>
+                <div className="text-ink text-sm leading-relaxed bg-danger-soft border border-danger-strong/20 rounded-lg p-3.5 mb-5">
+                  {complaint.declined_reason || 'No reason was recorded.'}
+                </div>
+                <div className="text-ink text-sm font-semibold mb-1.5">What you can do</div>
+                <ul className="text-ink-soft text-sm leading-relaxed list-disc pl-5 mb-5 space-y-1">
+                  <li>Visit the barangay hall (8AM–5PM, Monday to Friday) to ask about the decision.</li>
+                  <li>If the reason can be fixed, submit a new complaint with the correct information.</li>
+                </ul>
+                <LinkButton to="/complaints/new">Submit a New Complaint</LinkButton>
+              </Card>
+            ) : (
             <Card className="p-5 md:p-6 min-w-0">
               <div className="text-ink text-base font-semibold mb-5">Case Progress</div>
 
@@ -195,12 +228,25 @@ function TrackStatus() {
                 )
               })}
             </Card>
+            )}
 
             <div className="flex flex-col gap-4 min-w-0">
               <Card className="p-5 text-center">
                 <div className="text-xs text-ink-faint uppercase tracking-wide mb-3">Current Stage</div>
                 <StatusBadge status={complaint.status} size="lg" />
               </Card>
+
+              {isSubmitted && (
+                <div className="bg-warning-soft border border-warning-strong/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-1.5 text-warning-strong">
+                    <MdOutlineSchedule className="text-xl" aria-hidden="true" />
+                    <div className="text-base font-semibold">Waiting for review</div>
+                  </div>
+                  <div className="text-sm text-warning-strong leading-relaxed">
+                    The complainant must appear in person at the Barangay Hall (8AM–5PM, Monday to Friday) within 24 hours of submitting.
+                  </div>
+                </div>
+              )}
 
               {complaint.hearing_date && !isOutcome && (
                 <div className="bg-warning-soft border border-warning-strong/20 rounded-2xl p-5">

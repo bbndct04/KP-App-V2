@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   MdOutlineFolderCopy,
-  MdOutlineInbox,
+  MdOutlinePendingActions,
   MdOutlineHourglassTop,
   MdOutlineCheckCircle,
   MdOutlineNoteAdd,
@@ -18,8 +18,8 @@ import AppLayout from '../../components/layout/AppLayout'
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton, Button, Input } from '../../components/ui'
 import ComplaintCards from '../../components/ComplaintCards'
 
-const IN_PROGRESS = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
-const CLOSED = ['settled', 'cfa_issued', 'dismissed']
+const IN_PROGRESS = ['filed', 'summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
+const CLOSED = ['settled', 'cfa_issued', 'dismissed', 'declined']
 
 function Dashboard() {
   const { user, profile } = useAuth()
@@ -50,7 +50,7 @@ function Dashboard() {
 
   const stats = [
     { label: 'Total Reports', val: complaints.length, icon: MdOutlineFolderCopy, color: 'text-accent', bg: 'bg-accent-soft' },
-    { label: 'Filed', val: complaints.filter((c) => c.status === 'filed').length, icon: MdOutlineInbox, color: 'text-warning-strong', bg: 'bg-warning-soft' },
+    { label: 'Awaiting Review', val: complaints.filter((c) => c.status === 'submitted').length, icon: MdOutlinePendingActions, color: 'text-warning-strong', bg: 'bg-warning-soft' },
     { label: 'In Progress', val: complaints.filter((c) => IN_PROGRESS.includes(c.status)).length, icon: MdOutlineHourglassTop, color: 'text-info-strong', bg: 'bg-info-soft' },
     { label: 'Closed', val: complaints.filter((c) => CLOSED.includes(c.status)).length, icon: MdOutlineCheckCircle, color: 'text-success-strong', bg: 'bg-success-soft' },
   ]

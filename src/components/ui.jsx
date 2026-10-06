@@ -4,6 +4,7 @@ import { STATUS } from './status'
 import {
   MdOutlineInbox,
   MdOutlineWarningAmber,
+  MdOutlineHelpOutline,
 } from 'react-icons/md'
 
 const BUTTON_VARIANTS = {
@@ -11,6 +12,7 @@ const BUTTON_VARIANTS = {
   secondary: 'bg-surface text-ink border border-border hover:bg-surface-hover',
   ghost: 'text-ink-soft hover:text-ink hover:bg-surface-hover',
   danger: 'bg-red-600 text-white hover:bg-red-700 shadow-token-sm',
+  dangerOutline: 'bg-surface text-danger-strong border border-danger-strong/40 hover:bg-danger-soft',
 }
 
 const BUTTON_SIZES = {
@@ -181,7 +183,11 @@ export function ConfirmDialog({
               tone === 'danger' ? 'bg-danger-soft text-danger-strong' : 'bg-accent-soft text-accent'
             }`}
           >
-            <MdOutlineWarningAmber className="text-2xl" aria-hidden="true" />
+            {tone === 'danger' ? (
+              <MdOutlineWarningAmber className="text-2xl" aria-hidden="true" />
+            ) : (
+              <MdOutlineHelpOutline className="text-2xl" aria-hidden="true" />
+            )}
           </div>
           <div>
             <div className="text-ink text-lg font-bold mb-1">{title}</div>

@@ -3,6 +3,7 @@ import { MdSearch, MdOutlineGroups, MdOutlineSearchOff, MdOutlineAdminPanelSetti
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
+import { useToast } from '../../context/toastContext'
 import { Card, Input, Select, EmptyState, SkeletonRows, ConfirmDialog } from '../../components/ui'
 
 const ROLES = {
@@ -23,6 +24,7 @@ function RoleBadge({ role }) {
 
 function AdminUsers() {
   const { user: currentUser } = useAuth()
+  const toast = useToast()
   const [users, setUsers] = useState([])
   const [counts, setCounts] = useState({})
   const [loading, setLoading] = useState(true)
@@ -30,7 +32,6 @@ function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState('all')
   const [pending, setPending] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     async function load() {
@@ -60,10 +61,10 @@ function AdminUsers() {
     setSaving(false)
 
     if (error || !data?.length) {
-      setMessage({ type: 'error', text: `Couldn't change ${pending.user.full_name || 'this user'}'s role. ${error?.message || 'You may not have permission.'}` })
+      toast.error(`Couldn't change ${pending.user.full_name || 'this user'}'s role. ${error?.message || 'You may not have permission.'}`)
     } else {
       setUsers((list) => list.map((u) => (u.id === pending.user.id ? { ...u, role: pending.newRole } : u)))
-      setMessage({ type: 'success', text: `${pending.user.full_name || 'User'} is now ${ROLES[pending.newRole].label === 'Admin' ? 'an Admin' : 'a Resident'}.` })
+      toast.success(`${pending.user.full_name || 'User'} is now ${ROLES[pending.newRole].label === 'Admin' ? 'an Admin' : 'a Resident'}.`)
     }
     setPending(null)
   }
@@ -81,18 +82,6 @@ function AdminUsers() {
     <AdminLayout title="Manage Users">
       <p className="text-ink-soft text-sm mb-4">Manage roles and access control</p>
 
-      {message && (
-        <div
-          role="status"
-          className={`rounded-lg px-4 py-3 mb-4 text-sm border ${
-            message.type === 'error'
-              ? 'bg-danger-soft border-danger-strong/20 text-danger-strong'
-              : 'bg-success-soft border-success-strong/20 text-success-strong'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
 
       <Card className="p-4 mb-5 flex gap-2.5 flex-wrap items-center">
         <div className="relative flex-1 min-w-[240px]">
@@ -160,7 +149,6 @@ function AdminUsers() {
                           <Select
                             value={u.role}
                             onChange={(e) => {
-                              setMessage(null)
                               setPending({ user: u, newRole: e.target.value })
                             }}
                             aria-label={`Change role for ${u.full_name || 'user'}`}

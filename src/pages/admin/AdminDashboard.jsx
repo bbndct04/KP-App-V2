@@ -5,6 +5,7 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import {
   MdOutlineFolderCopy,
   MdOutlineInbox,
+  MdOutlineMoveToInbox,
   MdOutlineHourglassTop,
   MdOutlineCheckCircle,
   MdOutlineAssignment,
@@ -15,13 +16,11 @@ import {
   MdArrowForward,
 } from 'react-icons/md'
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
+import { ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
 import ComplaintCards from '../../components/ComplaintCards'
 
-const IN_PROGRESS_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
-const CLOSED_STAGES = ['settled', 'cfa_issued', 'dismissed']
-
 function AdminDashboard() {
-  const [stats, setStats] = useState({ total: 0, filed: 0, inProgress: 0, closed: 0, totalUsers: 0, residents: 0 })
+  const [stats, setStats] = useState({ total: 0, awaiting: 0, inProgress: 0, closed: 0, totalUsers: 0, residents: 0 })
   const [recent, setRecent] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,13 +35,13 @@ function AdminDashboard() {
       const { data: profiles } = await supabase.from('profiles').select('role')
 
       const total = complaints?.length || 0
-      const filed = complaints?.filter((c) => c.status === 'filed').length || 0
-      const inProgress = complaints?.filter((c) => IN_PROGRESS_STAGES.includes(c.status)).length || 0
-      const closed = complaints?.filter((c) => CLOSED_STAGES.includes(c.status)).length || 0
+      const awaiting = complaints?.filter((c) => c.status === 'submitted').length || 0
+      const inProgress = complaints?.filter((c) => ACTIVE_STAGES.includes(c.status)).length || 0
+      const closed = complaints?.filter((c) => [...CLOSED_STAGES, 'declined'].includes(c.status)).length || 0
       const totalUsers = profiles?.length || 0
       const residents = profiles?.filter((p) => p.role === 'resident').length || 0
 
-      setStats({ total, filed, inProgress, closed, totalUsers, residents })
+      setStats({ total, awaiting, inProgress, closed, totalUsers, residents })
       setRecent((complaints || []).slice(0, 8))
 
       const catCounts = {}
@@ -62,7 +61,7 @@ function AdminDashboard() {
 
   const statCards = [
     { label: 'Total Complaints', val: stats.total, icon: MdOutlineFolderCopy, color: 'text-accent', bg: 'bg-accent-soft' },
-    { label: 'Newly Filed', val: stats.filed, icon: MdOutlineInbox, color: 'text-warning-strong', bg: 'bg-warning-soft' },
+    { label: 'Awaiting Review', val: stats.awaiting, icon: MdOutlineMoveToInbox, color: 'text-warning-strong', bg: 'bg-warning-soft' },
     { label: 'In Progress', val: stats.inProgress, icon: MdOutlineHourglassTop, color: 'text-info-strong', bg: 'bg-info-soft' },
     { label: 'Closed', val: stats.closed, icon: MdOutlineCheckCircle, color: 'text-success-strong', bg: 'bg-success-soft' },
   ]
@@ -74,14 +73,32 @@ function AdminDashboard() {
           {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
         <div className="flex gap-2.5 flex-wrap">
-          <LinkButton to="/admin/complaints" icon={MdOutlineAssignment}>
-            Manage Complaints
+          <LinkButton to="/admin/complaints" icon={MdOutlineMoveToInbox}>
+            New Complaints
           </LinkButton>
-          <LinkButton to="/admin/users" variant="secondary" icon={MdOutlineManageAccounts}>
-            Manage Users
+          <LinkButton to="/admin/cases" variant="secondary" icon={MdOutlineAssignment}>
+            Active Cases
           </LinkButton>
         </div>
       </div>
+
+      {!loading && stats.awaiting > 0 && (
+        <Link
+          to="/admin/complaints"
+          className="mb-5 flex items-center gap-3 bg-warning-soft border border-warning-strong/30 rounded-2xl px-5 py-4 text-warning-strong hover:opacity-90 transition-opacity"
+        >
+          <MdOutlineMoveToInbox className="text-3xl flex-shrink-0" aria-hidden="true" />
+          <div className="flex-1">
+            <div className="text-base font-bold">
+              {stats.awaiting} complaint{stats.awaiting === 1 ? ' is' : 's are'} waiting for your review
+            </div>
+            <div className="text-sm">Residents are waiting to hear back. Review them as soon as you can.</div>
+          </div>
+          <span className="text-sm font-semibold flex items-center gap-1 flex-shrink-0">
+            Review now <MdArrowForward aria-hidden="true" />
+          </span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
         {statCards.map((s) => {

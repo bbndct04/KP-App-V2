@@ -1,8 +1,8 @@
-import { useComplaintForForm, FormPage, FormHeader, PartiesTable } from './FormShell'
+import { useComplaintForForm, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
 
 function Form22() {
   const { complaint, loading } = useComplaintForForm()
-  if (loading) return <div className="p-10 text-center">Loading...</div>
+  if (loading) return <FormSkeleton />
   if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
 
   return (

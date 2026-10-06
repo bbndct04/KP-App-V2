@@ -1,8 +1,8 @@
-import { useComplaintForForm, fmtDate, FormPage, FormHeader, PartiesTable } from './FormShell'
+import { useComplaintForForm, fmtDate, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
 
 function Form25() {
   const { complaint, loading } = useComplaintForForm()
-  if (loading) return <div className="p-10 text-center">Loading...</div>
+  if (loading) return <FormSkeleton />
   if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
   const now = new Date()
   const hearingStr = complaint.hearing_date ? `${fmtDate(complaint.hearing_date, 'month')} ${fmtDate(complaint.hearing_date, 'day')}, ${fmtDate(complaint.hearing_date, 'year')}` : '____________'

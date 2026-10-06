@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './context/ToastProvider'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
@@ -32,12 +33,14 @@ import Form19 from './pages/admin/forms/Form19'
 import Form22 from './pages/admin/forms/Form22'
 import Form25 from './pages/admin/forms/Form25'
 import Form27 from './pages/admin/forms/Form27'
-import CaseDetail from './pages/admin/CaseDetail'
+import ComplaintRouter from './pages/admin/ComplaintRouter'
+import AdminCases from './pages/admin/AdminCases'
 import AdminNotifications from './pages/admin/AdminNotifications'
 
 function App() {
   return (
     <ThemeProvider>
+    <ToastProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -245,12 +248,15 @@ function App() {
               </AdminRoute>
             }
           />
-          <Route path="/admin/complaints/:id" element={<AdminRoute><CaseDetail /></AdminRoute>} />
+          <Route path="/admin/complaints/:id" element={<AdminRoute><ComplaintRouter /></AdminRoute>} />
+          <Route path="/admin/cases" element={<AdminRoute><AdminCases /></AdminRoute>} />
+          <Route path="/admin/cases/:id" element={<AdminRoute><ComplaintRouter /></AdminRoute>} />
           <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ToastProvider>
     </ThemeProvider>
   )
 }
