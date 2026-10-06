@@ -1,11 +1,24 @@
 import { useEffect, useState } from 'react'
+import { MdSearch, MdOutlineGroups, MdOutlineSearchOff, MdOutlineAdminPanelSettings, MdOutlinePerson } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
+import { Card, Input, Select, EmptyState, SkeletonRows, ConfirmDialog } from '../../components/ui'
 
-const ROLE_BADGES = {
-  admin: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Admin' },
-  resident: { bg: 'bg-success-soft', text: 'text-success-strong', label: 'Resident' },
+const ROLES = {
+  admin: { label: 'Admin', icon: MdOutlineAdminPanelSettings, className: 'bg-purple-soft text-purple-strong' },
+  resident: { label: 'Resident', icon: MdOutlinePerson, className: 'bg-success-soft text-success-strong' },
+}
+
+function RoleBadge({ role }) {
+  const r = ROLES[role] || ROLES.resident
+  const Icon = r.icon
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full text-xs font-semibold px-2.5 py-1 ${r.className}`}>
+      <Icon className="text-[1.15em]" aria-hidden="true" />
+      {r.label}
+    </span>
+  )
 }
 
 function AdminUsers() {
@@ -15,138 +28,172 @@ function AdminUsers() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [savingId, setSavingId] = useState(null)
-
-  async function load() {
-    setLoading(true)
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    const { data: complaints } = await supabase.from('complaints').select('user_id')
-    const countMap = {}
-    ;(complaints || []).forEach((c) => {
-      countMap[c.user_id] = (countMap[c.user_id] || 0) + 1
-    })
-
-    setUsers(profiles || [])
-    setCounts(countMap)
-    setLoading(false)
-  }
+  const [pending, setPending] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
+    async function load() {
+      const [{ data: profiles }, { data: complaints }] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('complaints').select('user_id'),
+      ])
+      const countMap = {}
+      ;(complaints || []).forEach((c) => {
+        countMap[c.user_id] = (countMap[c.user_id] || 0) + 1
+      })
+      setUsers(profiles || [])
+      setCounts(countMap)
+      setLoading(false)
+    }
     load()
   }, [])
 
-  async function changeRole(userId, newRole) {
-    setSavingId(userId)
-    await supabase.from('profiles').update({ role: newRole }).eq('id', userId)
-    setSavingId(null)
-    load()
+  async function confirmRoleChange() {
+    if (!pending) return
+    setSaving(true)
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ role: pending.newRole })
+      .eq('id', pending.user.id)
+      .select('id')
+    setSaving(false)
+
+    if (error || !data?.length) {
+      setMessage({ type: 'error', text: `Couldn't change ${pending.user.full_name || 'this user'}'s role. ${error?.message || 'You may not have permission.'}` })
+    } else {
+      setUsers((list) => list.map((u) => (u.id === pending.user.id ? { ...u, role: pending.newRole } : u)))
+      setMessage({ type: 'success', text: `${pending.user.full_name || 'User'} is now ${ROLES[pending.newRole].label === 'Admin' ? 'an Admin' : 'a Resident'}.` })
+    }
+    setPending(null)
   }
 
   const filtered = users.filter((u) => {
     const matchesRole = roleFilter === 'all' || u.role === roleFilter
-    const s = search.toLowerCase()
+    const s = search.trim().toLowerCase()
     const matchesSearch = !s || u.full_name?.toLowerCase().includes(s)
     return matchesRole && matchesSearch
   })
+
+  const promoting = pending?.newRole === 'admin'
 
   return (
     <AdminLayout title="Manage Users">
       <p className="text-ink-soft text-sm mb-4">Manage roles and access control</p>
 
-      {/* Search + Filter */}
-      <div className="bg-surface border border-border rounded-2xl p-4 mb-5 flex gap-2.5 flex-wrap items-center shadow-token-md">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name..."
-          className="flex-1 min-w-[220px] bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
-        />
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+      {message && (
+        <div
+          role="status"
+          className={`rounded-lg px-4 py-3 mb-4 text-sm border ${
+            message.type === 'error'
+              ? 'bg-danger-soft border-danger-strong/20 text-danger-strong'
+              : 'bg-success-soft border-success-strong/20 text-success-strong'
+          }`}
         >
+          {message.text}
+        </div>
+      )}
+
+      <Card className="p-4 mb-5 flex gap-2.5 flex-wrap items-center">
+        <div className="relative flex-1 min-w-[240px]">
+          <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-ink-faint pointer-events-none" aria-hidden="true" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name" aria-label="Search users" className="pl-10" />
+        </div>
+        <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Filter by role" className="w-auto min-w-[160px]">
           <option value="all">All Roles</option>
           <option value="resident">Residents</option>
           <option value="admin">Admins</option>
-        </select>
-      </div>
+        </Select>
+      </Card>
 
-      {/* Table */}
-      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
+      <Card className="overflow-hidden">
+        {loading ? (
+          <SkeletonRows rows={6} />
+        ) : filtered.length === 0 ? (
+          users.length === 0 ? (
+            <EmptyState icon={MdOutlineGroups} title="No users yet" />
           ) : (
+            <EmptyState icon={MdOutlineSearchOff} title="No matching users" message="Try a different name or role filter." />
+          )
+        ) : (
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-ink-faint text-xs border-b border-border">
-                  <th className="px-5 py-3">User</th>
-                  <th className="px-5 py-3">Role</th>
-                  <th className="px-5 py-3">Complaints</th>
-                  <th className="px-5 py-3">Joined</th>
-                  <th className="px-5 py-3">Change Role</th>
+                <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
+                  <th className="px-5 py-3 font-semibold">User</th>
+                  <th className="px-5 py-3 font-semibold">Role</th>
+                  <th className="px-5 py-3 font-semibold">Complaints</th>
+                  <th className="px-5 py-3 font-semibold">Joined</th>
+                  <th className="px-5 py-3 font-semibold">Change Role</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-14 text-ink-faint">No users found</td>
-                  </tr>
-                ) : (
-                  filtered.map((u) => {
-                    const b = ROLE_BADGES[u.role] || ROLE_BADGES.resident
-                    const isSelf = u.id === currentUser?.id
-                    const initials = (u.full_name || '??').substring(0, 2).toUpperCase()
-                    return (
-                      <tr key={u.id} className="border-b border-border">
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-accent-ink text-xs font-bold flex-shrink-0 shadow-token-sm">
-                              {initials}
-                            </div>
-                            <div>
-                              <div className="text-ink text-sm font-semibold">{u.full_name || '—'}</div>
-                              {u.official_title && <div className="text-ink-faint text-xs">{u.official_title}</div>}
-                              {isSelf && <div className="text-ink-faint text-xs">(You)</div>}
-                            </div>
+                {filtered.map((u) => {
+                  const isSelf = u.id === currentUser?.id
+                  const initials = (u.full_name || '??').substring(0, 2).toUpperCase()
+                  return (
+                    <tr key={u.id} className="border-b border-border last:border-0">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-ink text-sm font-bold flex-shrink-0">
+                            {initials}
                           </div>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className={`${b.bg} ${b.text} text-xs font-semibold px-2.5 py-1 rounded-full`}>{b.label}</span>
-                        </td>
-                        <td className="px-5 py-3.5 text-accent font-bold text-sm">{counts[u.id] || 0}</td>
-                        <td className="px-5 py-3.5 text-ink-faint text-xs">
-                          {u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '—'}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {isSelf ? (
-                            <span className="text-ink-faint text-xs">—</span>
-                          ) : (
-                            <select
-                              value={u.role}
-                              disabled={savingId === u.id}
-                              onChange={(e) => changeRole(u.id, e.target.value)}
-                              className="bg-surface-sunken border border-border text-ink rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50"
-                            >
-                              <option value="resident">Resident</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
+                          <div>
+                            <div className="text-ink text-sm font-semibold">
+                              {u.full_name || '—'} {isSelf && <span className="text-ink-faint font-normal">(You)</span>}
+                            </div>
+                            {u.official_title && <div className="text-ink-faint text-xs">{u.official_title}</div>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <RoleBadge role={u.role} />
+                      </td>
+                      <td className="px-5 py-3.5 text-accent font-bold text-sm">{counts[u.id] || 0}</td>
+                      <td className="px-5 py-3.5 text-ink-faint text-sm whitespace-nowrap">
+                        {u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '—'}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {isSelf ? (
+                          <span className="text-ink-faint text-sm">—</span>
+                        ) : (
+                          <Select
+                            value={u.role}
+                            onChange={(e) => {
+                              setMessage(null)
+                              setPending({ user: u, newRole: e.target.value })
+                            }}
+                            aria-label={`Change role for ${u.full_name || 'user'}`}
+                            className="w-auto py-2"
+                          >
+                            <option value="resident">Resident</option>
+                            <option value="admin">Admin</option>
+                          </Select>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </Card>
+
+      <ConfirmDialog
+        open={!!pending}
+        tone={promoting ? 'danger' : 'primary'}
+        title={promoting ? 'Make this user an Admin?' : 'Change this user to Resident?'}
+        message={
+          promoting
+            ? `${pending?.user.full_name || 'This user'} will get full access to the admin panel: all complaints, case management, legal forms, and user roles.`
+            : `${pending?.user.full_name || 'This user'} will lose access to the admin panel and only see their own complaints.`
+        }
+        confirmLabel={promoting ? 'Yes, make Admin' : 'Yes, change to Resident'}
+        loading={saving}
+        onConfirm={confirmRoleChange}
+        onCancel={() => setPending(null)}
+      />
     </AdminLayout>
   )
 }

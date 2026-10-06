@@ -1,27 +1,33 @@
-import { useState } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import {
+  MdOutlineInbox,
+  MdOutlineMarkEmailRead,
+  MdOutlineHandshake,
+  MdOutlineGroups,
+  MdOutlineGavel,
+  MdOutlineFlag,
+  MdOutlineManageSearch,
+  MdOutlineSearchOff,
+  MdOutlineEvent,
+  MdOutlinePerson,
+  MdOutlineDescription,
+  MdCheck,
+  MdSearch,
+} from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
-
-const BADGES = {
-  filed: { bg: 'bg-warning-soft', text: 'text-warning-strong', label: 'Filed' },
-  summoned: { bg: 'bg-info-soft', text: 'text-info-strong', label: 'Summoned' },
-  mediation: { bg: 'bg-accent-soft', text: 'text-accent', label: 'Mediation' },
-  pangkat_formed: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Formed' },
-  pangkat_hearing: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Hearing' },
-  settled: { bg: 'bg-success-soft', text: 'text-success-strong', label: 'Settled' },
-  cfa_issued: { bg: 'bg-neutral-soft', text: 'text-neutral-strong', label: 'CFA Issued' },
-  dismissed: { bg: 'bg-danger-soft', text: 'text-danger-strong', label: 'Dismissed' },
-}
+import { Card, StatusBadge, EmptyState, Skeleton, Button, Input, LinkButton } from '../../components/ui'
+import { STATUS } from '../../components/status'
 
 const STEPS = [
-  { key: 'filed', label: 'Complaint Filed', icon: '📥', desc: 'Your complaint has been received by the Barangay.' },
-  { key: 'summoned', label: 'Summons Issued', icon: '📨', desc: 'The respondent has been summoned to appear.' },
-  { key: 'mediation', label: 'Mediation', icon: '🤝', desc: 'The Punong Barangay is mediating between both parties.' },
-  { key: 'pangkat_formed', label: 'Pangkat Formed', icon: '👥', desc: 'A 3-member Pangkat has been formed to continue conciliation.' },
-  { key: 'pangkat_hearing', label: 'Pangkat Hearing', icon: '📋', desc: 'The Pangkat is hearing both parties to reach a settlement.' },
-  { key: 'outcome', label: 'Settled / CFA', icon: '🎉', desc: 'The case has reached a final outcome.' },
+  { key: 'filed', label: 'Complaint Filed', icon: MdOutlineInbox, desc: 'Your complaint has been received by the Barangay.' },
+  { key: 'summoned', label: 'Summons Issued', icon: MdOutlineMarkEmailRead, desc: 'The respondent has been summoned to appear.' },
+  { key: 'mediation', label: 'Mediation', icon: MdOutlineHandshake, desc: 'The Punong Barangay is mediating between both parties.' },
+  { key: 'pangkat_formed', label: 'Pangkat Formed', icon: MdOutlineGroups, desc: 'A 3-member Pangkat has been formed to continue conciliation.' },
+  { key: 'pangkat_hearing', label: 'Pangkat Hearing', icon: MdOutlineGavel, desc: 'The Pangkat is hearing both parties to reach a settlement.' },
+  { key: 'outcome', label: 'Final Outcome', icon: MdOutlineFlag, desc: 'The case has reached a final outcome.' },
 ]
 
 const OUTCOME_STAGES = ['settled', 'cfa_issued', 'dismissed']
@@ -31,38 +37,48 @@ function currentIndex(status) {
   return STEPS.findIndex((s) => s.key === status)
 }
 
+function formatTime(t) {
+  if (!t) return ''
+  const [h, m] = t.split(':')
+  const hour = parseInt(h, 10)
+  return `${hour % 12 === 0 ? 12 : hour % 12}:${m} ${hour < 12 ? 'AM' : 'PM'}`
+}
+
 function TrackStatus() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [refInput, setRefInput] = useState(searchParams.get('ref') || '')
+  const refParam = searchParams.get('ref') || ''
+  const [refInput, setRefInput] = useState(refParam)
   const [complaint, setComplaint] = useState(null)
-  const [searched, setSearched] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  async function runSearch(ref) {
-    if (!ref) return
-    setLoading(true)
-    setSearched(true)
-    const { data } = await supabase
-      .from('complaints')
-      .select('*')
-      .eq('reference_number', ref)
-      .eq('user_id', user.id)
-      .single()
-    setComplaint(data || null)
-    setLoading(false)
-  }
+  useEffect(() => {
+    if (!user || !refParam) return
+    let cancelled = false
 
-  useState(() => {
-    const ref = searchParams.get('ref')
-    if (ref) runSearch(ref)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  })
+    async function runSearch() {
+      setLoading(true)
+      const { data } = await supabase
+        .from('complaints')
+        .select('*')
+        .eq('reference_number', refParam)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (cancelled) return
+      setComplaint(data || null)
+      setLoading(false)
+    }
+    runSearch()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user, refParam])
 
   function handleSubmit(e) {
     e.preventDefault()
-    setSearchParams({ ref: refInput })
-    runSearch(refInput)
+    const ref = refInput.trim().toUpperCase()
+    if (ref) setSearchParams({ ref })
   }
 
   const currentIdx = complaint ? currentIndex(complaint.status) : -1
@@ -70,158 +86,156 @@ function TrackStatus() {
 
   return (
     <AppLayout title="Track Status">
-      {/* Search Bar */}
-      <div className="bg-surface border border-border rounded-2xl p-5 mb-5 max-w-[600px] shadow-token-md">
-        <div className="text-ink text-[15px] font-semibold mb-1">Track Your Complaint</div>
-        <div className="text-ink-faint text-sm mb-3.5">Enter your reference number to see the current status</div>
+      <Card className="p-5 mb-5 max-w-[640px]">
+        <div className="flex items-center gap-2.5 mb-1">
+          <MdOutlineManageSearch className="text-2xl text-accent" aria-hidden="true" />
+          <div className="text-ink text-base font-semibold">Track Your Complaint</div>
+        </div>
+        <div className="text-ink-faint text-sm mb-4">Enter your reference number to see the current status</div>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-          <input
+          <Input
             value={refInput}
             onChange={(e) => setRefInput(e.target.value)}
             placeholder="e.g. KP-2026-001"
-            className="flex-1 min-w-0 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+            aria-label="Reference number"
+            className="flex-1 min-w-0"
           />
-          <button type="submit" className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-6 py-2.5 sm:py-0 shadow-token-sm">
+          <Button type="submit" icon={MdSearch} disabled={!refInput.trim()}>
             Search
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
-      {!searched && (
-        <div className="bg-surface border border-border rounded-2xl p-8 md:p-12 text-center max-w-[500px] shadow-token-md">
-          <div className="text-4xl mb-3">📋</div>
-          <div className="text-ink text-[15px] font-semibold mb-1.5">Enter a Reference Number</div>
-          <div className="text-ink-faint text-sm mb-4">
-            Your reference number was given after submitting a complaint. It looks like <strong className="text-ink">KP-2026-001</strong>.
-          </div>
-          <Link to="/my-reports" className="inline-flex items-center gap-2 bg-surface-sunken hover:bg-surface-hover text-ink border border-border rounded-lg px-5 py-2.5 text-sm font-semibold">
-            View All My Reports
-          </Link>
+      {!refParam && (
+        <Card className="max-w-[640px]">
+          <EmptyState
+            icon={MdOutlineManageSearch}
+            title="Enter a reference number"
+            message="You received a reference number after submitting a complaint. It looks like KP-2026-001."
+            action={
+              <LinkButton to="/my-reports" variant="secondary">
+                View All My Reports
+              </LinkButton>
+            }
+          />
+        </Card>
+      )}
+
+      {refParam && loading && (
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-5">
+          <Skeleton className="h-[420px] w-full rounded-2xl" />
+          <Skeleton className="h-[220px] w-full rounded-2xl" />
         </div>
       )}
 
-      {searched && !loading && !complaint && (
-        <div className="bg-surface border border-border rounded-2xl p-8 md:p-12 text-center max-w-[500px] shadow-token-md">
-          <div className="text-4xl mb-3">🔍</div>
-          <div className="text-ink text-base font-semibold mb-1.5">Complaint Not Found</div>
-          <div className="text-ink-faint text-sm mb-4">
-            No complaint found with reference number <strong className="text-ink">{refInput}</strong>. Make sure you entered the correct reference number.
-          </div>
-          <Link to="/my-reports" className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-accent-ink rounded-lg px-5 py-2.5 text-sm font-semibold shadow-token-sm">
-            View My Reports
-          </Link>
-        </div>
+      {refParam && !loading && !complaint && (
+        <Card className="max-w-[640px]">
+          <EmptyState
+            icon={MdOutlineSearchOff}
+            title="Complaint not found"
+            message={`No complaint found with reference number ${refParam}. Make sure you entered it correctly.`}
+            action={<LinkButton to="/my-reports">View My Reports</LinkButton>}
+          />
+        </Card>
       )}
 
-      {complaint && (
+      {refParam && !loading && complaint && (
         <>
-          {/* Case Info */}
-          <div className="bg-accent-soft border border-accent/20 rounded-2xl px-5 md:px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-wrap">
+          <div className="bg-accent-soft border border-accent/20 rounded-2xl px-5 md:px-6 py-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Reference Number</div>
               <div className="text-xl font-bold text-ink font-mono">{complaint.reference_number}</div>
             </div>
             <div>
               <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Category</div>
-              <div className="text-[15px] font-semibold text-ink">{complaint.category}</div>
+              <div className="text-base font-semibold text-ink">{complaint.category}</div>
             </div>
             <div>
               <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Date Filed</div>
-              <div className="text-[15px] font-semibold text-ink">
-                {new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+              <div className="text-base font-semibold text-ink">
+                {new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-5 items-start">
-            {/* Timeline */}
-            <div className="bg-surface border border-border rounded-2xl p-5 md:p-6 min-w-0 shadow-token-md">
-              <div className="text-ink text-[15px] font-semibold mb-5">Case Progress Timeline</div>
+            <Card className="p-5 md:p-6 min-w-0">
+              <div className="text-ink text-base font-semibold mb-5">Case Progress</div>
 
               {STEPS.map((step, i) => {
                 const isDone = i < currentIdx
                 const isActive = i === currentIdx
                 const isFinal = step.key === 'outcome'
-                const isDismissedFinal = isFinal && isActive && complaint.status === 'dismissed'
+                const Icon = isFinal && isActive ? STATUS[complaint.status]?.icon || step.icon : step.icon
+                const label = isFinal && isActive ? STATUS[complaint.status]?.label || step.label : step.label
+                const dismissed = isFinal && isActive && complaint.status === 'dismissed'
+
+                const circle = dismissed
+                  ? 'bg-red-600 text-white'
+                  : isDone || isActive
+                  ? 'bg-accent text-accent-ink'
+                  : 'bg-surface-sunken text-ink-faint border border-border'
+
                 return (
-                  <div key={step.key} className="flex gap-3.5 pb-6 last:pb-0 relative">
+                  <div key={step.key} className="flex gap-4 pb-6 last:pb-0 relative">
                     {i < STEPS.length - 1 && (
-                      <div className="absolute left-[13px] top-7 bottom-0 w-0.5 bg-border" />
+                      <div className={`absolute left-[19px] top-10 bottom-0 w-0.5 ${isDone ? 'bg-accent' : 'bg-border'}`} />
                     )}
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 z-10 ${
-                        isDismissedFinal
-                          ? 'bg-red-500 border-red-500'
-                          : isDone
-                          ? 'bg-accent border-accent'
-                          : isActive
-                          ? 'bg-accent border-accent'
-                          : 'bg-surface-sunken border-border'
-                      }`}
-                    >
-                      {isDone ? (
-                        <span className="text-white text-xs">✓</span>
-                      ) : isActive ? (
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full bg-ink-faint" />
-                      )}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${circle} ${isActive ? 'ring-4 ring-accent/20' : ''}`}>
+                      {isDone ? <MdCheck className="text-xl" aria-hidden="true" /> : <Icon className="text-xl" aria-hidden="true" />}
                     </div>
-                    <div className="flex-1 pt-0.5 min-w-0">
+                    <div className="flex-1 pt-1.5 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-sm font-semibold ${isDone || isActive ? 'text-ink' : 'text-ink-faint'}`}>
-                          {isFinal && isActive ? (BADGES[complaint.status]?.label || step.label) : step.label}
-                        </span>
-                        {isActive && (
-                          <span className="bg-accent-soft text-accent px-2 py-0.5 rounded-full text-xs font-semibold">Current</span>
-                        )}
+                        <span className={`text-base font-semibold ${isDone || isActive ? 'text-ink' : 'text-ink-faint'}`}>{label}</span>
+                        {isActive && <span className="bg-accent-soft text-accent px-2.5 py-0.5 rounded-full text-xs font-semibold">Current</span>}
                       </div>
-                      <div className={`text-sm leading-relaxed ${i > currentIdx ? 'text-ink-faint' : 'text-ink-soft'}`}>
-                        {step.desc}
-                      </div>
+                      <div className={`text-sm leading-relaxed ${i > currentIdx ? 'text-ink-faint' : 'text-ink-soft'}`}>{step.desc}</div>
                     </div>
                   </div>
                 )
               })}
-            </div>
+            </Card>
 
-            {/* Right Info */}
-            <div className="flex flex-col gap-3.5 min-w-0">
-              <div className="bg-surface border border-border rounded-2xl p-4.5 text-center shadow-token-md">
-                <div className="text-xs text-ink-faint uppercase tracking-wide mb-2">Current Stage</div>
-                {(() => {
-                  const b = BADGES[complaint.status] || BADGES.filed
-                  return <span className={`${b.bg} ${b.text} px-5 py-2 rounded-full text-[15px] font-bold`}>{b.label}</span>
-                })()}
-              </div>
+            <div className="flex flex-col gap-4 min-w-0">
+              <Card className="p-5 text-center">
+                <div className="text-xs text-ink-faint uppercase tracking-wide mb-3">Current Stage</div>
+                <StatusBadge status={complaint.status} size="lg" />
+              </Card>
 
               {complaint.hearing_date && !isOutcome && (
-                <div className="bg-warning-soft border border-warning-strong/20 rounded-2xl p-4.5">
-                  <div className="text-ink text-sm font-semibold mb-1.5">📅 Upcoming Hearing</div>
+                <div className="bg-warning-soft border border-warning-strong/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-1.5 text-warning-strong">
+                    <MdOutlineEvent className="text-xl" aria-hidden="true" />
+                    <div className="text-base font-semibold">Upcoming Hearing</div>
+                  </div>
                   <div className="text-sm text-warning-strong">
-                    {new Date(complaint.hearing_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    {complaint.hearing_time && ` at ${complaint.hearing_time}`}
+                    {new Date(complaint.hearing_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    {complaint.hearing_time && ` at ${formatTime(complaint.hearing_time)}`}
                   </div>
                 </div>
               )}
 
               {complaint.respondent_name && (
-                <div className="bg-surface border border-border rounded-2xl p-4.5 shadow-token-md">
-                  <div className="text-ink text-sm font-semibold mb-2.5">👤 Respondent</div>
+                <Card className="p-5">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <MdOutlinePerson className="text-xl text-accent" aria-hidden="true" />
+                    <div className="text-ink text-base font-semibold">Respondent</div>
+                  </div>
                   <div className="text-sm font-semibold text-ink">{complaint.respondent_name}</div>
-                  {complaint.respondent_address && (
-                    <div className="text-sm text-ink-faint mt-1">{complaint.respondent_address}</div>
-                  )}
-                </div>
+                  {complaint.respondent_address && <div className="text-sm text-ink-faint mt-1">{complaint.respondent_address}</div>}
+                </Card>
               )}
 
               {complaint.description && (
-                <div className="bg-surface border border-border rounded-2xl p-4.5 shadow-token-md">
-                  <div className="text-ink text-sm font-semibold mb-2">📝 Description</div>
-                  <div className="text-sm text-ink-soft leading-relaxed bg-surface-sunken border border-border rounded-md p-2.5">
+                <Card className="p-5">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <MdOutlineDescription className="text-xl text-accent" aria-hidden="true" />
+                    <div className="text-ink text-base font-semibold">Description</div>
+                  </div>
+                  <div className="text-sm text-ink-soft leading-relaxed bg-surface-sunken border border-border rounded-lg p-3">
                     {complaint.description}
                   </div>
-                </div>
+                </Card>
               )}
             </div>
           </div>

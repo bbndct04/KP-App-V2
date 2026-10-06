@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { MdOutlinePerson, MdOutlineLock, MdOutlineVerified, MdOutlineWarningAmber } from 'react-icons/md'
 
 function Profile() {
   const { user, profile } = useAuth()
@@ -14,6 +15,7 @@ function Profile() {
   const [officialTitle, setOfficialTitle] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMsg, setProfileMsg] = useState('')
+  const [profileError, setProfileError] = useState('')
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -53,6 +55,7 @@ function Profile() {
   async function handleProfileSave(e) {
     e.preventDefault()
     setProfileMsg('')
+    setProfileError('')
     setSavingProfile(true)
 
     const { error } = await supabase
@@ -66,7 +69,8 @@ function Profile() {
       .eq('id', user.id)
 
     setSavingProfile(false)
-    setProfileMsg(error ? error.message : 'Profile updated successfully.')
+    if (error) setProfileError(error.message)
+    else setProfileMsg('Profile updated successfully.')
   }
 
   async function handlePasswordSave(e) {
@@ -74,6 +78,10 @@ function Profile() {
     setPasswordError('')
     setPasswordMsg('')
 
+    if (!currentPassword) {
+      setPasswordError('Enter your current password.')
+      return
+    }
     if (newPassword.length < 8) {
       setPasswordError('New password must be at least 8 characters.')
       return
@@ -84,6 +92,12 @@ function Profile() {
     }
 
     setSavingPassword(true)
+    const { error: verifyError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword })
+    if (verifyError) {
+      setSavingPassword(false)
+      setPasswordError('Your current password is incorrect.')
+      return
+    }
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     setSavingPassword(false)
 
@@ -113,11 +127,11 @@ function Profile() {
 
             {isVerified ? (
               <span className="inline-flex items-center gap-1.5 bg-success-soft text-success-strong border border-success-strong/20 rounded-full px-3 py-1 text-xs font-semibold">
-                ✓ Verified Account
+                <MdOutlineVerified className="text-base" aria-hidden="true" /> Verified Account
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 bg-warning-soft text-warning-strong border border-warning-strong/20 rounded-full px-3 py-1 text-xs font-semibold">
-                ⚠ Unverified
+                <MdOutlineWarningAmber className="text-base" aria-hidden="true" /> Unverified
               </span>
             )}
 
@@ -146,10 +160,15 @@ function Profile() {
           {/* Personal Information */}
           <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
             <div className="px-5.5 py-4 border-b border-border flex items-center gap-2.5">
-              <span className="text-accent">👤</span>
-              <div className="text-ink text-[15px] font-semibold">Personal Information</div>
+              <MdOutlinePerson className="text-xl text-accent" aria-hidden="true" />
+              <div className="text-ink text-base font-semibold">Personal Information</div>
             </div>
             <form onSubmit={handleProfileSave} className="p-5.5">
+              {profileError && (
+                <div className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-lg px-4 py-2.5 mb-4">
+                  {profileError}
+                </div>
+              )}
               {profileMsg && (
                 <div className="bg-success-soft border border-success-strong/20 text-success-strong text-sm rounded-lg px-4 py-2.5 mb-4">
                   {profileMsg}
@@ -230,8 +249,8 @@ function Profile() {
           {/* Change Password */}
           <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
             <div className="px-5.5 py-4 border-b border-border flex items-center gap-2.5">
-              <span className="text-accent">🔒</span>
-              <div className="text-ink text-[15px] font-semibold">Change Password</div>
+              <MdOutlineLock className="text-xl text-accent" aria-hidden="true" />
+              <div className="text-ink text-base font-semibold">Change Password</div>
             </div>
             <form onSubmit={handlePasswordSave} className="p-5.5">
               {passwordError && (

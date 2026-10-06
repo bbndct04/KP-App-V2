@@ -3,6 +3,22 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
+import {
+  MdArrowBack,
+  MdArrowForward,
+  MdClose,
+  MdOutlineFlag,
+  MdOutlineTipsAndUpdates,
+  MdOutlinePerson,
+  MdOutlinePersonOff,
+  MdOutlineGroups,
+  MdOutlineDescription,
+  MdOutlinePrint,
+  MdOutlineHistory,
+  MdOutlineSearchOff,
+} from 'react-icons/md'
+import { Card, StatusBadge, EmptyState, Skeleton, LinkButton, ConfirmDialog } from '../../components/ui'
+import { STATUS } from '../../components/status'
 
 const STAGES = [
   { key: 'filed', label: 'Filed' },
@@ -90,6 +106,7 @@ function CaseDetail() {
 
   const [newMemberName, setNewMemberName] = useState('')
   const [newMemberRole, setNewMemberRole] = useState('member')
+  const [memberToRemove, setMemberToRemove] = useState(null)
 
   async function loadAll() {
     setLoading(true)
@@ -111,8 +128,30 @@ function CaseDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  if (loading) return <AdminLayout title="Case Detail"><div className="text-ink-faint text-center py-14">Loading...</div></AdminLayout>
-  if (!complaint) return <AdminLayout title="Case Detail"><div className="text-ink-faint text-center py-14">Case not found.</div></AdminLayout>
+  if (loading)
+    return (
+      <AdminLayout title="Case Detail">
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-20 w-2/3" />
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-48 rounded-2xl" />
+        </div>
+      </AdminLayout>
+    )
+  if (!complaint)
+    return (
+      <AdminLayout title="Case Detail">
+        <Card>
+          <EmptyState
+            icon={MdOutlineSearchOff}
+            title="Case not found"
+            message="This case may have been removed, or the link is incorrect."
+            action={<LinkButton to="/admin/complaints">Back to All Complaints</LinkButton>}
+          />
+        </Card>
+      </AdminLayout>
+    )
 
   const meta = STAGE_META[complaint.status] || STAGE_META.filed
   const trackerIdx = currentTrackerIndex(complaint.status)
@@ -152,13 +191,13 @@ function CaseDetail() {
     })
 
     const NOTIF = {
-      summoned: { title: '📋 Summons Issued', type: 'info', msg: 'The respondent has been summoned. A hearing will follow.' },
-      mediation: { title: '🤝 Mediation Stage', type: 'info', msg: 'Your case has moved to mediation before the Punong Barangay.' },
-      pangkat_formed: { title: '👥 Pangkat Formed', type: 'info', msg: 'A Pangkat has been formed to conciliate your case.' },
-      pangkat_hearing: { title: '📋 Pangkat Hearing', type: 'info', msg: 'A Pangkat hearing has been scheduled for your case.' },
-      settled: { title: '✅ Case Settled', type: 'success', msg: 'Your case has been settled.' },
-      cfa_issued: { title: '📄 Certificate to File Action Issued', type: 'warning', msg: 'A Certificate to File Action has been issued for your case.' },
-      dismissed: { title: '✗ Case Dismissed', type: 'danger', msg: 'Your case has been dismissed.' },
+      summoned: { title: 'Summons Issued', type: 'info', msg: 'The respondent has been summoned. A hearing will follow.' },
+      mediation: { title: 'Mediation Stage', type: 'info', msg: 'Your case has moved to mediation before the Punong Barangay.' },
+      pangkat_formed: { title: 'Pangkat Formed', type: 'info', msg: 'A Pangkat has been formed to conciliate your case.' },
+      pangkat_hearing: { title: 'Pangkat Hearing', type: 'info', msg: 'A Pangkat hearing has been scheduled for your case.' },
+      settled: { title: 'Case Settled', type: 'success', msg: 'Your case has been settled.' },
+      cfa_issued: { title: 'Certificate to File Action Issued', type: 'warning', msg: 'A Certificate to File Action has been issued for your case.' },
+      dismissed: { title: 'Case Dismissed', type: 'danger', msg: 'Your case has been dismissed.' },
     }
     const n = NOTIF[selectedNextStage]
     if (n) {
@@ -212,53 +251,64 @@ function CaseDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-5">
         <div>
-          <button onClick={() => navigate('/admin/complaints')} className="text-xs text-accent mb-2">‹ Back to All Complaints</button>
-          <div className="text-ink-faint text-xs font-mono">{complaint.reference_number}</div>
+          <button onClick={() => navigate('/admin/complaints')} className="text-sm text-accent font-semibold mb-3 flex items-center gap-1">
+            <MdArrowBack aria-hidden="true" /> Back to All Complaints
+          </button>
+          <div className="text-ink-faint text-sm font-mono">{complaint.reference_number}</div>
           <div className="text-ink text-xl font-bold">{complaint.category}</div>
           <div className="text-ink-soft text-sm mt-0.5">
             Filed by {complaint.profiles?.full_name || '—'} against {complaint.respondent_name || '—'}
           </div>
         </div>
-        <span className={`${meta.badge} text-xs font-semibold px-3 py-1.5 rounded-full flex-shrink-0`}>
-          {STAGE_LABELS[complaint.status]}
-        </span>
+        <StatusBadge status={complaint.status} size="lg" />
       </div>
 
       {/* Stage Tracker */}
       <div className="bg-surface border border-border rounded-2xl p-5 mb-4 shadow-token-md overflow-x-auto">
-        <div className="text-ink-faint text-xs mb-3">Case stage</div>
-        <div className="flex items-center min-w-[560px]">
-          {STAGES.map((s, i) => (
-            <div key={s.key} className="flex items-center flex-1 last:flex-none">
-              <div className="flex flex-col items-center flex-1">
-                <div className={`w-2.5 h-2.5 rounded-full ${i <= trackerIdx ? 'bg-accent' : 'bg-surface-sunken'}`} />
-                <div className={`text-xs mt-1.5 text-center ${i <= trackerIdx ? 'text-ink' : 'text-ink-faint'}`}>{s.label}</div>
+        <div className="text-ink-soft text-sm font-semibold mb-4">Case stage</div>
+        <div className="flex items-start min-w-[600px]">
+          {STAGES.map((s, i) => {
+            const isOutcome = s.key === 'outcome'
+            const Icon = isOutcome ? (i === trackerIdx ? STATUS[complaint.status]?.icon : null) || MdOutlineFlag : STATUS[s.key]?.icon || MdOutlineFlag
+            const reached = i <= trackerIdx
+            return (
+              <div key={s.key} className="flex items-start flex-1 last:flex-none">
+                <div className="flex flex-col items-center w-24">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      reached ? 'bg-accent text-accent-ink' : 'bg-surface-sunken text-ink-faint border border-border'
+                    } ${i === trackerIdx ? 'ring-4 ring-accent/20' : ''}`}
+                  >
+                    <Icon className="text-xl" aria-hidden="true" />
+                  </div>
+                  <div className={`text-xs mt-2 text-center leading-tight ${reached ? 'text-ink font-semibold' : 'text-ink-faint'}`}>{s.label}</div>
+                </div>
+                {i < STAGES.length - 1 && <div className={`flex-1 h-0.5 mt-5 ${i < trackerIdx ? 'bg-accent' : 'bg-border'}`} />}
               </div>
-              {i < STAGES.length - 1 && <div className={`flex-1 h-0.5 ${i < trackerIdx ? 'bg-accent' : 'bg-border'}`} />}
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
       {/* Next Action */}
       <div className="bg-accent-soft border border-accent/25 rounded-2xl p-5 mb-4">
-        <div className="text-accent text-sm font-semibold mb-1.5">Next action</div>
+        <div className="text-accent text-sm font-semibold mb-1.5 flex items-center gap-1.5"><MdOutlineTipsAndUpdates className="text-lg" aria-hidden="true" /> Next action</div>
         <div className="text-ink text-sm mb-3.5">{meta.action}</div>
         {meta.next.length > 0 && (
-          <button onClick={openAdvanceModal} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2 shadow-token-sm">
-            Advance stage ›
+          <button onClick={openAdvanceModal} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg h-11 px-5 shadow-token-sm inline-flex items-center gap-2">
+            Advance stage <MdArrowForward aria-hidden="true" />
           </button>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md">
-          <div className="text-ink-faint text-xs mb-2">Complainant</div>
+          <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5"><MdOutlinePerson className="text-lg text-accent" aria-hidden="true" /> Complainant</div>
           <div className="text-ink text-sm">{complaint.complainant_name}</div>
           <div className="text-ink-faint text-xs mt-1">{complaint.complainant_address}</div>
         </div>
         <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md">
-          <div className="text-ink-faint text-xs mb-2">Respondent</div>
+          <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5"><MdOutlinePersonOff className="text-lg text-accent" aria-hidden="true" /> Respondent</div>
           <div className="text-ink text-sm">{complaint.respondent_name}</div>
           <div className="text-ink-faint text-xs mt-1">{complaint.respondent_address}</div>
         </div>
@@ -267,15 +317,15 @@ function CaseDetail() {
       {/* Pangkat Members */}
       {(members.length > 0 || complaint.status === 'pangkat_formed' || complaint.status === 'pangkat_hearing') && (
         <div className="bg-surface border border-border rounded-2xl p-4 mb-4 shadow-token-md">
-          <div className="text-ink-faint text-xs mb-2.5">Pangkat members (3 required)</div>
+          <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineGroups className="text-lg text-accent" aria-hidden="true" /> Pangkat members (3 required)</div>
           {members.length === 0 ? (
             <div className="text-ink-faint text-sm mb-3">No members assigned yet.</div>
           ) : (
             <div className="flex flex-wrap gap-2 mb-3">
               {members.map((m) => (
-                <span key={m.id} className="bg-surface-sunken text-ink text-xs px-3 py-1.5 rounded-full border border-border flex items-center gap-2">
+                <span key={m.id} className="bg-surface-sunken text-ink text-sm px-3.5 py-1.5 rounded-full border border-border flex items-center gap-2">
                   {m.member_name}{m.role === 'chairman' ? ' (Chairman)' : ''}
-                  <button onClick={() => removeMember(m.id)} className="text-danger-strong hover:opacity-70">✕</button>
+                  <button onClick={() => setMemberToRemove(m)} aria-label={`Remove ${m.member_name}`} className="text-danger-strong hover:opacity-70 flex items-center"><MdClose aria-hidden="true" /></button>
                 </span>
               ))}
             </div>
@@ -320,16 +370,16 @@ function CaseDetail() {
 
       {/* Documents — stage-aware, labeled */}
       <div className="bg-surface border border-border rounded-2xl p-4 mb-4 shadow-token-md">
-        <div className="text-ink-faint text-xs mb-2.5">Documents available at this stage</div>
+        <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineDescription className="text-lg text-accent" aria-hidden="true" /> Documents available at this stage</div>
         <div className="flex flex-wrap gap-2">
           {availableForms.map((n) => (
             <Link
               key={n}
               to={`/admin/complaints/${id}/form${n}`}
               target="_blank"
-              className="text-xs font-semibold text-success-strong border border-success-strong/30 bg-success-soft rounded-md px-2.5 py-1.5"
+              className="text-sm font-semibold text-success-strong border border-success-strong/30 bg-success-soft rounded-md px-3 py-1.5 inline-flex items-center gap-1.5"
             >
-              {FORM_LABELS[n] || `Form ${n}`}
+              <MdOutlinePrint aria-hidden="true" /> {FORM_LABELS[n] || `Form ${n}`}
             </Link>
           ))}
         </div>
@@ -337,7 +387,7 @@ function CaseDetail() {
 
       {/* Activity Log */}
       <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md">
-        <div className="text-ink-faint text-xs mb-3">Activity log</div>
+        <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineHistory className="text-lg text-accent" aria-hidden="true" /> Activity log</div>
 
         <div className="flex gap-2 mb-4">
           <input
@@ -461,6 +511,17 @@ function CaseDetail() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={!!memberToRemove}
+        title="Remove Pangkat member?"
+        message={`${memberToRemove?.member_name || 'This member'} will be removed from this case's Pangkat.`}
+        confirmLabel="Yes, remove"
+        onConfirm={async () => {
+          await removeMember(memberToRemove.id)
+          setMemberToRemove(null)
+        }}
+        onCancel={() => setMemberToRemove(null)}
+      />
     </AdminLayout>
   )
 }

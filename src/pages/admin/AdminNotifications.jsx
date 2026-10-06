@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  MdOutlineInfo,
+  MdOutlineWarningAmber,
+  MdOutlineErrorOutline,
+  MdOutlineCheckCircle,
+  MdOutlineNotifications,
+  MdArrowForward,
+} from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
+import { Card, EmptyState, Skeleton } from '../../components/ui'
 
-const COLORS = {
-  success: { bg: 'bg-success-soft', border: 'border-success-strong/30', icon: 'text-success-strong' },
-  warning: { bg: 'bg-warning-soft', border: 'border-warning-strong/30', icon: 'text-warning-strong' },
-  danger: { bg: 'bg-danger-soft', border: 'border-danger-strong/30', icon: 'text-danger-strong' },
-  info: { bg: 'bg-info-soft', border: 'border-info-strong/30', icon: 'text-info-strong' },
+const TYPES = {
+  info: { icon: MdOutlineInfo, color: 'text-info-strong', bg: 'bg-info-soft', border: 'border-info-strong/30' },
+  warning: { icon: MdOutlineWarningAmber, color: 'text-warning-strong', bg: 'bg-warning-soft', border: 'border-warning-strong/30' },
+  danger: { icon: MdOutlineErrorOutline, color: 'text-danger-strong', bg: 'bg-danger-soft', border: 'border-danger-strong/30' },
+  success: { icon: MdOutlineCheckCircle, color: 'text-success-strong', bg: 'bg-success-soft', border: 'border-success-strong/30' },
 }
-
-const ICONS = { success: '✓', danger: '!', warning: '⚠', info: 'ℹ' }
 
 function timeAgo(dateStr) {
   const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000)
@@ -21,6 +28,10 @@ function timeAgo(dateStr) {
     if (count >= 1) return `${count} ${label}${count > 1 ? 's' : ''} ago`
   }
   return 'just now'
+}
+
+function stripLeadingEmoji(text) {
+  return (text || '').replace(/^[^\p{L}\p{N}]+/u, '')
 }
 
 function AdminNotifications() {
@@ -48,56 +59,61 @@ function AdminNotifications() {
     load()
   }, [user])
 
+  const unreadCount = notifications.filter((n) => !n.is_read).length
+
   return (
     <AdminLayout title="Notifications">
-      <div className="max-w-[760px] mx-auto">
-        <p className="text-ink-soft text-sm mb-5">New complaints, today's hearings, and cases needing attention</p>
+      <div className="max-w-[720px] mx-auto">
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-ink-soft text-sm">New complaints, today's hearings, and cases needing attention</p>
+          {unreadCount > 0 && (
+            <span className="bg-danger-soft text-danger-strong text-sm font-semibold px-3 py-1 rounded-full">{unreadCount} new</span>
+          )}
+        </div>
 
         {loading ? (
-          <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
-        ) : notifications.length === 0 ? (
-          <div className="bg-surface border border-border rounded-2xl p-14 text-center shadow-token-md">
-            <div className="text-4xl mb-3">🔔</div>
-            <div className="text-ink text-[15px] font-semibold mb-1.5">No notifications yet</div>
-            <div className="text-ink-faint text-sm">You'll be alerted here when residents file complaints or cases need attention.</div>
+          <div className="flex flex-col gap-3">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+            ))}
           </div>
+        ) : notifications.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon={MdOutlineNotifications}
+              title="No notifications yet"
+              message="You'll be alerted here when residents file complaints or cases need attention."
+            />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {notifications.map((n) => {
-              const c = COLORS[n.type] || COLORS.info
+              const t = TYPES[n.type] || TYPES.info
+              const Icon = t.icon
               return (
                 <div
                   key={n.id}
-                  className={`rounded-2xl border p-4.5 flex gap-3.5 items-start shadow-token-sm ${
-                    n.is_read ? 'bg-surface border-border' : `${c.bg} ${c.border}`
+                  className={`rounded-2xl border p-4 flex gap-3.5 items-start shadow-token-sm ${
+                    n.is_read ? 'bg-surface border-border' : `${t.bg} ${t.border}`
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-lg bg-surface border border-border flex items-center justify-center flex-shrink-0 ${c.icon} font-bold`}>
-                    {ICONS[n.type] || ICONS.info}
+                  <div className={`w-11 h-11 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 ${t.color}`}>
+                    <Icon className="text-2xl" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2.5 mb-1">
-                      <div className="text-sm font-bold text-ink">{n.title || 'Notification'}</div>
-                      {!n.is_read && <span className="w-2 h-2 rounded-full bg-danger-strong flex-shrink-0" />}
+                      <div className="text-base font-bold text-ink">{stripLeadingEmoji(n.title) || 'Notification'}</div>
+                      {!n.is_read && <span className="w-2.5 h-2.5 rounded-full bg-danger-strong flex-shrink-0" aria-label="Unread" />}
                     </div>
                     <div className="text-sm text-ink-soft leading-relaxed mb-2">{n.message}</div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="text-xs text-ink-faint">{timeAgo(n.created_at)}</div>
-                      {n.complaint_id ? (
-                        <Link
-                          to={`/admin/complaints/${n.complaint_id}`}
-                          className="text-xs font-semibold text-accent border border-border bg-surface rounded-md px-3 py-1.5"
-                        >
-                          Open case →
-                        </Link>
-                      ) : (
-                        <Link
-                          to="/admin/complaints"
-                          className="text-xs font-semibold text-accent border border-border bg-surface rounded-md px-3 py-1.5"
-                        >
-                          View complaints →
-                        </Link>
-                      )}
+                      <Link
+                        to={n.complaint_id ? `/admin/complaints/${n.complaint_id}` : '/admin/complaints'}
+                        className="text-sm font-semibold text-accent flex items-center gap-1"
+                      >
+                        {n.complaint_id ? 'Open case' : 'View complaints'} <MdArrowForward aria-hidden="true" />
+                      </Link>
                     </div>
                   </div>
                 </div>

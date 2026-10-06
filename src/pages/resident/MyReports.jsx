@@ -1,31 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MdOutlineFolderCopy, MdOutlineFilterAltOff, MdAdd, MdArrowForward } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { Card, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
+import { STATUS } from '../../components/status'
 
-const BADGES = {
-  filed: { bg: 'bg-warning-soft', text: 'text-warning-strong', label: 'Filed' },
-  summoned: { bg: 'bg-info-soft', text: 'text-info-strong', label: 'Summoned' },
-  mediation: { bg: 'bg-accent-soft', text: 'text-accent', label: 'Mediation' },
-  pangkat_formed: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Formed' },
-  pangkat_hearing: { bg: 'bg-purple-soft', text: 'text-purple-strong', label: 'Pangkat Hearing' },
-  settled: { bg: 'bg-success-soft', text: 'text-success-strong', label: 'Settled' },
-  cfa_issued: { bg: 'bg-neutral-soft', text: 'text-neutral-strong', label: 'CFA Issued' },
-  dismissed: { bg: 'bg-danger-soft', text: 'text-danger-strong', label: 'Dismissed' },
-}
-
-const FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'filed', label: 'Filed' },
-  { key: 'summoned', label: 'Summoned' },
-  { key: 'mediation', label: 'Mediation' },
-  { key: 'pangkat_formed', label: 'Pangkat Formed' },
-  { key: 'pangkat_hearing', label: 'Pangkat Hearing' },
-  { key: 'settled', label: 'Settled' },
-  { key: 'cfa_issued', label: 'CFA Issued' },
-  { key: 'dismissed', label: 'Dismissed' },
-]
+const FILTERS = [{ key: 'all', label: 'All' }, ...Object.entries(STATUS).map(([key, s]) => ({ key, label: s.label }))]
 
 function MyReports() {
   const { user } = useAuth()
@@ -58,16 +40,12 @@ function MyReports() {
     <AppLayout title="My Reports">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <p className="text-ink-soft text-sm">All your submitted complaints and their current status</p>
-        <Link
-          to="/complaints/new"
-          className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg px-5 py-2.5 transition-colors text-center flex-shrink-0 shadow-token-sm"
-        >
-          + New Report
-        </Link>
+        <LinkButton to="/complaints/new" icon={MdAdd} className="flex-shrink-0">
+          New Report
+        </LinkButton>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-1.5 flex-wrap mb-4.5">
+      <div className="flex gap-2 flex-wrap mb-5">
         {FILTERS.map((f) => {
           const count = countFor(f.key)
           const isActive = activeFilter === f.key
@@ -75,74 +53,80 @@ function MyReports() {
             <button
               key={f.key}
               onClick={() => setActiveFilter(f.key)}
-              className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+              aria-pressed={isActive}
+              className={`h-9 px-4 rounded-full text-sm font-medium border transition-colors ${
                 isActive
                   ? 'bg-accent border-accent text-accent-ink'
-                  : 'bg-surface-sunken border-border text-ink-soft hover:bg-surface-hover'
+                  : 'bg-surface border-border text-ink-soft hover:bg-surface-hover'
               }`}
             >
-              {f.label} {count > 0 && <span className="opacity-80 font-bold text-xs">({count})</span>}
+              {f.label}
+              {count > 0 && <span className="ml-1.5 opacity-80 font-bold">{count}</span>}
             </button>
           )
         })}
       </div>
 
-      {/* Table */}
-      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
+      <Card className="overflow-hidden">
+        {loading ? (
+          <SkeletonRows rows={5} />
+        ) : filtered.length === 0 ? (
+          activeFilter === 'all' ? (
+            <EmptyState
+              icon={MdOutlineFolderCopy}
+              title="No reports yet"
+              message="You haven't submitted any complaints yet."
+              action={
+                <LinkButton to="/complaints/new" icon={MdAdd}>
+                  Submit Complaint
+                </LinkButton>
+              }
+            />
           ) : (
+            <EmptyState
+              icon={MdOutlineFilterAltOff}
+              title="Nothing here"
+              message={`You have no complaints at the "${STATUS[activeFilter]?.label}" stage.`}
+            />
+          )
+        ) : (
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-ink-faint text-xs border-b border-border">
-                  <th className="px-5 py-3">Reference No.</th>
-                  <th className="px-5 py-3">Category</th>
-                  <th className="px-5 py-3 hidden sm:table-cell">Filed</th>
-                  <th className="px-5 py-3">Stage</th>
-                  <th className="px-5 py-3">Actions</th>
+                <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
+                  <th className="px-5 py-3 font-semibold">Reference No.</th>
+                  <th className="px-5 py-3 font-semibold">Category</th>
+                  <th className="px-5 py-3 font-semibold hidden sm:table-cell">Filed</th>
+                  <th className="px-5 py-3 font-semibold">Stage</th>
+                  <th className="px-5 py-3"></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-14 text-ink-faint">
-                      <div className="text-ink font-medium mb-1">No reports found</div>
-                      <div className="text-sm">
-                        {activeFilter !== 'all' ? 'No complaints at this stage yet.' : "You haven't submitted any complaints yet."}
-                      </div>
+                {filtered.map((c) => (
+                  <tr key={c.id} className="border-b border-border last:border-0">
+                    <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
+                    <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
+                    <td className="px-5 py-3.5 text-ink-faint text-sm hidden sm:table-cell whitespace-nowrap">
+                      {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <StatusBadge status={c.status} />
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <Link
+                        to={`/track?ref=${c.reference_number}`}
+                        className="text-accent text-sm font-semibold whitespace-nowrap flex items-center gap-1"
+                      >
+                        Track <MdArrowForward aria-hidden="true" />
+                      </Link>
                     </td>
                   </tr>
-                ) : (
-                  filtered.map((c) => {
-                    const b = BADGES[c.status] || BADGES.filed
-                    return (
-                      <tr key={c.id} className="border-b border-border">
-                        <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                        <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
-                        <td className="px-5 py-3.5 text-ink-faint text-sm hidden sm:table-cell whitespace-nowrap">
-                          {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className={`${b.bg} ${b.text} text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap`}>{b.label}</span>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <Link
-                            to={`/track?ref=${c.reference_number}`}
-                            className="text-xs font-semibold text-accent border border-border bg-surface-sunken rounded-md px-2.5 py-1.5 whitespace-nowrap"
-                          >
-                            Track
-                          </Link>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
+                ))}
               </tbody>
             </table>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </Card>
     </AppLayout>
   )
 }

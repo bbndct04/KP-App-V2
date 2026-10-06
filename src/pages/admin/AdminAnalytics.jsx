@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
+import {
+  MdOutlineFolderCopy,
+  MdOutlineCheckCircle,
+  MdOutlineHourglassTop,
+  MdOutlineTrendingUp,
+  MdOutlineDonutLarge,
+  MdOutlineBarChart,
+  MdOutlineCalendarMonth,
+} from 'react-icons/md'
+import { Skeleton } from '../../components/ui'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CAT_COLORS = ['#5ba0f5', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#38bdf8', '#2dd4bf']
@@ -29,7 +39,6 @@ function AdminAnalytics() {
     cfaIssued: complaints.filter((c) => c.status === 'cfa_issued').length,
     dismissed: complaints.filter((c) => c.status === 'dismissed').length,
   }
-  const closed = stats.settled + stats.cfaIssued + stats.dismissed
   const resRate = total > 0 ? Math.round((stats.settled / total) * 100) : 0
   const activeCases = stats.filed + stats.inProgress
   const denom = total || 1
@@ -64,28 +73,41 @@ function AdminAnalytics() {
       <p className="text-ink-soft text-sm mb-5">System statistics and complaint insights</p>
 
       {loading ? (
-        <div className="text-center py-14 text-ink-faint text-sm">Loading...</div>
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-32 rounded-2xl" />
+            ))}
+          </div>
+          <Skeleton className="h-72 rounded-2xl" />
+        </div>
       ) : (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
             {[
-              { label: 'Total Complaints', val: stats.total, color: 'text-accent' },
-              { label: 'Settled', val: stats.settled, color: 'text-success-strong' },
-              { label: 'Active Cases', val: activeCases, color: 'text-warning-strong' },
-              { label: 'Settlement Rate', val: `${resRate}%`, color: 'text-purple-strong' },
-            ].map((s) => (
-              <div key={s.label} className="bg-surface border border-border rounded-2xl p-5 shadow-token-md">
-                <div className={`text-3xl font-bold mb-1 ${s.color}`}>{s.val}</div>
-                <div className="text-ink-soft text-sm">{s.label}</div>
-              </div>
-            ))}
+              { label: 'Total Complaints', val: stats.total, color: 'text-accent', bg: 'bg-accent-soft', icon: MdOutlineFolderCopy },
+              { label: 'Settled', val: stats.settled, color: 'text-success-strong', bg: 'bg-success-soft', icon: MdOutlineCheckCircle },
+              { label: 'Active Cases', val: activeCases, color: 'text-warning-strong', bg: 'bg-warning-soft', icon: MdOutlineHourglassTop },
+              { label: 'Settlement Rate', val: `${resRate}%`, color: 'text-purple-strong', bg: 'bg-purple-soft', icon: MdOutlineTrendingUp },
+            ].map((s) => {
+              const Icon = s.icon
+              return (
+                <div key={s.label} className="bg-surface border border-border rounded-2xl p-5 shadow-token-md">
+                  <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>
+                    <Icon className="text-xl" aria-hidden="true" />
+                  </div>
+                  <div className={`text-3xl font-bold mb-0.5 ${s.color}`}>{s.val}</div>
+                  <div className="text-ink-soft text-sm">{s.label}</div>
+                </div>
+              )
+            })}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Status Distribution */}
             <div className="bg-surface border border-border rounded-2xl p-5.5 shadow-token-md">
-              <div className="text-ink text-[15px] font-semibold mb-4.5">Status Distribution</div>
+              <div className="text-ink text-base font-semibold mb-4.5 flex items-center gap-2"><MdOutlineDonutLarge className="text-xl text-accent" aria-hidden="true" /> Status Distribution</div>
               {statusRows.map((s) => {
                 const pct = Math.round((s.val / denom) * 100)
                 return (
@@ -114,7 +136,7 @@ function AdminAnalytics() {
 
             {/* Top Categories */}
             <div className="bg-surface border border-border rounded-2xl p-5.5 shadow-token-md">
-              <div className="text-ink text-[15px] font-semibold mb-4.5">Top Complaint Categories</div>
+              <div className="text-ink text-base font-semibold mb-4.5 flex items-center gap-2"><MdOutlineBarChart className="text-xl text-accent" aria-hidden="true" /> Top Complaint Categories</div>
               {categories.length === 0 ? (
                 <div className="text-ink-faint text-sm text-center py-8">No data yet</div>
               ) : (
@@ -139,7 +161,7 @@ function AdminAnalytics() {
 
           {/* Monthly Trend */}
           <div className="bg-surface border border-border rounded-2xl p-5.5 shadow-token-md">
-            <div className="text-ink text-[15px] font-semibold mb-5">Monthly Trend — {currentYear}</div>
+            <div className="text-ink text-base font-semibold mb-5 flex items-center gap-2"><MdOutlineCalendarMonth className="text-xl text-accent" aria-hidden="true" /> Monthly Trend — {currentYear}</div>
             <div className="flex items-end justify-between gap-2 h-[180px] overflow-x-auto">
               {monthCounts.map((count, i) => {
                 const heightPct = (count / maxMonth) * 100

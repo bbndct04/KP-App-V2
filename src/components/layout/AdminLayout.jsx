@@ -221,7 +221,7 @@ function AdminLayout({ title, children }) {
               <Icon className={`text-2xl flex-shrink-0 ${s.color}`} aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3 mb-1">
-                  <div className="text-ink text-sm font-bold">{t.title || 'Notification'}</div>
+                  <div className="text-ink text-sm font-bold">{(t.title || '').replace(/^[^\p{L}\p{N}]+/u, '') || 'Notification'}</div>
                   <button onClick={() => dismissToast(t.id)} aria-label="Dismiss" className="text-ink-faint hover:text-ink">
                     <MdClose className="text-lg" aria-hidden="true" />
                   </button>

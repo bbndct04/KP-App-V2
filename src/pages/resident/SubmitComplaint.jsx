@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import {
+  MdOutlineInfo,
+  MdOutlineEditNote,
+  MdOutlinePerson,
+  MdOutlinePersonOff,
+  MdOutlineAssignment,
+  MdOutlineCheckCircle,
+  MdOutlineSend,
+  MdOutlineWarningAmber,
+  MdOutlineLocationOn,
+  MdOutlineSchedule,
+  MdOutlineCloudUpload,
+} from 'react-icons/md'
 
 const CATEGORIES = [
   'Physical Injury',
@@ -125,7 +138,7 @@ function SubmitComplaint() {
     await supabase.from('complaint_notifications').insert({
       complaint_id: inserted.id,
       user_id: user.id,
-      title: '📥 Complaint Received',
+      title: 'Complaint Received',
       type: 'info',
       message: `Your complaint has been received and filed (Ref: ${inserted.reference_number}). You'll be notified as it progresses.`,
     })
@@ -139,7 +152,7 @@ function SubmitComplaint() {
       <div className="max-w-[780px] mx-auto">
         {/* Info Banner */}
         <div className="bg-info-soft border border-info-strong/20 rounded-xl px-4 py-3 mb-5 flex items-center gap-2.5">
-          <span className="text-info-strong">ℹ️</span>
+          <MdOutlineInfo className="text-xl text-info-strong flex-shrink-0" aria-hidden="true" />
           <span className="text-sm text-info-strong">
             A unique reference number (e.g. <strong className="text-ink">KP-2026-001</strong>) will be automatically generated after submission.
           </span>
@@ -153,15 +166,15 @@ function SubmitComplaint() {
 
         <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-2xl overflow-hidden shadow-token-md">
           <div className="px-6 py-4.5 bg-surface-hover border-b border-border">
-            <div className="text-ink text-[15px] font-bold">📝 Complaint / Incident Report Form</div>
+            <div className="text-ink text-base font-bold flex items-center gap-2"><MdOutlineEditNote className="text-2xl text-accent" aria-hidden="true" /> Complaint / Incident Report Form</div>
             <div className="text-ink-soft text-xs mt-0.5">All fields marked * are required</div>
           </div>
 
           <div className="p-6">
             {/* Section 1 */}
             <div className="mb-6">
-              <div className="text-xs font-bold uppercase tracking-wide text-info-strong bg-info-soft px-3 py-2 rounded-md mb-4">
-                👤 Section 1 — Complainant Information
+              <div className="text-xs font-bold uppercase tracking-wide text-info-strong bg-info-soft px-3 py-2 rounded-md mb-4 flex items-center gap-2">
+                <MdOutlinePerson className="text-lg" aria-hidden="true" /> Section 1 — Complainant Information
               </div>
 
               <div className="grid grid-cols-2 gap-3.5 mb-3.5">
@@ -200,8 +213,8 @@ function SubmitComplaint() {
 
             {/* Section 2 */}
             <div className="mb-6">
-              <div className="text-xs font-bold uppercase tracking-wide text-danger-strong bg-danger-soft px-3 py-2 rounded-md mb-4">
-                ⚠️ Section 2 — Subject of Complaint
+              <div className="text-xs font-bold uppercase tracking-wide text-danger-strong bg-danger-soft px-3 py-2 rounded-md mb-4 flex items-center gap-2">
+                <MdOutlinePersonOff className="text-lg" aria-hidden="true" /> Section 2 — Subject of Complaint
               </div>
 
               <div className="mb-3.5">
@@ -229,8 +242,8 @@ function SubmitComplaint() {
 
             {/* Section 3 */}
             <div>
-              <div className="text-xs font-bold uppercase tracking-wide text-success-strong bg-success-soft px-3 py-2 rounded-md mb-4">
-                📋 Section 3 — Incident Details
+              <div className="text-xs font-bold uppercase tracking-wide text-success-strong bg-success-soft px-3 py-2 rounded-md mb-4 flex items-center gap-2">
+                <MdOutlineAssignment className="text-lg" aria-hidden="true" /> Section 3 — Incident Details
               </div>
 
               <div className="mb-3.5">
@@ -331,12 +344,13 @@ function SubmitComplaint() {
                   <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
                   {!fileName ? (
                     <div>
+                      <MdOutlineCloudUpload className="text-4xl text-ink-faint mx-auto mb-2" aria-hidden="true" />
                       <div className="text-sm font-semibold text-ink mb-1">Click to upload evidence</div>
                       <div className="text-xs text-ink-faint">Photos, PDF, Word documents — Max 10MB</div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center gap-2.5">
-                      <span className="text-success-strong">✓</span>
+                      <MdOutlineCheckCircle className="text-2xl text-success-strong flex-shrink-0" aria-hidden="true" />
                       <div>
                         <div className="text-sm font-semibold text-success-strong">{fileName}</div>
                         <div className="text-xs text-ink-faint">Click to change file</div>
@@ -362,7 +376,7 @@ function SubmitComplaint() {
               disabled={submitting}
               className="flex-[3] bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-lg py-2.5 shadow-token-md"
             >
-              {submitting ? 'Submitting...' : '📨 Submit Report'}
+              {submitting ? 'Submitting...' : <span className="inline-flex items-center gap-2"><MdOutlineSend aria-hidden="true" /> Submit Report</span>}
             </button>
           </div>
         </form>
@@ -372,7 +386,7 @@ function SubmitComplaint() {
       {successRef && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-5">
           <div className="bg-surface border border-border rounded-2xl p-8 max-w-[460px] w-full text-center shadow-token-lg">
-            <div className="w-[72px] h-[72px] rounded-full bg-success-soft flex items-center justify-center mx-auto mb-4.5 text-3xl">✅</div>
+            <div className="w-[72px] h-[72px] rounded-full bg-success-soft text-success-strong flex items-center justify-center mx-auto mb-4.5"><MdOutlineCheckCircle className="text-5xl" aria-hidden="true" /></div>
             <h2 className="text-ink text-xl font-bold mb-2">Complaint Submitted!</h2>
 
             <div className="bg-surface-sunken border border-border rounded-lg px-4 py-2.5 mb-4">
@@ -381,15 +395,15 @@ function SubmitComplaint() {
             </div>
 
             <div className="bg-warning-soft border border-warning-strong/20 rounded-xl px-4 py-3.5 mb-5 text-left flex gap-2.5">
-              <span className="text-lg flex-shrink-0">⚠️</span>
+              <MdOutlineWarningAmber className="text-2xl text-warning-strong flex-shrink-0" aria-hidden="true" />
               <div>
                 <div className="text-sm font-bold text-warning-strong mb-1">Important Notice</div>
                 <div className="text-sm text-warning-strong leading-relaxed">
                   The complainant must <strong>personally appear at the Barangay Hall</strong> within <strong>24 hours</strong> from submission to formally file this complaint.
                 </div>
                 <div className="text-xs text-warning-strong mt-2 font-semibold leading-relaxed">
-                  📍 Barangay New Kababae Hall, Olongapo City<br />
-                  ⏰ 8:00 AM – 5:00 PM, Monday to Friday
+                  <span className="flex items-center gap-1.5"><MdOutlineLocationOn className="text-base" aria-hidden="true" /> Barangay New Kababae Hall, Olongapo City</span>
+                  <span className="flex items-center gap-1.5"><MdOutlineSchedule className="text-base" aria-hidden="true" /> 8:00 AM – 5:00 PM, Monday to Friday</span>
                 </div>
               </div>
             </div>
