@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { MdOutlineErrorOutline, MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 
@@ -72,7 +73,7 @@ function ResetPassword() {
           ) : !validLink ? (
             <div className="text-center py-2">
               <div className="w-[64px] h-[64px] bg-danger-soft border border-danger-strong/30 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                ⚠️
+                <MdOutlineErrorOutline className="text-3xl text-danger-strong" aria-hidden="true" />
               </div>
               <h2 className="text-ink font-sans text-xl font-semibold mb-2">Link expired or invalid</h2>
               <p className="text-ink-soft text-sm leading-relaxed mb-5">
@@ -115,9 +116,9 @@ function ResetPassword() {
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft text-sm"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
                     >
-                      {showPassword ? '🙈' : '👁️'}
+                      {showPassword ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
                     </button>
                   </div>
                 </div>

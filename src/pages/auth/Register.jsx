@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { MdArrowBack, MdArrowForward, MdArrowDownward, MdCheck, MdOutlineLock, MdOutlineCheckCircle, MdOutlineWarningAmber, MdOutlineNoPhotography, MdOutlinePhotoCamera, MdOutlineMail, MdOutlineMarkEmailUnread, MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
@@ -285,7 +286,7 @@ function Register() {
       let age = today.getFullYear() - birth.getFullYear()
       const mDiff = today.getMonth() - birth.getMonth()
       if (mDiff < 0 || (mDiff === 0 && today.getDate() < birth.getDate())) age--
-      if (age < 18) errors.dob = '⚠️ You must be at least 18 years old to register.'
+      if (age < 18) errors.dob = 'You must be at least 18 years old to register.'
     }
 
     if (contact && !/^09[0-9]{9}$/.test(contact)) {
@@ -314,7 +315,7 @@ function Register() {
       { pct: '25%', color: '#f87171', text: 'Weak' },
       { pct: '50%', color: '#fbbf24', text: 'Fair' },
       { pct: '75%', color: '#60a5fa', text: 'Good' },
-      { pct: '100%', color: '#34d399', text: 'Strong ✓' },
+      { pct: '100%', color: '#34d399', text: 'Strong' },
     ]
     setStrength(levels[s])
   }
@@ -417,7 +418,7 @@ function Register() {
                     ${isActive ? 'bg-accent border-accent text-accent-ink ring-4 ring-accent/25' : ''}
                     ${isDone ? 'bg-accent-soft border-accent/40 text-accent' : ''}
                     ${!isActive && !isDone ? 'bg-surface-sunken border-border text-ink-faint' : ''}`}>
-                    {isDone ? '✓' : num}
+                    {isDone ? <MdCheck className="text-base" aria-hidden="true" /> : num}
                   </div>
                   <div>
                     <div className="text-ink font-sans text-sm font-semibold">{s.label}</div>
@@ -435,8 +436,8 @@ function Register() {
       <div className="flex-1 flex flex-col items-center px-6 md:px-12 py-10 overflow-y-auto relative z-10">
         {step !== 6 && (
           <div className="w-full max-w-[580px] mb-3">
-            <Link to="/login" className="text-accent hover:text-accent-hover text-sm font-medium">
-              ‹ Back to Login
+            <Link to="/login" className="text-accent hover:text-accent-hover text-sm font-medium inline-flex items-center gap-1">
+              <MdArrowBack aria-hidden="true" /> Back to Login
             </Link>
           </div>
         )}
@@ -462,7 +463,7 @@ function Register() {
                   onScroll={handleTermsScroll}
                   className="p-3.5 max-h-[200px] overflow-y-auto text-sm text-ink-soft leading-relaxed space-y-2.5"
                 >
-                  <p><strong className="text-ink">⚠️ Age Requirement</strong><br />
+                  <p><strong className="text-ink">Age Requirement</strong><br />
                   This system is exclusively for individuals who are <strong className="text-ink">18 years old and above</strong>. By registering, you confirm that you are at least 18 years of age. Minors are strictly prohibited from using this system in compliance with Philippine law and the Data Privacy Act of 2012.</p>
 
                   <p><strong className="text-ink">1. Acceptance of Terms</strong><br />
@@ -499,7 +500,7 @@ function Register() {
                   By checking the box below, you freely give your consent to the collection and processing of your personal data as described above, in accordance with the Data Privacy Act of 2012. You also confirm that you are 18 years of age or older.</p>
                 </div>
                 <div className={`px-3.5 py-2 text-xs font-semibold flex items-center gap-1.5 ${scrolledToBottom ? 'bg-success-soft text-success-strong' : 'bg-warning-soft text-warning-strong'}`}>
-                  {scrolledToBottom ? '✓ You can now agree to the terms' : '↓ Scroll down to read all terms before agreeing'}
+                  {scrolledToBottom ? <><MdCheck className="text-base" aria-hidden="true" /> You can now agree to the terms</> : <><MdArrowDownward className="text-base" aria-hidden="true" /> Scroll down to read all terms before agreeing</>}
                 </div>
               </div>
 
@@ -517,7 +518,7 @@ function Register() {
                   </span>
                 </label>
                 {!scrolledToBottom && (
-                  <div className="text-xs text-ink-faint mt-1 ml-7">🔒 Scroll and read all terms above to unlock</div>
+                  <div className="text-xs text-ink-faint mt-1 ml-7 flex items-center gap-1"><MdOutlineLock aria-hidden="true" /> Scroll and read all terms above to unlock</div>
                 )}
               </div>
 
@@ -525,9 +526,9 @@ function Register() {
                 type="button"
                 disabled={!agreed}
                 onClick={() => setStep(2)}
-                className="w-full bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 transition-all shadow-token-md"
+                className="w-full bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 transition-all shadow-token-md inline-flex items-center justify-center gap-2"
               >
-                I Agree — Proceed to ID Verification ›
+                I Agree — Proceed to ID Verification <MdArrowForward aria-hidden="true" />
               </button>
             </>
           )}
@@ -590,7 +591,7 @@ function Register() {
                     )}
                     {idScanStatus === 'success' && !idTypeMismatch && (
                       <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm font-medium mt-2.5 bg-success-soft text-success-strong">
-                        <span>✓</span><span>ID verified and uploaded successfully.</span>
+                        <MdOutlineCheckCircle className="text-lg flex-shrink-0" aria-hidden="true" /><span>ID verified and uploaded successfully.</span>
                       </div>
                     )}
                     {idScanStatus === 'success' && idTypeMismatch && (
@@ -598,7 +599,7 @@ function Register() {
                         className="rounded-lg p-3.5 mt-2.5 text-left bg-warning-soft border border-warning-strong/30 text-warning-strong"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="font-semibold text-sm mb-1">⚠ This doesn't look like a {ID_TYPES.find((t) => t.value === idType)?.label}</div>
+                        <div className="font-semibold text-sm mb-1 flex items-center gap-1.5"><MdOutlineWarningAmber className="text-lg flex-shrink-0" aria-hidden="true" /> This doesn't look like a {ID_TYPES.find((t) => t.value === idType)?.label}</div>
                         <div className="text-xs mb-2.5 leading-relaxed">
                           We couldn't confirm this ID type from the photo. It may be a different ID, or the photo may be unclear — try a sharper photo, or continue if you're sure this is correct.
                         </div>
@@ -607,7 +608,7 @@ function Register() {
                             Yes, this is correct — Continue anyway
                           </button>
                         ) : (
-                          <div className="text-xs text-success-strong font-semibold">✓ Confirmed — you may proceed</div>
+                          <div className="text-xs text-success-strong font-semibold flex items-center gap-1"><MdCheck aria-hidden="true" /> Confirmed — you may proceed</div>
                         )}
                       </div>
                     )}
@@ -629,16 +630,16 @@ function Register() {
               </div>
 
               <div className="mt-4 flex justify-between items-center">
-                <button type="button" onClick={() => setStep(1)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft">
-                  ‹ Back
+                <button type="button" onClick={() => setStep(1)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5">
+                  <MdArrowBack aria-hidden="true" /> Back
                 </button>
                 <button
                   type="button"
                   disabled={!idFile || idScanStatus === 'scanning' || (idTypeMismatch && !mismatchOverride)}
                   onClick={() => setStep(3)}
-                  className="bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md"
+                  className="bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2"
                 >
-                  Next — Take Selfie ›
+                  Next — Take Selfie <MdArrowForward aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -658,7 +659,7 @@ function Register() {
               <div className="rounded-2xl overflow-hidden bg-surface-sunken border border-border min-h-[280px] flex items-center justify-center relative">
                 {cameraError ? (
                   <div className="p-8 text-center">
-                    <div className="text-3xl mb-3">🚫</div>
+                    <MdOutlineNoPhotography className="text-5xl text-ink-faint mx-auto mb-3" aria-hidden="true" />
                     <div className="text-[15px] font-bold text-ink mb-1.5">Camera unavailable</div>
                     <div className="text-sm text-ink-soft max-w-[320px] mx-auto">{cameraError}</div>
                   </div>
@@ -684,14 +685,14 @@ function Register() {
                   <button
                     type="button"
                     onClick={captureFace}
-                    className="bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-xl px-8 py-3 shadow-token-md"
+                    className="bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-xl px-8 py-3 shadow-token-md inline-flex items-center gap-2"
                   >
-                    📸 Capture Photo
+                    <MdOutlinePhotoCamera className="text-xl" aria-hidden="true" /> Capture Photo
                   </button>
                 )}
                 {facePreview && (
                   <div className="flex items-center gap-3">
-                    <span className="text-success-strong text-sm font-medium flex items-center gap-1.5">✓ Photo captured</span>
+                    <span className="text-success-strong text-sm font-medium flex items-center gap-1.5"><MdOutlineCheckCircle className="text-lg" aria-hidden="true" /> Photo captured</span>
                     <button type="button" onClick={retakeFace} className="border border-border rounded-lg px-4 py-2 text-sm text-ink-soft">
                       Retake
                     </button>
@@ -700,16 +701,16 @@ function Register() {
               </div>
 
               <div className="mt-5 flex justify-between">
-                <button type="button" onClick={() => setStep(2)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft">
-                  ‹ Back
+                <button type="button" onClick={() => setStep(2)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5">
+                  <MdArrowBack aria-hidden="true" /> Back
                 </button>
                 <button
                   type="button"
                   disabled={!faceFile}
                   onClick={() => setStep(4)}
-                  className="bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md"
+                  className="bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2"
                 >
-                  Next — Review Details ›
+                  Next — Review Details <MdArrowForward aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -832,16 +833,16 @@ function Register() {
                   className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                   placeholder="your@gmail.com"
                 />
-                <div className="text-xs text-ink-faint mt-1">📧 A verification link will be sent to this email after registration.</div>
+                <div className="text-xs text-ink-faint mt-1 flex items-center gap-1"><MdOutlineMail aria-hidden="true" /> A verification link will be sent to this email after registration.</div>
                 {step4Errors.email && <div className="text-xs text-danger-strong mt-1">{step4Errors.email}</div>}
               </div>
 
               <div className="flex justify-between mt-2">
-                <button type="button" onClick={() => setStep(3)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft">
-                  ‹ Back
+                <button type="button" onClick={() => setStep(3)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5">
+                  <MdArrowBack aria-hidden="true" /> Back
                 </button>
-                <button type="button" onClick={validateStep4} className="bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md">
-                  Next — Create Account ›
+                <button type="button" onClick={validateStep4} className="bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2">
+                  Next — Create Account <MdArrowForward aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -850,7 +851,7 @@ function Register() {
           {step === 5 && (
             <>
               <div className="bg-success-soft border border-success-strong/20 rounded-lg px-3.5 py-3 mb-5 text-sm text-success-strong flex gap-2">
-                <span>✅</span>
+                <MdOutlineCheckCircle className="text-xl flex-shrink-0" aria-hidden="true" />
                 <span>Almost done! Set your password to complete your registration.</span>
               </div>
 
@@ -877,9 +878,9 @@ function Register() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft text-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
                   >
-                    {showPassword ? '🙈' : '👁️'}
+                    {showPassword ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
                   </button>
                 </div>
                 {password && (
@@ -907,22 +908,22 @@ function Register() {
                     type="button"
                     onClick={() => setShowPasswordConfirm((v) => !v)}
                     aria-label={showPasswordConfirm ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft text-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
                   >
-                    {showPasswordConfirm ? '🙈' : '👁️'}
+                    {showPasswordConfirm ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
 
               <div className="flex justify-between">
-                <button type="button" onClick={() => setStep(4)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft">
-                  ‹ Back
+                <button type="button" onClick={() => setStep(4)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5">
+                  <MdArrowBack aria-hidden="true" /> Back
                 </button>
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={handleSubmit}
-                  className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md"
+                  className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2"
                 >
                   {submitting ? 'Creating your account...' : 'Create Account'}
                 </button>
@@ -933,7 +934,7 @@ function Register() {
           {step === 6 && (
             <div className="text-center py-4">
               <div className="w-[72px] h-[72px] bg-success-soft border border-success-strong/30 rounded-full flex items-center justify-center mx-auto mb-4.5 text-3xl">
-                📧
+                <MdOutlineMarkEmailUnread className="text-4xl text-success-strong" aria-hidden="true" />
               </div>
               <h2 className="text-ink font-sans text-2xl font-bold mb-2">Check your email</h2>
               <p className="text-ink-soft text-sm leading-relaxed mb-1 max-w-[380px] mx-auto">

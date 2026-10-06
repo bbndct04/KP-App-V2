@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MdArrowBack, MdOutlineMarkEmailUnread } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 
@@ -81,7 +82,7 @@ function ForgotPassword() {
           ) : (
             <div className="text-center py-2">
               <div className="w-[64px] h-[64px] bg-success-soft border border-success-strong/30 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                📧
+                <MdOutlineMarkEmailUnread className="text-3xl text-success-strong" aria-hidden="true" />
               </div>
               <h2 className="text-ink font-sans text-xl font-semibold mb-2">Check your email</h2>
               <p className="text-ink-soft text-sm leading-relaxed mb-1">We sent a reset link to</p>
@@ -93,8 +94,8 @@ function ForgotPassword() {
           )}
 
           <p className="text-ink-soft font-sans text-sm text-center mt-6">
-            <Link to="/login" className="text-accent hover:text-accent-hover font-medium">
-              ‹ Back to Sign In
+            <Link to="/login" className="text-accent hover:text-accent-hover font-medium inline-flex items-center gap-1">
+              <MdArrowBack aria-hidden="true" /> Back to Sign In
             </Link>
           </p>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
@@ -162,9 +163,9 @@ function Login() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft text-sm"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
                 </button>
               </div>
             </div>
