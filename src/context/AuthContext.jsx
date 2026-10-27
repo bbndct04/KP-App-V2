@@ -1,58 +1,63 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+async function loadProfile(userId) {
+  const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+  return data
+}
 
-  async function fetchProfile(userId) {
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(profileData)
-  }
+export function AuthProvider({ children }) {
+  const [state, setState] = useState({ user: null, profile: null, loading: true })
 
   useEffect(() => {
-    async function loadSession() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
-        await fetchProfile(session.user.id)
-      }
-      setLoading(false)
-    }
-    loadSession()
+    let active = true
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      const nextUser = session?.user ?? null
+
+      if (!nextUser) {
+        setState({ user: null, profile: null, loading: false })
+        return
       }
+      if (event === 'TOKEN_REFRESHED') {
+        setState((s) => ({ ...s, user: nextUser }))
+        return
+      }
+
+      // Supabase deadlocks if another client call is awaited inside this callback.
+      setTimeout(async () => {
+        const profile = await loadProfile(nextUser.id)
+        if (active) setState({ user: nextUser, profile, loading: false })
+      }, 0)
     })
 
-    return () => listener.subscription.unsubscribe()
+    return () => {
+      active = false
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
-  async function signOut() {
+  const refreshProfile = useCallback(async () => {
+    if (!state.user) return
+    const profile = await loadProfile(state.user.id)
+    setState((s) => ({ ...s, profile }))
+  }, [state.user])
+
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-  }
+    setState({ user: null, profile: null, loading: false })
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ ...state, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext)
 }

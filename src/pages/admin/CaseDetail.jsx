@@ -126,7 +126,6 @@ function CaseDetail() {
   const [memberToRemove, setMemberToRemove] = useState(null)
 
   async function loadAll() {
-    setLoading(true)
     const [{ data: c }, { data: l }, { data: m }] = await Promise.all([
       supabase.from('complaints').select('*, profiles(full_name)').eq('id', id).single(),
       supabase.from('case_activity_log').select('*, profiles(full_name, official_title)').eq('complaint_id', id).order('created_at', { ascending: false }),
@@ -141,6 +140,7 @@ function CaseDetail() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAll()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
@@ -187,62 +187,26 @@ function CaseDetail() {
     if (!selectedNextStage) return
     setSaving(true)
 
-    const { data: updated, error: updateError } = await supabase
-      .from('complaints')
-      .update({
-        status: selectedNextStage,
-        hearing_date: hearingDate || null,
-        hearing_time: hearingTime || null,
-        settlement_terms: selectedNextStage === 'settled' ? settlementTerms : complaint.settlement_terms,
-        cfa_reason: selectedNextStage === 'cfa_issued' ? `${cfaReason}${cfaRepudiatedBy ? ` (Repudiated by: ${cfaRepudiatedBy})` : ''}` : complaint.cfa_reason,
-        cfa_issued_at: selectedNextStage === 'cfa_issued' ? new Date().toISOString() : complaint.cfa_issued_at,
-      })
-      .eq('id', id)
-      .select('id')
+    const { error } = await supabase.rpc('advance_case', {
+      p_complaint_id: Number(id),
+      p_next_stage: selectedNextStage,
+      p_remarks: advanceRemarks || null,
+      p_hearing_date: hearingDate || null,
+      p_hearing_time: hearingTime || null,
+      p_settlement_terms: selectedNextStage === 'settled' ? settlementTerms : null,
+      p_cfa_reason: selectedNextStage === 'cfa_issued'
+        ? `${cfaReason}${cfaRepudiatedBy ? ` (Repudiated by: ${cfaRepudiatedBy})` : ''}`
+        : null,
+    })
 
-    if (updateError || !updated?.length) {
-      setSaving(false)
-      toast.error(`The case could not be updated. ${updateError?.message || 'You may not have permission.'}`)
+    setSaving(false)
+    if (error) {
+      toast.error(`The case could not be updated. ${error.message}`)
       return
     }
 
-    await supabase.from('case_activity_log').insert({
-      complaint_id: id,
-      entry_type: 'stage_change',
-      stage: selectedNextStage,
-      remarks: advanceRemarks || `Stage changed to ${STAGE_LABELS[selectedNextStage]}`,
-      created_by: profile?.id,
-    })
-
-    const NOTIF = {
-      summoned: { title: 'Summons Issued', type: 'info', msg: 'The respondent has been summoned. A hearing will follow.' },
-      mediation: { title: 'Mediation Stage', type: 'info', msg: 'Your case has moved to mediation before the Punong Barangay.' },
-      pangkat_formed: { title: 'Pangkat Formed', type: 'info', msg: 'A Pangkat has been formed to conciliate your case.' },
-      pangkat_hearing: { title: 'Pangkat Hearing', type: 'info', msg: 'A Pangkat hearing has been scheduled for your case.' },
-      settled: { title: 'Case Settled', type: 'success', msg: 'Your case has been settled.' },
-      cfa_issued: { title: 'Certificate to File Action Issued', type: 'warning', msg: 'A Certificate to File Action has been issued for your case.' },
-      dismissed: { title: 'Case Dismissed', type: 'danger', msg: 'Your case has been dismissed.' },
-    }
-    const n = NOTIF[selectedNextStage]
-    let notifFailed = false
-    if (n) {
-      const { error: notifError } = await supabase.from('complaint_notifications').insert({
-        complaint_id: id,
-        user_id: complaint.user_id,
-        title: n.title,
-        type: n.type,
-        message: `${n.msg} (Ref: ${complaint.reference_number})`,
-      })
-      notifFailed = !!notifError
-    }
-
-    setSaving(false)
     setShowAdvanceModal(false)
-    if (notifFailed) {
-      toast.error(`Case moved to ${STAGE_LABELS[selectedNextStage]}, but the resident could not be notified.`)
-    } else {
-      toast.success(`Case moved to ${STAGE_LABELS[selectedNextStage]}. The resident has been notified.`)
-    }
+    toast.success(`Case moved to ${STAGE_LABELS[selectedNextStage]}. The resident has been notified.`)
     loadAll()
   }
 

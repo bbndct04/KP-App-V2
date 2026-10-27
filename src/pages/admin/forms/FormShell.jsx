@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
@@ -37,6 +38,14 @@ export function fmtTime(timeStr) {
 
 export function FormPage({ title, children }) {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const previous = document.title
+    document.title = title ? `${title} — KP App` : previous
+    return () => {
+      document.title = previous
+    }
+  }, [title])
   return (
     <div className="min-h-screen bg-gray-200 py-8 print:bg-white print:py-0">
       <div className="max-w-[800px] mx-auto mb-4 flex justify-between items-center print:hidden">
