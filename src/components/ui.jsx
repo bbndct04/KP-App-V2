@@ -47,7 +47,9 @@ export function LinkButton({ to, variant = 'primary', size = 'md', icon: Icon, c
 }
 
 const FIELD_BASE =
-  'w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 disabled:opacity-60 disabled:cursor-not-allowed'
+  'bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 disabled:opacity-60 disabled:cursor-not-allowed'
+
+const fieldClass = (className) => `${/(^|\s)(w-|min-w-|max-w-|flex-)/.test(className) ? '' : 'w-full'} ${FIELD_BASE} ${className}`
 
 export function Field({ label, required, hint, error, children }) {
   return (
@@ -65,19 +67,19 @@ export function Field({ label, required, hint, error, children }) {
 }
 
 export function Input({ className = '', ...props }) {
-  return <input className={`${FIELD_BASE} ${className}`} {...props} />
+  return <input className={fieldClass(className)} {...props} />
 }
 
 export function Select({ className = '', children, ...props }) {
   return (
-    <select className={`${FIELD_BASE} ${className}`} {...props}>
+    <select className={fieldClass(className)} {...props}>
       {children}
     </select>
   )
 }
 
 export function Textarea({ className = '', ...props }) {
-  return <textarea className={`${FIELD_BASE} resize-y ${className}`} {...props} />
+  return <textarea className={fieldClass(`resize-y ${className}`)} {...props} />
 }
 
 export function Card({ className = '', children, ...props }) {

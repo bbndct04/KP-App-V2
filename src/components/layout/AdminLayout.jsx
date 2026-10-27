@@ -7,6 +7,7 @@ import {
   MdOutlineNotifications,
   MdOutlineManageAccounts,
   MdOutlineInsights,
+  MdOutlineSettings,
   MdOutlineLightMode,
   MdOutlineDarkMode,
   MdOutlineInfo,
@@ -29,6 +30,7 @@ const navItems = [
   { to: '/admin/notifications', label: 'Notifications', icon: MdOutlineNotifications },
   { to: '/admin/users', label: 'Manage Users', icon: MdOutlineManageAccounts },
   { to: '/admin/analytics', label: 'Analytics', icon: MdOutlineInsights },
+  { to: '/admin/settings', label: 'Barangay Settings', icon: MdOutlineSettings },
 ]
 
 const TOAST = {
@@ -246,7 +248,7 @@ function AdminLayout({ title, children }) {
                     }}
                     className="text-accent text-sm font-semibold"
                   >
-                    Open case →
+                    {(t.title || '').includes('New Complaint') ? 'Review complaint' : 'Open case'} →
                   </button>
                 )}
               </div>

@@ -1,103 +1,83 @@
-import { useComplaintForForm, fmtDate, fmtTime, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
+import DocumentPage from '../../../components/forms/DocumentPage'
+import { defaults9 } from '../../../components/forms/defaults'
+import { D, FormTitle, OfficeHeader, Para, PartyCaption, Sig, T } from '../../../components/forms/blocks'
 
-function Form9() {
-  const { complaint, loading } = useComplaintForForm()
-  if (loading) return <FormSkeleton />
-  if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
+const blankLine = <div style={{ borderBottom: '1px solid #000', height: 26 }} />
 
-  const now = new Date()
-
+function Body() {
   return (
-    <FormPage>
-      <FormHeader />
-      <PartiesTable complaint={complaint} />
+    <>
+      <OfficeHeader />
+      <PartyCaption />
+      <FormTitle>SUMMONS</FormTitle>
 
-      <div className="font-bold text-[13px] uppercase text-center my-4 tracking-widest">S U M M O N S</div>
+      <Para>
+        TO: <T k="respondent" label="Respondent name" underline /> <T k="respondentAddress" label="Respondent address" underline minCh={16} />
+        <span className="kp-center kp-label" style={{ display: 'block' }}>Respondents</span>
+      </Para>
 
-      <div className="text-justify leading-loose my-2.5">
-        TO: <u>{complaint.respondent_name}</u> &nbsp;&nbsp; <u>{complaint.respondent_address}</u><br />
-        <div className="text-center text-[11px]">Respondents</div>
+      <Para>
+        You are hereby summoned to appear before me in person, together with your witnesses, on the <D k="hearingDate" label="Hearing date" /> at{' '}
+        <T k="hearingTime" label="Hearing time" underline minCh={5} /> o'clock in the <T k="hearingPeriod" label="Morning or afternoon" underline minCh={9} />, then and there to
+        answer to a complaint made before me, copy of which is attached hereto, for mediation/conciliation of your dispute with complainant/s.
+      </Para>
+
+      <Para>
+        You are hereby warned that if you refuse or willfully fail to appear in obedience to this summons, you may be barred from filing any counterclaim arising from said
+        complaint.
+      </Para>
+
+      <Para bold>FAIL NOT or else face punishment as for contempt of court.</Para>
+
+      <div className="kp-avoid">
+        This <D k="issueDate" label="Date of issue" />.
+        <Sig label="Punong Barangay/Pangkat Chairman" nameKey="punongBarangay" nameLabel="Punong Barangay name" />
       </div>
 
-      <div className="text-justify leading-loose my-2.5">
-        You are hereby summoned to appear before me in person, together with your
-        witnesses, on the <u>{fmtDate(complaint.hearing_date, 'day')}</u> day of{' '}
-        <u>{fmtDate(complaint.hearing_date, 'month')}</u>, <u>{fmtDate(complaint.hearing_date, 'year')}</u> at{' '}
-        <u>{fmtTime(complaint.hearing_time)}</u> o'clock in the morning/afternoon, then
-        and there to answer to a complaint made before me, copy of which is attached
-        hereto, for mediation/conciliation of your dispute with complainant/s.
-      </div>
+      <div className="kp-break">
+        <FormTitle>OFFICER'S RETURN</FormTitle>
+        <Para>
+          I served this summons upon respondent <T k="respondent" label="Respondent name" underline /> on the <D k="servedDate1" label="Date served on first respondent" />, and upon respondent{' '}
+          <T k="servedName2" label="Second respondent name" underline minCh={18} /> on the <D k="servedDate2" label="Date served on second respondent" />, by:
+        </Para>
+        <Para>(Write name/s of respondent/s before mode by which he/they was/were served.)</Para>
+        <Para>Respondent/s</Para>
 
-      <div className="text-justify leading-loose my-2.5">
-        You are hereby warned that if you refuse or willfully fail to appear in
-        obedience to this summons, you may be barred from filing any counterclaim
-        arising from said complaint.
-      </div>
-
-      <div className="text-justify leading-loose my-2.5 font-bold">
-        FAIL NOT or else face punishment as for contempt of court.
-      </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        This <u>{fmtDate(now, 'day')}</u> day of <u>{fmtDate(now, 'month')}</u>, <u>{fmtDate(now, 'year')}</u>.
-      </div>
-
-      <div className="border-b border-black w-[220px] mt-5 mb-1">&nbsp;</div>
-      Punong Barangay/Pangkat Chairman
-
-      <div className="break-before-page mt-10 pt-10 border-t-2 border-dashed">
-        <div className="font-bold text-[13px] uppercase text-center my-4">OFFICER'S RETURN</div>
-
-        <div className="text-justify leading-loose">
-          I served this summons upon respondent <u>{complaint.respondent_name}</u> on
-          the <u>________</u> day of <u>____________</u>, <u>{fmtDate(now, 'year')}</u>,
-          and upon respondent <u>____________________</u> on the day of{' '}
-          <u>____________</u>, <u>{fmtDate(now, 'year')}</u>, by:
-          <br /><br />
-          (Write name/s of respondent/s before mode by which he/they was/were served.)
-          <br /><br />
-          Respondent/s
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 20 }}>
+          <div>
+            {blankLine}1.
+            {blankLine}2.
+            {blankLine}3.
+            {blankLine}4.
+          </div>
+          <div className="kp-small">
+            handing to him/them said summons in person, or
+            <br />
+            handing to him/them said summons and he/they refused to receive it, or
+            <br />
+            leaving said summons at his/their dwelling with <T k="leftWith1" label="Person the summons was left with" underline minCh={14} /> (name) a person of suitable age and discretion
+            residing therein, or
+            <br />
+            leaving said summons at his/their office/place of business with <T k="leftWith2" label="Person in charge" underline minCh={14} /> (name) a competent person in charge thereof.
+          </div>
         </div>
 
-        <table className="w-full mt-2.5">
-          <tbody>
-            <tr>
-              <td className="w-2/5 align-top">
-                <div className="border-b border-black mb-1">&nbsp;</div> 1.
-                <div className="border-b border-black mb-1">&nbsp;</div> 2.
-                <div className="border-b border-black mb-1">&nbsp;</div> 3.
-                <div className="border-b border-black mb-1">&nbsp;</div> 4.
-              </td>
-              <td className="w-3/5 align-top text-[11px] leading-loose">
-                handing to him/them said summons in person, or<br />
-                handing to him/them said summons and he/they refused to receive it, or<br />
-                leaving said summons at his/their dwelling with <u>__________</u> (name) a person of suitable age and discretion residing therein, or<br />
-                leaving said summons at his/their office/place of business with <u>__________</u> (name) a competent person in charge thereof.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <Sig label="Officer" width={200} />
 
-        <br />
-        <div className="border-b border-black w-[150px] mb-1">&nbsp;</div>
-        Officer
-        <br /><br />
-        Received by Respondent/s representative/s:
-        <table className="w-full mt-2.5">
-          <tbody>
-            <tr>
-              <td><div className="border-b border-black mb-1">&nbsp;</div>Signature</td>
-              <td><div className="border-b border-black mb-1">&nbsp;</div>Date</td>
-            </tr>
-            <tr>
-              <td><div className="border-b border-black mb-1">&nbsp;</div>Signature</td>
-              <td><div className="border-b border-black mb-1">&nbsp;</div>Date</td>
-            </tr>
-          </tbody>
-        </table>
+        <Para>Received by Respondent/s representative/s:</Para>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
+          <div>{blankLine}<div className="kp-label">Signature</div></div>
+          <div>{blankLine}<div className="kp-label">Date</div></div>
+          <div>{blankLine}<div className="kp-label">Signature</div></div>
+          <div>{blankLine}<div className="kp-label">Date</div></div>
+        </div>
       </div>
-    </FormPage>
+    </>
   )
+}
+
+function Form9() {
+  return <DocumentPage formNo={9} title="Summons" makeDefaults={defaults9} Body={Body} />
 }
 
 export default Form9

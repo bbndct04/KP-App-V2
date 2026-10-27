@@ -35,6 +35,7 @@ import Form25 from './pages/admin/forms/Form25'
 import Form27 from './pages/admin/forms/Form27'
 import ComplaintRouter from './pages/admin/ComplaintRouter'
 import AdminCases from './pages/admin/AdminCases'
+import AdminSettings from './pages/admin/AdminSettings'
 import AdminNotifications from './pages/admin/AdminNotifications'
 
 function App() {
@@ -250,6 +251,7 @@ function App() {
           />
           <Route path="/admin/complaints/:id" element={<AdminRoute><ComplaintRouter /></AdminRoute>} />
           <Route path="/admin/cases" element={<AdminRoute><AdminCases /></AdminRoute>} />
+          <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
           <Route path="/admin/cases/:id" element={<AdminRoute><ComplaintRouter /></AdminRoute>} />
           <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
           <Route path="/" element={<Navigate to="/login" />} />

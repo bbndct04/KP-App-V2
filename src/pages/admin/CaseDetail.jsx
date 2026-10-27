@@ -90,6 +90,19 @@ function CaseDetail() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const toast = useToast()
+  const [docStatus, setDocStatus] = useState({})
+
+  useEffect(() => {
+    let cancelled = false
+    async function run() {
+      const { data } = await supabase.from('case_documents').select('form_no, status').eq('complaint_id', id).neq('status', 'void')
+      if (!cancelled) setDocStatus(Object.fromEntries((data || []).map((d) => [d.form_no, d.status])))
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [id])
   const [complaint, setComplaint] = useState(null)
   const [logs, setLogs] = useState([])
   const [members, setMembers] = useState([])
@@ -332,6 +345,15 @@ function CaseDetail() {
             Advance stage <MdArrowForward aria-hidden="true" />
           </button>
         )}
+        {complaint.status === 'filed' && (
+          <Link
+            to={`/admin/complaints/${id}/form9`}
+            target="_blank"
+            className="ml-2 mt-2 sm:mt-0 border border-border bg-surface text-ink text-sm font-semibold rounded-lg h-11 px-5 inline-flex items-center gap-2 hover:bg-surface-hover"
+          >
+            <MdOutlinePrint aria-hidden="true" /> Prepare summons
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -416,6 +438,11 @@ function CaseDetail() {
               className="text-sm font-semibold text-success-strong border border-success-strong/30 bg-success-soft rounded-md px-3 py-1.5 inline-flex items-center gap-1.5"
             >
               <MdOutlinePrint aria-hidden="true" /> {FORM_LABELS[n] || `Form ${n}`}
+              {docStatus[n] && (
+                <span className={`text-xs font-bold rounded-full px-2 py-0.5 ${docStatus[n] === 'issued' ? 'bg-success-strong text-white' : 'bg-warning-soft text-warning-strong'}`}>
+                  {docStatus[n] === 'issued' ? 'Issued' : 'Draft'}
+                </span>
+              )}
             </Link>
           ))}
         </div>

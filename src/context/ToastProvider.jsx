@@ -38,7 +38,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={api}>
       {children}
       <div
-        className="fixed top-[max(1rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[70] flex flex-col gap-2.5 w-[calc(100%-2rem)] max-w-[420px] pointer-events-none"
+        className="print:hidden fixed top-[max(1rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[70] flex flex-col gap-2.5 w-[calc(100%-2rem)] max-w-[420px] pointer-events-none"
         aria-live="polite"
       >
         {toasts.map((t) => {
