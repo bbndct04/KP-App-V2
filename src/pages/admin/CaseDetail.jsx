@@ -22,6 +22,18 @@ import { Card, StatusBadge, EmptyState, Skeleton, LinkButton, ConfirmDialog } fr
 import { STATUS } from '../../components/status'
 import ComplaintDetails from '../../components/admin/ComplaintDetails'
 import IdentityPanel from '../../components/admin/IdentityPanel'
+import { DeadlineBadge } from '../../components/cases'
+import { caseDeadline } from '../../lib/cases'
+
+function stageDatesFromLogs(logs) {
+  const dates = {}
+  for (const l of logs) {
+    if (l.entry_type === 'stage_change' && (l.stage === 'summoned' || l.stage === 'pangkat_formed')) {
+      if (!dates[l.stage] || l.created_at > dates[l.stage]) dates[l.stage] = l.created_at
+    }
+  }
+  return dates
+}
 
 const STAGES = [
   { key: 'filed', label: 'Filed' },
@@ -270,7 +282,10 @@ function CaseDetail() {
             Filed by {complaint.profiles?.full_name || '—'} against {complaint.respondent_name || '—'}
           </div>
         </div>
-        <StatusBadge status={complaint.status} size="lg" />
+        <div className="flex flex-col items-start sm:items-end gap-2 flex-shrink-0">
+          <StatusBadge status={complaint.status} size="lg" />
+          <DeadlineBadge deadline={caseDeadline(complaint, stageDatesFromLogs(logs))} />
+        </div>
       </div>
 
       {/* Stage Tracker */}

@@ -6,6 +6,10 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, Input, Select, StatusBadge, EmptyState, SkeletonRows } from '../../components/ui'
 import ComplaintCards from '../../components/ComplaintCards'
 import { STATUS, ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
+import { DeadlineBadge } from '../../components/cases'
+import { caseDeadline, loadStageDates } from '../../lib/cases'
+
+const URGENCY = { danger: 0, warning: 1, neutral: 2 }
 
 const ACCEPTED = [...ACTIVE_STAGES, ...CLOSED_STAGES]
 
@@ -15,6 +19,7 @@ function AdminCases() {
   const [tab, setTab] = useState('active')
   const [search, setSearch] = useState('')
   const [stage, setStage] = useState('all')
+  const [stageDates, setStageDates] = useState({})
 
   useEffect(() => {
     async function load() {
@@ -23,6 +28,8 @@ function AdminCases() {
         .select('*, profiles(full_name)')
         .in('status', ACCEPTED)
         .order('created_at', { ascending: false })
+      const active = (data || []).filter((c) => ACTIVE_STAGES.includes(c.status)).map((c) => c.id)
+      setStageDates(await loadStageDates(active))
       setCases(data || [])
       setLoading(false)
     }
@@ -34,8 +41,9 @@ function AdminCases() {
   const activeCount = cases.filter((c) => ACTIVE_STAGES.includes(c.status)).length
   const closedCount = cases.filter((c) => CLOSED_STAGES.includes(c.status)).length
 
+  const deadlineOf = (c) => (tab === 'active' ? caseDeadline(c, stageDates[c.id]) : null)
   const s = search.trim().toLowerCase()
-  const list = inTab.filter((c) => {
+  const filteredList = inTab.filter((c) => {
     const matchesStage = stage === 'all' || c.status === stage
     const matchesSearch =
       !s ||
@@ -45,6 +53,10 @@ function AdminCases() {
       c.respondent_name?.toLowerCase().includes(s)
     return matchesStage && matchesSearch
   })
+  const list =
+    tab === 'active'
+      ? [...filteredList].sort((a, b) => URGENCY[deadlineOf(a)?.tone ?? 'neutral'] - URGENCY[deadlineOf(b)?.tone ?? 'neutral'])
+      : filteredList
 
   function switchTab(key) {
     setTab(key)
@@ -109,7 +121,13 @@ function AdminCases() {
           )
         ) : (
           <>
-            <ComplaintCards complaints={list} linkFor={(c) => `/admin/cases/${c.id}`} linkLabel="Manage" showResident />
+            <ComplaintCards
+              complaints={list}
+              linkFor={(c) => `/admin/cases/${c.id}`}
+              linkLabel="Manage"
+              showResident
+              renderExtra={(c) => <DeadlineBadge deadline={deadlineOf(c)} />}
+            />
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -119,6 +137,7 @@ function AdminCases() {
                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Filed</th>
                     <th className="px-5 py-3 font-semibold whitespace-nowrap">Stage</th>
+                    {tab === 'active' && <th className="px-5 py-3 font-semibold whitespace-nowrap">Timeline</th>}
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
@@ -126,14 +145,19 @@ function AdminCases() {
                   {list.map((c) => (
                     <tr key={c.id} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
                       <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                      <td className="px-5 py-3.5 text-ink text-sm">{c.profiles?.full_name || '—'}</td>
-                      <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
+                      <td className="px-5 py-3.5 text-ink text-sm whitespace-nowrap max-w-[200px] truncate">{c.profiles?.full_name || '—'}</td>
+                      <td className="px-5 py-3.5 text-ink-soft text-sm max-w-[220px] truncate">{c.category}</td>
                       <td className="px-5 py-3.5 text-ink-faint text-sm whitespace-nowrap">
                         {new Date(c.reviewed_at || c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                       </td>
                       <td className="px-5 py-3.5">
                         <StatusBadge status={c.status} />
                       </td>
+                      {tab === 'active' && (
+                        <td className="px-5 py-3.5">
+                          <DeadlineBadge deadline={deadlineOf(c)} />
+                        </td>
+                      )}
                       <td className="px-5 py-3.5">
                         <Link to={`/admin/cases/${c.id}`} className="text-accent text-sm font-semibold whitespace-nowrap flex items-center gap-1">
                           Manage <MdArrowForward aria-hidden="true" />

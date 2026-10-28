@@ -13,8 +13,16 @@ import {
   MdOutlineGroups,
   MdOutlineBarChart,
   MdOutlineHistory,
+  MdOutlineEvent,
+  MdOutlineEventAvailable,
+  MdOutlinePriorityHigh,
+  MdOutlineTaskAlt,
   MdArrowForward,
 } from 'react-icons/md'
+import { DeadlineBadge } from '../../components/cases'
+import { caseDeadline, loadStageDates, daysFromToday, formatTime, relativeDay, upcomingHearings } from '../../lib/cases'
+
+const URGENCY = { danger: 0, warning: 1 }
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
 import { ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
 import ComplaintCards from '../../components/ComplaintCards'
@@ -23,6 +31,8 @@ function AdminDashboard() {
   const [stats, setStats] = useState({ total: 0, awaiting: 0, inProgress: 0, closed: 0, totalUsers: 0, residents: 0 })
   const [recent, setRecent] = useState([])
   const [categories, setCategories] = useState([])
+  const [hearings, setHearings] = useState({ today: [], next: null })
+  const [attention, setAttention] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -42,6 +52,21 @@ function AdminDashboard() {
       const residents = profiles?.filter((p) => p.role === 'resident').length || 0
 
       setStats({ total, awaiting, inProgress, closed, totalUsers, residents })
+
+      const upcoming = upcomingHearings(complaints || [])
+      setHearings({
+        today: upcoming.filter((c) => daysFromToday(c.hearing_date) === 0),
+        next: upcoming.find((c) => daysFromToday(c.hearing_date) > 0) || null,
+      })
+
+      const open = (complaints || []).filter((c) => c.status === 'submitted' || ACTIVE_STAGES.includes(c.status))
+      const dates = await loadStageDates(open.filter((c) => c.status !== 'submitted').map((c) => c.id))
+      setAttention(
+        open
+          .map((c) => ({ ...c, deadline: caseDeadline(c, dates[c.id]) }))
+          .filter((c) => c.deadline && c.deadline.tone in URGENCY)
+          .sort((a, b) => URGENCY[a.deadline.tone] - URGENCY[b.deadline.tone])
+      )
       setRecent((complaints || []).slice(0, 8))
 
       const catCounts = {}
@@ -100,6 +125,85 @@ function AdminDashboard() {
         </Link>
       )}
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 items-start">
+        <Card className="overflow-hidden">
+          <CardHeader
+            icon={MdOutlineEvent}
+            title="Today's hearings"
+            subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          />
+          {loading ? (
+            <SkeletonRows rows={2} />
+          ) : hearings.today.length === 0 ? (
+            <div className="px-5 py-6 flex items-center gap-3">
+              <MdOutlineEventAvailable className="text-3xl text-ink-faint flex-shrink-0" aria-hidden="true" />
+              <div className="text-sm">
+                <div className="text-ink font-semibold">No hearings today</div>
+                {hearings.next ? (
+                  <Link to={`/admin/cases/${hearings.next.id}`} className="text-accent font-semibold">
+                    Next: {relativeDay(hearings.next.hearing_date)}
+                    {hearings.next.hearing_time && `, ${formatTime(hearings.next.hearing_time)}`} · {hearings.next.reference_number}
+                  </Link>
+                ) : (
+                  <div className="text-ink-faint">No upcoming hearings scheduled.</div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {hearings.today.map((c) => (
+                <li key={c.id}>
+                  <Link to={`/admin/cases/${c.id}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-hover transition-colors">
+                    <div className="w-[72px] flex-shrink-0 text-accent font-bold text-base">{c.hearing_time ? formatTime(c.hearing_time) : 'TBA'}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-ink text-sm font-semibold truncate">
+                        {c.complainant_name || c.profiles?.full_name || '—'} vs. {c.respondent_name || '—'}
+                      </div>
+                      <div className="text-ink-faint text-xs truncate">
+                        <span className="font-mono">{c.reference_number}</span> · {c.category}
+                      </div>
+                    </div>
+                    <StatusBadge status={c.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader icon={MdOutlinePriorityHigh} title="Needs attention" subtitle="Cases near or past their KP deadlines" />
+          {loading ? (
+            <SkeletonRows rows={2} />
+          ) : attention.length === 0 ? (
+            <div className="px-5 py-6 flex items-center gap-3">
+              <MdOutlineTaskAlt className="text-3xl text-success-strong flex-shrink-0" aria-hidden="true" />
+              <div className="text-sm">
+                <div className="text-ink font-semibold">All cases are on schedule</div>
+                <div className="text-ink-faint">Nothing is close to a deadline.</div>
+              </div>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border max-h-[300px] overflow-y-auto">
+              {attention.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    to={`/admin/${c.status === 'submitted' ? 'complaints' : 'cases'}/${c.id}`}
+                    className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-surface-hover transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-ink text-sm font-semibold truncate">{c.category}</div>
+                      <div className="text-ink-faint text-xs font-mono">{c.reference_number}</div>
+                    </div>
+                    <DeadlineBadge deadline={c.deadline} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
         {statCards.map((s) => {
           const Icon = s.icon
@@ -151,8 +255,8 @@ function AdminDashboard() {
                   {recent.map((c) => (
                     <tr key={c.id} className="border-b border-border last:border-0">
                       <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                      <td className="px-5 py-3.5 text-ink text-sm">{c.profiles?.full_name || '—'}</td>
-                      <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
+                      <td className="px-5 py-3.5 text-ink text-sm whitespace-nowrap max-w-[180px] truncate">{c.profiles?.full_name || '—'}</td>
+                      <td className="px-5 py-3.5 text-ink-soft text-sm max-w-[200px] truncate">{c.category}</td>
                       <td className="px-5 py-3.5 text-ink-faint text-sm whitespace-nowrap">
                         {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
                       </td>
