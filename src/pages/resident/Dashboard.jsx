@@ -106,7 +106,7 @@ function Dashboard() {
                 action={<LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>}
               />
             ) : (
-              <ul className="divide-y divide-border">
+              <ul className="divide-y divide-border stagger">
                 {open.map((c) => (
                   <li key={c.id}>
                     <CaseRow complaint={c} to={`/track?ref=${c.reference_number}`} />

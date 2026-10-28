@@ -211,7 +211,9 @@ function AppLayout({ title, children }) {
             {firstInitial}
           </NavLink>
         </header>
-        <main className="flex-1 p-4 pb-8 md:p-7 overflow-y-auto overflow-x-hidden min-w-0">{children}</main>
+        <main className="flex-1 p-4 pb-8 md:p-7 overflow-y-auto overflow-x-hidden min-w-0">
+          <div key={location.pathname} className="page-in">{children}</div>
+        </main>
         <BottomNav items={bottomItems} />
       </div>
     </div>
