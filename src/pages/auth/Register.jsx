@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { compressImage } from '../../lib/image'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
+import AuthBackground from '../../components/AuthBackground'
 
 const STEP_LABELS = [
   { label: 'Terms & Privacy', sub: 'Read and agree to terms' },
@@ -384,12 +385,11 @@ function Register() {
   }
 
   return (
-    <div className="min-h-screen relative flex bg-bg overflow-hidden">
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-accent/15 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]" />
+    <div className="min-h-screen relative flex overflow-hidden">
+      <AuthBackground />
 
       {/* LEFT PANEL */}
-      <div className="hidden md:flex w-[400px] flex-col items-center justify-center px-8 py-10 relative z-10">
+      <div className="on-dark hidden md:flex w-[400px] flex-col items-center justify-center px-8 py-10 relative z-10 fade-up">
         <div className="flex items-center gap-4 mb-6">
           <div className="p-1 rounded-full bg-surface border border-border shadow-token-sm bounce-1">
             <img src={logo} alt="KP App" className="w-[70px] h-[70px] rounded-full" />
@@ -435,13 +435,13 @@ function Register() {
       {/* RIGHT FORM SIDE */}
       <div className="flex-1 flex flex-col items-center px-6 md:px-12 py-10 overflow-y-auto relative z-10">
         {step !== 6 && (
-          <div className="w-full max-w-[580px] mb-3">
+          <div className="on-dark w-full max-w-[580px] mb-3">
             <Link to="/login" className="text-accent hover:text-accent-hover text-sm font-medium inline-flex items-center gap-1">
               <MdArrowBack aria-hidden="true" /> Back to Login
             </Link>
           </div>
         )}
-        <div className="w-full max-w-[580px] bg-surface rounded-3xl border border-border shadow-token-lg p-8 my-auto">
+        <div className="w-full max-w-[580px] bg-surface rounded-3xl border border-border shadow-token-lg p-6 sm:p-8 my-auto fade-up delay-2">
 
           {step === 1 && (
             <>

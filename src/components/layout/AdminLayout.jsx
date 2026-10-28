@@ -143,7 +143,7 @@ function AdminLayout({ title, children }) {
               onClick={close}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-[15px] font-medium transition-colors ${
-                  isActive ? 'bg-accent-soft text-accent' : 'text-ink-soft hover:bg-surface-hover hover:text-ink'
+                  isActive ? 'nav-active bg-accent-soft text-accent font-semibold' : 'text-ink-soft hover:bg-surface-hover hover:text-ink'
                 }`
               }
             >
@@ -182,17 +182,15 @@ function AdminLayout({ title, children }) {
 
   return (
     <div className="h-app relative flex bg-bg overflow-hidden">
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <aside className="hidden md:flex w-[260px] h-full bg-surface border-r border-border flex-col relative z-10">
+      <aside className="sidebar-navy sidebar-admin hidden md:flex w-[260px] h-full flex-col relative z-10">
         {SidebarContent}
       </aside>
 
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
           <div className="absolute inset-0 bg-black/50" onClick={close} />
-          <aside className="relative w-[280px] h-full bg-surface border-r border-border flex flex-col z-50 shadow-token-lg">
+          <aside className="sidebar-navy sidebar-admin relative w-[280px] h-full flex flex-col z-50 shadow-token-lg">
             {SidebarContent}
           </aside>
         </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { MdArrowBack, MdOutlineMarkEmailUnread } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
+import AuthBackground from '../../components/AuthBackground'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -28,12 +29,11 @@ function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden bg-bg">
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-accent/15 rounded-full blur-[120px]" />
-      <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]" />
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 overflow-hidden">
+      <AuthBackground />
 
       <div className="w-full max-w-md relative z-10">
-        <div className="flex flex-col items-center mb-8">
+        <div className="on-dark flex flex-col items-center mb-8 fade-up">
           <div className="p-1 rounded-full bg-surface border border-border shadow-token-sm mb-4">
             <img src={logo} alt="KP App Logo" className="w-20 h-20 rounded-full" />
           </div>
@@ -41,7 +41,7 @@ function ForgotPassword() {
           <p className="text-ink-soft font-sans text-sm mt-1">Katarungang Pambarangay Portal</p>
         </div>
 
-        <div className="bg-surface rounded-3xl shadow-token-lg p-8 border border-border">
+        <div className="bg-surface rounded-3xl shadow-token-lg p-7 sm:p-8 border border-border fade-up delay-2">
           {!sent ? (
             <>
               <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">Forgot Password</h2>
