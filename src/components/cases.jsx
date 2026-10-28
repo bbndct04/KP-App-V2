@@ -64,7 +64,7 @@ export function CaseRow({ complaint, to }) {
       {!closed && (
         <div className="flex items-center gap-3 mt-3">
           <div className="flex-1 h-1.5 bg-surface-sunken rounded-full overflow-hidden">
-            <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+            <div className="h-full bg-accent rounded-full grow-x" style={{ width: `${pct}%` }} />
           </div>
           <span className="text-ink-faint text-xs whitespace-nowrap">
             Step {step} of {total}

@@ -9,6 +9,7 @@ import AppSkeleton from './components/AppSkeleton'
 import ErrorBoundary from './components/ErrorBoundary'
 import NotFound from './pages/NotFound'
 
+const LandingPage = lazy(() => import('./pages/LandingPage'))
 const Login = lazy(() => import('./pages/auth/Login'))
 const Register = lazy(() => import('./pages/auth/Register'))
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
@@ -75,7 +76,7 @@ const isAdmin = (profile) => ['admin', 'staff'].includes(profile?.role)
 function HomeRedirect() {
   const { user, profile, loading } = useAuth()
   if (loading) return <AppSkeleton />
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <LandingPage />
   return <Navigate to={isAdmin(profile) ? '/admin/dashboard' : '/dashboard'} replace />
 }
 

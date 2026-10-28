@@ -180,7 +180,7 @@ function CaseView({ complaint, stageDates }) {
           ) : (
             <Card className="p-5 md:p-6">
               <div className="text-ink text-base font-semibold mb-5">Case progress</div>
-              <ol>
+              <ol className="stagger">
                 {STEPS.map((step, i) => {
                   const isDone = i < currentIdx
                   const isActive = i === currentIdx

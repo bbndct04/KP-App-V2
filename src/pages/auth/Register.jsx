@@ -942,7 +942,7 @@ function Register() {
               </p>
               <p className="text-ink font-semibold text-sm mb-5">{email}</p>
               <p className="text-ink-faint text-sm leading-relaxed mb-6 max-w-[380px] mx-auto">
-                Click the link in that email to activate your account, then come back here to sign in.
+                Click the link in that email to activate your account, then come back here to log in.
               </p>
 
               {resendMsg && (

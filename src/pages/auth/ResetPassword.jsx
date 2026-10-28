@@ -51,7 +51,7 @@ function ResetPassword() {
     }
 
     await supabase.auth.signOut()
-    navigate('/login', { state: { message: 'Password updated. Please sign in with your new password.' } })
+    navigate('/login', { state: { message: 'Password updated. Please log in with your new password.' } })
   }
 
   return (

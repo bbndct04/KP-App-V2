@@ -146,7 +146,7 @@ function AdminComplaints() {
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="stagger">
                   {list.map((c) => {
                     const w = waitInfo(c.created_at, now)
                     return (
