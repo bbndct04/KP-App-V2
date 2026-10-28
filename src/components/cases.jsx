@@ -40,7 +40,7 @@ export function HearingCard({ complaint, showLink = true }) {
       {showLink && (
         <Link
           to={`/track?ref=${complaint.reference_number}`}
-          className="mt-4 h-11 rounded-lg bg-white text-accent text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-white/90 transition-colors"
+          className="mt-4 h-11 rounded-lg bg-white text-[#0b1f4d] text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-white/90 transition-colors"
         >
           View case <MdArrowForward aria-hidden="true" />
         </Link>

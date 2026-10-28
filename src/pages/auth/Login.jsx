@@ -4,6 +4,7 @@ import { MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
+import AuthBackground from '../../components/AuthBackground'
 
 function Login() {
   const navigate = useNavigate()
@@ -63,15 +64,12 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden bg-bg">
-      {/* Ambient glow background */}
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-accent/15 rounded-full blur-[120px]" />
-      <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]" />
-      <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] bg-accent/10 rounded-full blur-[100px]" />
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 overflow-hidden">
+      <AuthBackground />
 
       <div className="w-full max-w-md relative z-10">
         {/* Logos + Header */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="on-dark flex flex-col items-center mb-8 fade-up">
           <div className="flex items-center gap-4 mb-4">
             <div className="p-1 rounded-full bg-surface border border-border shadow-token-sm bounce-1">
               <img src={logo} alt="KP App Logo" className="w-20 h-20 rounded-full" />
@@ -88,7 +86,7 @@ function Login() {
         </div>
 
         {/* Card */}
-        <div className="bg-surface rounded-3xl shadow-token-lg p-8 border border-border">
+        <div className="bg-surface rounded-3xl shadow-token-lg p-7 sm:p-8 border border-border fade-up delay-2">
           <h2 className="text-ink font-sans text-xl font-semibold mb-6">
             Sign In
           </h2>
