@@ -101,7 +101,8 @@ function SubmitComplaint() {
 
     let attachmentUrl = null
     if (file) {
-      const path = `${user.id}/${Date.now()}-${file.name}`
+      const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').slice(-80)
+      const path = `${user.id}/${Date.now()}-${safeName}`
       const { error: uploadError } = await supabase.storage.from('complaint-attachments').upload(path, file)
       if (uploadError) {
         setSubmitting(false)
@@ -137,14 +138,6 @@ function SubmitComplaint() {
       setError(insertError.message)
       return
     }
-
-    await supabase.from('complaint_notifications').insert({
-      complaint_id: inserted.id,
-      user_id: user.id,
-      title: 'Complaint Submitted',
-      type: 'info',
-      message: `Your complaint (Ref: ${inserted.reference_number}) was submitted and is waiting for the barangay to review it. You'll be notified once it is accepted.`,
-    })
 
     setSubmitting(false)
     setSuccessRef(inserted.reference_number)
