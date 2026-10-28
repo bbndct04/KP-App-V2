@@ -1,65 +1,31 @@
-import { useComplaintForForm, fmtDate, fmtTime, FormPage, FormHeader , FormSkeleton } from './FormShell'
+import DocumentPage from '../../../components/forms/DocumentPage'
+import { withHearing } from '../../../components/forms/defaults'
+import { D, FormTitle, OfficeHeader, Para, Pick, Sig, SignRow, T, ToBlock } from '../../../components/forms/blocks'
 
-function Form10() {
-  const { complaint, loading } = useComplaintForForm()
-  if (loading) return <FormSkeleton />
-  if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
-
-  const now = new Date()
-
+function Body() {
   return (
-    <FormPage>
-      <FormHeader office="OFFICE OF THE PUNONG BARANGAY" />
-
-      <div className="font-bold text-[13px] uppercase text-center my-4">NOTICE FOR CONSTITUTION OF PANGKAT</div>
-
-      <div className="text-justify leading-loose my-2.5">
-        TO: <u>{complaint.complainant_name}</u> &nbsp;&nbsp;&nbsp;&nbsp; <u>{complaint.respondent_name}</u><br />
-        <div className="flex justify-between text-[11px]">
-          <span>Complainant/s</span>
-          <span>Respondent/s</span>
-        </div>
+    <>
+      <OfficeHeader office="OFFICE OF THE PUNONG BARANGAY" />
+      <FormTitle>NOTICE FOR CONSTITUTION OF PANGKAT</FormTitle>
+      <ToBlock left={{ k: 'complainant', label: 'Complainant/s' }} right={{ k: 'respondent', label: 'Respondent/s' }} />
+      <Para>
+        You are hereby required to appear before me on the <D k="hearingDate" label="Date to constitute the Pangkat" /> at <T k="hearingTime" label="Time" underline minCh={5} /> o&apos;clock in the{' '}
+        <Pick k="hearingPeriod" label="Morning or afternoon" options={['morning', 'afternoon']} /> for the constitution of the Pangkat ng Tagapagkasundo which shall conciliate your dispute.
+        Should you fail to agree on the Pangkat membership or to appear on the aforesaid date for the constitution of the Pangkat, I shall determine the membership thereof by
+        drawing lots.
+      </Para>
+      <div className="kp-avoid">
+        This <D k="issueDate" label="Date of issue" />.
+        <Sig label="Punong Barangay" nameKey="punongBarangay" nameLabel="Punong Barangay name" align="right" />
       </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        You are hereby required to appear before me on the{' '}
-        <u>{fmtDate(complaint.hearing_date, 'day')}</u> day of{' '}
-        <u>{fmtDate(complaint.hearing_date, 'month')}</u>, <u>{fmtDate(complaint.hearing_date, 'year')}</u>,
-        at <u>{fmtTime(complaint.hearing_time)}</u> o'clock in the morning/afternoon for
-        the constitution of the Pangkat ng Tagapagkasundo which shall conciliate your
-        dispute. Should you fail to agree on the Pangkat membership or to appear on
-        the aforesaid date for the constitution of the Pangkat, I shall determine the
-        membership thereof by drawing lots.
-      </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        This <u>{fmtDate(now, 'day')}</u> day of <u>{fmtDate(now, 'month')}</u>, <u>{fmtDate(now, 'year')}</u>.
-      </div>
-
-      <div className="border-b border-black w-[220px] mt-5 mb-1">&nbsp;</div>
-      Punong Barangay
-      <br /><br />
-      Notified this <u>________</u> day of <u>____________</u>, <u>{fmtDate(now, 'year')}</u>.
-      <br /><br />
-
-      <table className="w-full">
-        <tbody>
-          <tr>
-            <td className="w-1/2">
-              TO:<br />
-              <div className="border-b border-black w-[180px] mb-1">&nbsp;</div>
-              Complainant/s
-            </td>
-            <td className="w-1/2">
-              <br />
-              <div className="border-b border-black w-[180px] mb-1">&nbsp;</div>
-              Respondent/s
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </FormPage>
+      <Para>
+        Notified this <D k="notifiedDate" label="Date notified" />.
+      </Para>
+      <SignRow labels={[{ label: 'Complainant/s', nameKey: 'complainant' }, { label: 'Respondent/s', nameKey: 'respondent' }]} />
+    </>
   )
 }
 
-export default Form10
+export default function Form10() {
+  return <DocumentPage formNo={10} title="Notice for Constitution of Pangkat" makeDefaults={withHearing} Body={Body} />
+}

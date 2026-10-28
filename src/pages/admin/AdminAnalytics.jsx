@@ -15,7 +15,8 @@ import { Skeleton } from '../../components/ui'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CAT_COLORS = ['#5ba0f5', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#38bdf8', '#2dd4bf']
 
-const IN_PROGRESS_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
+const IN_PROGRESS_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing', 'arbitration']
+const SETTLED_STAGES = ['settled', 'execution', 'closed']
 
 function AdminAnalytics() {
   const [complaints, setComplaints] = useState([])
@@ -37,7 +38,7 @@ function AdminAnalytics() {
     declined: complaints.filter((c) => c.status === 'declined').length,
     filed: complaints.filter((c) => c.status === 'filed').length,
     inProgress: complaints.filter((c) => IN_PROGRESS_STAGES.includes(c.status)).length,
-    settled: complaints.filter((c) => c.status === 'settled').length,
+    settled: complaints.filter((c) => SETTLED_STAGES.includes(c.status)).length,
     cfaIssued: complaints.filter((c) => c.status === 'cfa_issued').length,
     dismissed: complaints.filter((c) => c.status === 'dismissed').length,
   }

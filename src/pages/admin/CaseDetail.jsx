@@ -17,6 +17,7 @@ import {
   MdOutlinePrint,
   MdOutlineHistory,
   MdOutlineSearchOff,
+  MdOutlineCheckCircle,
 } from 'react-icons/md'
 import { Card, StatusBadge, EmptyState, Skeleton, LinkButton, ConfirmDialog } from '../../components/ui'
 import { STATUS } from '../../components/status'
@@ -28,7 +29,7 @@ import { caseDeadline } from '../../lib/cases'
 function stageDatesFromLogs(logs) {
   const dates = {}
   for (const l of logs) {
-    if (l.entry_type === 'stage_change' && (l.stage === 'summoned' || l.stage === 'pangkat_formed')) {
+    if (l.entry_type === 'stage_change' && ['summoned', 'pangkat_formed', 'arbitration'].includes(l.stage)) {
       if (!dates[l.stage] || l.created_at > dates[l.stage]) dates[l.stage] = l.created_at
     }
   }
@@ -40,59 +41,122 @@ const STAGES = [
   { key: 'summoned', label: 'Summoned' },
   { key: 'mediation', label: 'Mediation' },
   { key: 'pangkat_formed', label: 'Pangkat Formed' },
-  { key: 'pangkat_hearing', label: 'Pangkat Hearing' },
-  { key: 'outcome', label: 'Settled / CFA' },
+  { key: 'pangkat_hearing', label: 'Conciliation' },
+  { key: 'outcome', label: 'Outcome' },
+  { key: 'closed', label: 'Closed' },
 ]
 
-const OUTCOME_STAGES = ['settled', 'cfa_issued', 'dismissed']
+const OUTCOME_STAGES = ['settled', 'execution', 'cfa_issued', 'dismissed']
+const FINAL_STAGES = ['closed', 'cfa_issued', 'dismissed']
 
 const STAGE_META = {
-  filed: { badge: 'bg-warning-soft text-warning-strong', next: ['summoned', 'dismissed'], action: 'Issue a summons to the respondent, then set a hearing date to move this case to mediation.' },
-  summoned: { badge: 'bg-info-soft text-info-strong', next: ['mediation', 'dismissed'], action: 'Once the respondent is notified, proceed to mediation before the Punong Barangay.' },
-  mediation: { badge: 'bg-accent-soft text-accent', next: ['pangkat_formed', 'settled', 'dismissed'], action: 'If mediation fails, constitute a Pangkat to continue conciliation. If it succeeds, record the settlement.' },
-  pangkat_formed: { badge: 'bg-purple-soft text-purple-strong', next: ['pangkat_hearing'], action: 'Assign 3 Pangkat members, then schedule the Pangkat hearing.' },
-  pangkat_hearing: { badge: 'bg-purple-soft text-purple-strong', next: ['settled', 'cfa_issued'], action: 'Record the hearing outcome — a settlement, or issue a Certificate to File Action if unresolved.' },
-  settled: { badge: 'bg-success-soft text-success-strong', next: [], action: 'Case settled. This case is closed.' },
-  cfa_issued: { badge: 'bg-neutral-soft text-neutral-strong', next: [], action: 'Certificate to File Action issued. The complainant may now file with court or the prosecutor.' },
-  dismissed: { badge: 'bg-danger-soft text-danger-strong', next: [], action: 'Case dismissed. This case is closed.' },
+  filed: { next: ['summoned', 'dismissed'], action: 'Issue a summons to the respondent and a notice of hearing to the complainant, then set the mediation hearing.' },
+  summoned: { next: ['mediation', 'pangkat_formed', 'dismissed'], action: 'Once both parties are notified, proceed to mediation before the Punong Barangay. If the respondent does not appear, the case may be referred to the Pangkat.' },
+  mediation: { next: ['settled', 'pangkat_formed', 'arbitration', 'dismissed'], action: 'Mediation runs up to 15 days. Record a settlement if reached. If it fails, constitute a Pangkat within 15 days. Parties may also agree to arbitration.' },
+  pangkat_formed: { next: ['pangkat_hearing', 'settled', 'arbitration', 'cfa_issued', 'dismissed'], action: 'Assign 3 Pangkat members, then schedule the conciliation hearing.' },
+  pangkat_hearing: { next: ['settled', 'arbitration', 'cfa_issued', 'dismissed'], action: 'Conciliation runs 15 days, extendable by 15. Record a settlement, or issue a Certificate to File Action if no settlement is reached.' },
+  arbitration: { next: ['settled', 'cfa_issued', 'dismissed'], action: 'Hold the arbitration hearing. Issue the arbitration award within 15 days of the last hearing (not earlier than 6 days).' },
+  execution: { next: ['closed'], action: 'Enforce the settlement or award (Motion for Execution, Notice of Hearing, Notice of Execution). This must be done within 6 months of the settlement.' },
+  closed: { next: [], action: 'The settlement was complied with. This case is closed.' },
+  cfa_issued: { next: [], action: 'Certificate to File Action issued. The complainant may now file with court or the proper government office.' },
+  dismissed: { next: [], action: 'Case dismissed. This case is closed.' },
 }
 
 const STAGE_LABELS = {
-  filed: 'Filed', summoned: 'Summoned', mediation: 'Mediation',
-  pangkat_formed: 'Pangkat Formed', pangkat_hearing: 'Pangkat Hearing',
-  settled: 'Settled', cfa_issued: 'CFA Issued', dismissed: 'Dismissed',
+  filed: 'Filed',
+  summoned: 'Summoned',
+  mediation: 'Mediation',
+  pangkat_formed: 'Pangkat Formed',
+  pangkat_hearing: 'Conciliation',
+  arbitration: 'Arbitration',
+  settled: 'Settled',
+  execution: 'Execution (not complied)',
+  closed: 'Closed (complied)',
+  cfa_issued: 'Certificate to File Action',
+  dismissed: 'Dismissed',
 }
+
+const CFA_TYPES = {
+  repudiated: 'The settlement was repudiated (Form 20)',
+  no_settlement: 'No settlement after conciliation (Form 21)',
+  respondent_refused: 'Respondent refused to appear before the Pangkat (Form 22)',
+}
+
+const DISMISSAL_REASONS = {
+  complainant_failed_to_appear: 'Complainant failed to appear without justifiable reason',
+  withdrawn: 'Complaint withdrawn by the complainant',
+  not_covered: 'Not covered by Katarungang Pambarangay',
+  other: 'Other (explain in remarks)',
+}
+
+const DAY = 86400000
+
+function settlementWindow(c) {
+  if (!c.settled_at) return null
+  const finalAt = new Date(new Date(c.settled_at).getTime() + 10 * DAY)
+  const daysLeft = Math.ceil((finalAt - Date.now()) / DAY)
+  return { finalAt, daysLeft, isFinal: daysLeft <= 0, executionDeadline: new Date(new Date(c.settled_at).getTime() + 182 * DAY) }
+}
+
+function nextStagesFor(c) {
+  if (c.status !== 'settled') return (STAGE_META[c.status] || STAGE_META.filed).next
+  const w = settlementWindow(c)
+  return w && !w.isFinal ? ['cfa_issued'] : ['closed', 'execution']
+}
+
+const longDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
 const FORM_LABELS = {
   7: 'Complaint',
-  8: 'Notice of Hearing',
+  8: 'Notice of Hearing (Mediation)',
   9: 'Summons',
-  10: 'Pangkat Constitution Notice',
-  11: 'Notice to Pangkat Member',
+  10: 'Notice for Constitution of Pangkat',
+  11: 'Notice to Chosen Pangkat Member',
+  12: 'Notice of Hearing (Conciliation)',
   13: 'Subpoena',
-  14: 'Arbitration Agreement',
+  14: 'Agreement for Arbitration',
   15: 'Arbitration Award',
   16: 'Amicable Settlement',
-  18: 'Notice — Complainant No-Show',
-  19: 'Notice — Respondent No-Show',
-  20: 'Certificate to File Action',
-  22: 'CFA (Pangkat No-Show)',
+  17: 'Repudiation',
+  18: 'Notice of Hearing (Complainant Failed to Appear)',
+  19: 'Notice of Hearing (Respondent Failed to Appear)',
+  20: 'Certification to File Action (Repudiated Settlement)',
+  21: 'Certification to File Action (No Settlement)',
+  22: 'Certification to File Action (Respondent Did Not Appear)',
+  23: 'Certification to Bar Action',
+  24: 'Certification to Bar Counterclaim',
   25: 'Motion for Execution',
+  26: 'Notice of Hearing (Motion for Execution)',
   27: 'Notice of Execution',
 }
 
-const FORMS_BY_STAGE = {
-  filed: [7],
-  summoned: [7, 8, 9],
-  mediation: [7, 9, 13, 14, 15, 18, 19],
-  pangkat_formed: [7, 10, 11, 13, 14, 15, 18, 19, 22],
-  pangkat_hearing: [7, 13, 14, 15, 18, 19, 22],
-  settled: [7, 16, 25, 27],
-  cfa_issued: [7, 20, 22],
-  dismissed: [7],
+const FORM_GROUPS = [
+  { title: 'Complaint and mediation', forms: [7, 8, 9] },
+  { title: 'Pangkat and conciliation', forms: [10, 11, 12, 13] },
+  { title: 'Failure to appear', forms: [18, 19] },
+  { title: 'Arbitration', forms: [14, 15] },
+  { title: 'Settlement and repudiation', forms: [16, 17] },
+  { title: 'Certifications', forms: [20, 21, 22, 23, 24] },
+  { title: 'Execution', forms: [25, 26, 27] },
+]
+
+const SUGGESTED_BY_STAGE = {
+  filed: [7, 8, 9],
+  summoned: [8, 9, 13, 18, 19],
+  mediation: [13, 14, 16, 18, 19],
+  pangkat_formed: [10, 11, 12],
+  pangkat_hearing: [12, 13, 14, 15, 16, 18, 19],
+  arbitration: [13, 14, 15],
+  settled: [16, 17, 15],
+  execution: [25, 26, 27],
+  closed: [16],
+  cfa_issued: [20, 21, 22],
+  dismissed: [23, 24],
 }
 
-function currentTrackerIndex(status) {
+function currentTrackerIndex(status, hasPangkat) {
+  if (status === 'closed') return 6
+  if (status === 'arbitration') return hasPangkat ? 4 : 2
   if (OUTCOME_STAGES.includes(status)) return 5
   return STAGES.findIndex((s) => s.key === status)
 }
@@ -128,6 +192,8 @@ function CaseDetail() {
   const [settlementTerms, setSettlementTerms] = useState('')
   const [cfaReason, setCfaReason] = useState('')
   const [cfaRepudiatedBy, setCfaRepudiatedBy] = useState('')
+  const [cfaType, setCfaType] = useState('no_settlement')
+  const [dismissalReason, setDismissalReason] = useState('')
   const [saving, setSaving] = useState(false)
 
   const [noteText, setNoteText] = useState('')
@@ -183,15 +249,20 @@ function CaseDetail() {
     )
 
   const meta = STAGE_META[complaint.status] || STAGE_META.filed
-  const trackerIdx = currentTrackerIndex(complaint.status)
-  const availableForms = FORMS_BY_STAGE[complaint.status] || [7]
+  const nextStages = nextStagesFor(complaint)
+  const win = ['settled', 'execution', 'closed'].includes(complaint.status) ? settlementWindow(complaint) : null
+  const trackerIdx = FINAL_STAGES.includes(complaint.status) && complaint.status !== 'closed' ? 5 : currentTrackerIndex(complaint.status, members.length > 0)
+  const suggestedForms = SUGGESTED_BY_STAGE[complaint.status] || [7]
 
-  function openAdvanceModal() {
-    setSelectedNextStage(meta.next[0] || '')
+  function openAdvanceModal(stage) {
+    const target = typeof stage === 'string' ? stage : nextStages[0] || ''
+    setSelectedNextStage(target)
     setAdvanceRemarks('')
     setSettlementTerms(complaint.settlement_terms || '')
     setCfaReason('')
     setCfaRepudiatedBy('')
+    setCfaType(complaint.status === 'settled' ? 'repudiated' : complaint.status === 'pangkat_formed' ? 'respondent_refused' : 'no_settlement')
+    setDismissalReason('')
     setShowAdvanceModal(true)
   }
 
@@ -206,9 +277,12 @@ function CaseDetail() {
       p_hearing_date: hearingDate || null,
       p_hearing_time: hearingTime || null,
       p_settlement_terms: selectedNextStage === 'settled' ? settlementTerms : null,
-      p_cfa_reason: selectedNextStage === 'cfa_issued'
-        ? `${cfaReason}${cfaRepudiatedBy ? ` (Repudiated by: ${cfaRepudiatedBy})` : ''}`
-        : null,
+      p_cfa_reason:
+        selectedNextStage === 'cfa_issued' && cfaType === 'repudiated'
+          ? `${cfaReason}${cfaRepudiatedBy ? ` (Repudiated by: ${cfaRepudiatedBy})` : ''}`
+          : null,
+      p_cfa_type: selectedNextStage === 'cfa_issued' ? cfaType : null,
+      p_dismissal_reason: selectedNextStage === 'dismissed' ? dismissalReason || null : null,
     })
 
     setSaving(false)
@@ -318,11 +392,50 @@ function CaseDetail() {
       {/* Next Action */}
       <div className="bg-accent-soft border border-accent/25 rounded-2xl p-5 mb-4">
         <div className="text-accent text-sm font-semibold mb-1.5 flex items-center gap-1.5"><MdOutlineTipsAndUpdates className="text-lg" aria-hidden="true" /> Next action</div>
-        <div className="text-ink text-sm mb-3.5">{meta.action}</div>
-        {meta.next.length > 0 && (
-          <button onClick={openAdvanceModal} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg h-11 px-5 shadow-token-sm inline-flex items-center gap-2">
-            Advance stage <MdArrowForward aria-hidden="true" />
-          </button>
+        {complaint.status === 'settled' && win ? (
+          win.isFinal ? (
+            <>
+              <div className="text-ink text-sm mb-3.5">
+                The settlement became final on <strong>{longDate(win.finalAt)}</strong>. Has the obliged party complied with it? If not, it must be executed by{' '}
+                <strong>{longDate(win.executionDeadline)}</strong> (6 months from the settlement).
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => openAdvanceModal('closed')} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg h-11 px-5 shadow-token-sm inline-flex items-center gap-2">
+                  <MdOutlineCheckCircle aria-hidden="true" /> Complied, close case
+                </button>
+                <button onClick={() => openAdvanceModal('execution')} className="border border-border bg-surface text-ink text-sm font-semibold rounded-lg h-11 px-5 inline-flex items-center gap-2 hover:bg-surface-hover">
+                  Not complied, start execution
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-ink text-sm mb-3.5">
+                Repudiation period: <strong>{win.daysLeft} day{win.daysLeft === 1 ? '' : 's'} left</strong>. The settlement becomes final on <strong>{longDate(win.finalAt)}</strong>. If a party
+                repudiates it in a sworn statement (Form 17) on the ground of fraud, violence or intimidation, record it to issue a Certificate to File Action (Form 20).
+              </div>
+              <button onClick={() => openAdvanceModal('cfa_issued')} className="border border-border bg-surface text-ink text-sm font-semibold rounded-lg h-11 px-5 inline-flex items-center gap-2 hover:bg-surface-hover">
+                Record repudiation
+              </button>
+            </>
+          )
+        ) : (
+          <>
+            <div className="text-ink text-sm mb-3.5">
+              {meta.action}
+              {complaint.status === 'execution' && win && (
+                <>
+                  {' '}
+                  Execution deadline: <strong>{longDate(win.executionDeadline)}</strong>.
+                </>
+              )}
+            </div>
+            {nextStages.length > 0 && (
+              <button onClick={openAdvanceModal} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg h-11 px-5 shadow-token-sm inline-flex items-center gap-2">
+                {complaint.status === 'execution' ? 'Mark as complied' : 'Advance stage'} <MdArrowForward aria-hidden="true" />
+              </button>
+            )}
+          </>
         )}
         {complaint.status === 'filed' && (
           <Link
@@ -392,37 +505,69 @@ function CaseDetail() {
       )}
 
       {/* Settlement / CFA summary, once recorded */}
-      {complaint.status === 'settled' && complaint.settlement_terms && (
+      {complaint.settlement_terms && ['settled', 'execution', 'closed'].includes(complaint.status) && (
         <div className="bg-success-soft border border-success-strong/20 rounded-2xl p-4 mb-4">
-          <div className="text-success-strong text-xs mb-1.5">Settlement terms</div>
-          <div className="text-ink text-sm">{complaint.settlement_terms}</div>
+          <div className="text-success-strong text-xs font-semibold mb-1.5">
+            {complaint.settlement_type === 'arbitration_award' ? 'Arbitration award' : 'Amicable settlement'}
+            {complaint.settled_at && ` · ${longDate(complaint.settled_at)}`}
+          </div>
+          <div className="text-ink text-sm whitespace-pre-line">{complaint.settlement_terms}</div>
         </div>
       )}
-      {complaint.status === 'cfa_issued' && complaint.cfa_reason && (
+      {complaint.status === 'cfa_issued' && (complaint.cfa_type || complaint.cfa_reason) && (
         <div className="bg-neutral-soft border border-neutral-strong/20 rounded-2xl p-4 mb-4">
-          <div className="text-neutral-strong text-xs mb-1.5">CFA reason</div>
-          <div className="text-ink text-sm">{complaint.cfa_reason}</div>
+          <div className="text-neutral-strong text-xs font-semibold mb-1.5">Certificate to File Action</div>
+          {complaint.cfa_type && <div className="text-ink text-sm">{CFA_TYPES[complaint.cfa_type]}</div>}
+          {complaint.cfa_reason && <div className="text-ink-soft text-sm mt-1">{complaint.cfa_reason}</div>}
+        </div>
+      )}
+      {complaint.status === 'dismissed' && complaint.dismissal_reason && (
+        <div className="bg-danger-soft border border-danger-strong/20 rounded-2xl p-4 mb-4">
+          <div className="text-danger-strong text-xs font-semibold mb-1.5">Reason for dismissal</div>
+          <div className="text-ink text-sm">{DISMISSAL_REASONS[complaint.dismissal_reason]}</div>
         </div>
       )}
 
-      {/* Documents — stage-aware, labeled */}
+      {/* KP Forms — all forms available; current-stage forms are marked as suggested */}
       <div className="bg-surface border border-border rounded-2xl p-4 mb-4 shadow-token-md">
-        <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineDescription className="text-lg text-accent" aria-hidden="true" /> Documents available at this stage</div>
-        <div className="flex flex-wrap gap-2">
-          {availableForms.map((n) => (
-            <Link
-              key={n}
-              to={`/admin/complaints/${id}/form${n}`}
-              target="_blank"
-              className="text-sm font-semibold text-success-strong border border-success-strong/30 bg-success-soft rounded-md px-3 py-1.5 inline-flex items-center gap-1.5"
-            >
-              <MdOutlinePrint aria-hidden="true" /> {FORM_LABELS[n] || `Form ${n}`}
-              {docStatus[n] && (
-                <span className={`text-xs font-bold rounded-full px-2 py-0.5 ${docStatus[n] === 'issued' ? 'bg-success-strong text-white' : 'bg-warning-soft text-warning-strong'}`}>
-                  {docStatus[n] === 'issued' ? 'Issued' : 'Draft'}
-                </span>
-              )}
-            </Link>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div className="text-ink-soft text-sm font-semibold flex items-center gap-1.5">
+            <MdOutlineDescription className="text-lg text-accent" aria-hidden="true" /> KP Forms
+          </div>
+          <div className="text-ink-faint text-xs flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-accent" aria-hidden="true" /> Suggested for the {STAGE_LABELS[complaint.status] || 'current'} stage
+          </div>
+        </div>
+        <div className="flex flex-col gap-3.5">
+          {FORM_GROUPS.map((g) => (
+            <div key={g.title}>
+              <div className="text-ink-faint text-xs font-semibold uppercase tracking-wide mb-1.5">{g.title}</div>
+              <div className="flex flex-wrap gap-2">
+                {g.forms.map((n) => {
+                  const suggested = suggestedForms.includes(n)
+                  return (
+                    <Link
+                      key={n}
+                      to={`/admin/complaints/${id}/form${n}`}
+                      target="_blank"
+                      className={`text-sm font-semibold rounded-md px-3 py-1.5 inline-flex items-center gap-1.5 border transition-colors ${
+                        suggested
+                          ? 'text-accent border-accent/40 bg-accent-soft hover:border-accent'
+                          : 'text-ink-soft border-border bg-surface hover:bg-surface-hover hover:text-ink'
+                      }`}
+                    >
+                      <MdOutlinePrint aria-hidden="true" />
+                      {FORM_LABELS[n] || `Form ${n}`}
+                      {docStatus[n] && (
+                        <span className={`text-xs font-bold rounded-full px-2 py-0.5 ${docStatus[n] === 'issued' ? 'bg-success-strong text-white' : 'bg-warning-soft text-warning-strong'}`}>
+                          {docStatus[n] === 'issued' ? 'Issued' : 'Draft'}
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -467,7 +612,9 @@ function CaseDetail() {
       {showAdvanceModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-5" onClick={() => setShowAdvanceModal(false)}>
           <div className="bg-surface border border-border rounded-2xl p-6 max-w-[460px] w-full shadow-token-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="text-ink text-lg font-bold mb-1">Advance case stage</div>
+            <div className="text-ink text-lg font-bold mb-1">
+              {selectedNextStage === 'closed' ? 'Close the case' : selectedNextStage === 'execution' ? 'Start execution' : 'Advance case stage'}
+            </div>
             <div className="text-ink-faint text-xs mb-4">This updates the case status and notifies the resident. This action reflects a legal step — confirm before proceeding.</div>
 
             <div className="mb-4">
@@ -477,13 +624,15 @@ function CaseDetail() {
                 onChange={(e) => setSelectedNextStage(e.target.value)}
                 className="w-full bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
               >
-                {meta.next.map((s) => (
-                  <option key={s} value={s}>{STAGE_LABELS[s]}</option>
+                {nextStages.map((s) => (
+                  <option key={s} value={s}>
+                    {s === 'settled' && complaint.status === 'arbitration' ? 'Arbitration award' : s === 'cfa_issued' && complaint.status === 'settled' ? 'Repudiated → Certificate to File Action' : STAGE_LABELS[s]}
+                  </option>
                 ))}
               </select>
             </div>
 
-            {(selectedNextStage === 'summoned' || selectedNextStage === 'pangkat_hearing') && (
+            {['summoned', 'pangkat_formed', 'pangkat_hearing', 'arbitration'].includes(selectedNextStage) && (
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Hearing date</label>
@@ -498,7 +647,9 @@ function CaseDetail() {
 
             {selectedNextStage === 'settled' && (
               <div className="mb-4">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Settlement Terms</label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">
+                  {complaint.status === 'arbitration' ? 'Arbitration award' : 'Settlement terms'}
+                </label>
                 <textarea
                   value={settlementTerms}
                   onChange={(e) => setSettlementTerms(e.target.value)}
@@ -509,7 +660,53 @@ function CaseDetail() {
               </div>
             )}
 
-            {selectedNextStage === 'cfa_issued' && (
+            {selectedNextStage === 'settled' && (
+              <div className="mb-4 text-xs text-ink-soft bg-surface-sunken border border-border rounded-lg px-3 py-2.5">
+                Either party may repudiate within 10 days. The case stays open until you record whether it was complied with.
+              </div>
+            )}
+
+            {selectedNextStage === 'dismissed' && (
+              <div className="mb-4">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Reason for dismissal</label>
+                <select
+                  value={dismissalReason}
+                  onChange={(e) => setDismissalReason(e.target.value)}
+                  className="w-full bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                >
+                  <option value="">Choose a reason</option>
+                  {Object.entries(DISMISSAL_REASONS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+                {dismissalReason === 'complainant_failed_to_appear' && (
+                  <div className="text-xs text-ink-faint mt-1.5">Prepare the Certification to Bar Action (Form 23).</div>
+                )}
+              </div>
+            )}
+
+            {selectedNextStage === 'cfa_issued' && complaint.status !== 'settled' && (
+              <div className="mb-4">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Reason for the certificate</label>
+                <select
+                  value={cfaType}
+                  onChange={(e) => setCfaType(e.target.value)}
+                  className="w-full bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                >
+                  {Object.entries(CFA_TYPES)
+                    .filter(([k]) => k !== 'repudiated' || complaint.status === 'arbitration')
+                    .map(([k, v]) => (
+                      <option key={k} value={k}>
+                        {v}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
+
+            {selectedNextStage === 'cfa_issued' && cfaType === 'repudiated' && (
               <>
                 <div className="mb-4">
                   <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Repudiated By</label>
@@ -521,12 +718,12 @@ function CaseDetail() {
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Reason for CFA</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Ground (fraud, violence or intimidation)</label>
                   <textarea
                     value={cfaReason}
                     onChange={(e) => setCfaReason(e.target.value)}
                     rows={3}
-                    placeholder="Why is a Certificate to File Action being issued?"
+                    placeholder="State the ground and details from the sworn statement"
                     className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-vertical"
                   />
                 </div>
@@ -546,7 +743,7 @@ function CaseDetail() {
 
             <div className="flex gap-2.5">
               <button onClick={() => setShowAdvanceModal(false)} className="flex-1 border border-border text-ink-soft rounded-lg py-2.5 text-sm font-medium">Cancel</button>
-              <button onClick={confirmAdvance} disabled={saving} className="flex-[2] bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-lg py-2.5 shadow-token-sm">
+              <button onClick={confirmAdvance} disabled={saving || (selectedNextStage === 'dismissed' && !dismissalReason)} className="flex-[2] bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-lg py-2.5 shadow-token-sm">
                 {saving ? 'Saving...' : 'Confirm and advance'}
               </button>
             </div>

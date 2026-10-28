@@ -1,8 +1,9 @@
 import { supabase } from './supabaseClient'
 
-export const HEARING_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
-export const PROGRESS_STEPS = ['submitted', 'filed', 'summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing', 'outcome']
-const OUTCOMES = ['settled', 'cfa_issued', 'dismissed']
+export const HEARING_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing', 'arbitration']
+export const PROGRESS_STEPS = ['submitted', 'filed', 'summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing', 'outcome', 'closed']
+const OUTCOMES = ['settled', 'execution', 'cfa_issued', 'dismissed']
+const DONE = ['closed', 'cfa_issued', 'dismissed']
 
 export function parseDate(d) {
   if (!d) return null
@@ -49,7 +50,13 @@ export function upcomingHearings(complaints) {
 }
 
 export function progressOf(status) {
-  const idx = OUTCOMES.includes(status) ? PROGRESS_STEPS.length - 1 : PROGRESS_STEPS.indexOf(status)
+  const idx = DONE.includes(status)
+    ? PROGRESS_STEPS.length - 1
+    : OUTCOMES.includes(status)
+      ? PROGRESS_STEPS.length - 2
+      : status === 'arbitration'
+        ? PROGRESS_STEPS.indexOf('pangkat_hearing')
+        : PROGRESS_STEPS.indexOf(status)
   return { step: idx + 1, total: PROGRESS_STEPS.length, pct: Math.round(((idx + 1) / PROGRESS_STEPS.length) * 100) }
 }
 
@@ -75,6 +82,21 @@ export function caseDeadline(c, stageDates = {}) {
     if (days > 15) return { label: `Extension day ${days} of 30`, tone: 'warning' }
     return { label: `Pangkat day ${days} of 15`, tone: days >= 12 ? 'warning' : 'neutral' }
   }
+  if (c.status === 'arbitration') {
+    const days = elapsedDays(stageDates.arbitration || c.reviewed_at || c.created_at)
+    return days > 15 ? { label: `Arbitration day ${days} · award due`, tone: 'warning' } : { label: `Arbitration day ${days}`, tone: 'neutral' }
+  }
+  if (c.status === 'settled' && c.settled_at) {
+    const left = Math.ceil((new Date(c.settled_at).getTime() + 10 * 86400000 - Date.now()) / 86400000)
+    return left > 0
+      ? { label: `Repudiation: ${left} day${left === 1 ? '' : 's'} left`, tone: 'neutral' }
+      : { label: 'Final · record compliance', tone: 'warning' }
+  }
+  if (c.status === 'execution' && c.settled_at) {
+    const left = Math.ceil((new Date(c.settled_at).getTime() + 182 * 86400000 - Date.now()) / 86400000)
+    if (left <= 0) return { label: 'Execution period lapsed', tone: 'danger' }
+    return { label: `Execution: ${left} days left`, tone: left <= 30 ? 'warning' : 'neutral' }
+  }
   return null
 }
 
@@ -84,7 +106,7 @@ export async function loadStageDates(complaintIds) {
     .from('case_activity_log')
     .select('complaint_id, stage, created_at')
     .eq('entry_type', 'stage_change')
-    .in('stage', ['summoned', 'pangkat_formed'])
+    .in('stage', ['summoned', 'pangkat_formed', 'arbitration'])
     .in('complaint_id', complaintIds)
   const map = {}
   for (const row of data || []) {

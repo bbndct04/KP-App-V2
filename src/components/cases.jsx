@@ -51,7 +51,7 @@ export function HearingCard({ complaint, showLink = true }) {
 
 export function CaseRow({ complaint, to }) {
   const { step, total, pct } = progressOf(complaint.status)
-  const closed = ['settled', 'cfa_issued', 'dismissed', 'declined'].includes(complaint.status)
+  const closed = ['closed', 'cfa_issued', 'dismissed', 'declined'].includes(complaint.status)
   return (
     <Link to={to} className="block px-5 py-4 hover:bg-surface-hover active:bg-surface-hover transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">

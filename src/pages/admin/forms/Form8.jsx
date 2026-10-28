@@ -1,50 +1,30 @@
-import { useComplaintForForm, fmtDate, fmtTime, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
+import DocumentPage from '../../../components/forms/DocumentPage'
+import { withHearing } from '../../../components/forms/defaults'
+import { D, FormTitle, OfficeHeader, Para, Pick, Sig, SignRow, T, ToBlock } from '../../../components/forms/blocks'
 
-function Form8() {
-  const { complaint, loading } = useComplaintForForm()
-  if (loading) return <FormSkeleton />
-  if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
-
-  const now = new Date()
-
+function Body() {
   return (
-    <FormPage>
-      <FormHeader />
-      <PartiesTable complaint={complaint} />
-
-      <div className="font-bold text-[13px] uppercase text-center my-4">
-        NOTICE OF HEARING<br />(MEDIATION PROCEEDINGS)
+    <>
+      <OfficeHeader />
+      <FormTitle>NOTICE OF HEARING</FormTitle>
+      <div className="kp-subtitle">(MEDIATION PROCEEDINGS)</div>
+      <ToBlock left={{ k: 'complainant', label: 'Complainant/s' }} />
+      <Para>
+        You are hereby required to appear before me on the <D k="hearingDate" label="Hearing date" /> at <T k="hearingTime" label="Hearing time" underline minCh={5} /> o&apos;clock in the{' '}
+        <Pick k="hearingPeriod" label="Morning or afternoon" options={['morning', 'afternoon']} /> for the hearing of your complaint.
+      </Para>
+      <div className="kp-avoid">
+        This <D k="issueDate" label="Date of issue" />.
+        <Sig label="Punong Barangay/Lupon Chairman" nameKey="punongBarangay" nameLabel="Punong Barangay name" align="right" />
       </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        TO: <u>{complaint.complainant_name}</u><br />
-        <div className="text-center text-[11px]">Complainant/s</div>
-      </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        You are hereby required to appear before me on the{' '}
-        <u>{fmtDate(complaint.hearing_date, 'day')}</u> day of{' '}
-        <u>{fmtDate(complaint.hearing_date, 'month')}</u>,{' '}
-        <u>{fmtDate(complaint.hearing_date, 'year')}</u> at{' '}
-        <u>{fmtTime(complaint.hearing_time)}</u> o'clock in the morning/afternoon for
-        the hearing of your complaint.
-      </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        This <u>{fmtDate(now, 'day')}</u> day of <u>{fmtDate(now, 'month')}</u>, <u>{fmtDate(now, 'year')}</u>.
-      </div>
-
-      <div className="mt-5">
-        <div className="border-b border-black w-[220px] mb-1">&nbsp;</div>
-        Punong Barangay/Lupon Chairman
-        <br /><br />
-        Notified this <u>________</u> day of <u>________</u>, <u>{fmtDate(now, 'year')}</u>.
-        <br /><br />
-        Complainant/s:<br />
-        <div className="border-b border-black w-[220px] mb-1">&nbsp;</div>
-      </div>
-    </FormPage>
+      <Para>
+        Notified this <D k="notifiedDate" label="Date notified" />.
+      </Para>
+      <SignRow labels={[{ label: 'Complainant/s', nameKey: 'complainant' }]} />
+    </>
   )
 }
 
-export default Form8
+export default function Form8() {
+  return <DocumentPage formNo={8} title="Notice of Hearing (Mediation)" makeDefaults={withHearing} Body={Body} />
+}
