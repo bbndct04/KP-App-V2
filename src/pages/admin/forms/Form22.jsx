@@ -1,36 +1,32 @@
-import { useComplaintForForm, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
+import DocumentPage from '../../../components/forms/DocumentPage'
+import { plain } from '../../../components/forms/defaults'
+import { D, FormTitle, OfficeHeader, Para, PartyCaption, Sig } from '../../../components/forms/blocks'
 
-function Form22() {
-  const { complaint, loading } = useComplaintForForm()
-  if (loading) return <FormSkeleton />
-  if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
-
+function Body() {
   return (
-    <FormPage>
-      <FormHeader />
-      <PartiesTable complaint={complaint} />
-
-      <div className="font-bold text-[13px] uppercase text-center my-4">CERTIFICATION TO FILE ACTION</div>
-
-      <div className="my-2.5">This is to certify that:</div>
-
-      <ol className="leading-loose list-decimal pl-6">
+    <>
+      <OfficeHeader />
+      <PartyCaption />
+      <FormTitle>CERTIFICATION TO FILE ACTION</FormTitle>
+      <Para>This is to certify that:</Para>
+      <ol className="kp-list">
         <li>There was a personal confrontation between the parties before the Punong Barangay but mediation failed;</li>
         <li>The Punong Barangay set the meeting of the parties for the constitution of the Pangkat;</li>
         <li>The respondent willfully failed or refused to appear without justifiable reason at the conciliation proceedings before the Pangkat; and</li>
         <li>Therefore, the corresponding complaint for the dispute may now be filed in court/government office.</li>
       </ol>
-
-      <div className="mt-8">
-        <div className="border-b border-black w-[220px] mb-1">&nbsp;</div>
-        Pangkat Secretary
-        <br /><br />
-        Attested by:
-        <div className="border-b border-black w-[220px] mt-5 mb-1">&nbsp;</div>
-        Pangkat Chairman
+      <div className="kp-avoid">
+        This <D k="issueDate" label="Date of issue" />.
+        <Sig label="Pangkat Secretary" nameKey="pangkatSecretary" nameLabel="Pangkat Secretary name" />
       </div>
-    </FormPage>
+      <div className="kp-avoid" style={{ marginTop: 18 }}>
+        Attested by:
+        <Sig label="Pangkat Chairman" nameKey="pangkatChairman" nameLabel="Pangkat Chairman name" />
+      </div>
+    </>
   )
 }
 
-export default Form22
+export default function Form22() {
+  return <DocumentPage formNo={22} title="Certification to File Action (Respondent Did Not Appear)" makeDefaults={plain} Body={Body} />
+}

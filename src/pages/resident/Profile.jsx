@@ -29,7 +29,7 @@ function Profile() {
       if (!user) return
       const { data } = await supabase.from('complaints').select('status').eq('user_id', user.id)
       const total = data?.length || 0
-      const closed = data?.filter((c) => ['settled', 'cfa_issued', 'dismissed', 'declined'].includes(c.status)).length || 0
+      const closed = data?.filter((c) => ['closed', 'cfa_issued', 'dismissed', 'declined'].includes(c.status)).length || 0
       const active = total - closed
       setStats({ total, closed, active })
     }

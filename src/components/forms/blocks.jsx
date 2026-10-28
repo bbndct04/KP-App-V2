@@ -87,7 +87,7 @@ export function Ruled({ k, label, lines = 3 }) {
   )
 }
 
-export function OfficeHeader() {
+export function OfficeHeader({ office = 'OFFICE OF THE LUPONG TAGAPAMAYAPA' }) {
   return (
     <div className="kp-center">
       <div>Republic of the Philippines</div>
@@ -101,7 +101,7 @@ export function OfficeHeader() {
         Barangay <T k="barangay" label="Barangay" />
       </div>
       <div className="kp-bold" style={{ marginTop: 4 }}>
-        OFFICE OF THE LUPONG TAGAPAMAYAPA
+        {office}
       </div>
     </div>
   )
@@ -141,9 +141,9 @@ export function Para({ children, bold = false }) {
   return <p className={`kp-para ${bold ? 'kp-bold' : ''}`}>{children}</p>
 }
 
-export function Sig({ label, nameKey, nameLabel, width = 260 }) {
+export function Sig({ label, nameKey, nameLabel, width = 260, align = 'left' }) {
   return (
-    <div className="kp-sig" style={{ width }}>
+    <div className="kp-sig" style={{ width, marginLeft: align === 'right' ? 'auto' : undefined }}>
       <div className="kp-sig-line" />
       {nameKey && (
         <div className="kp-sig-name">
@@ -153,4 +153,72 @@ export function Sig({ label, nameKey, nameLabel, width = 260 }) {
       <div className="kp-sig-label">{label}</div>
     </div>
   )
+}
+
+export function Pick({ k, label, options }) {
+  const { fields, set, edit } = useDoc()
+  const value = fields[k] ?? ''
+  if (edit) {
+    return (
+      <select aria-label={label || k} value={value} onChange={(e) => set(k, e.target.value)} className="kp-date">
+        <option value="">{options.join('/')}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    )
+  }
+  return <>{value || options.join('/')}</>
+}
+
+export function Check({ k, label, children }) {
+  const { fields, set, edit } = useDoc()
+  const on = !!fields[k]
+  return (
+    <div className="kp-check">
+      {edit ? (
+        <input type="checkbox" aria-label={label} checked={on} onChange={(e) => set(k, e.target.checked)} />
+      ) : (
+        <span className="kp-box">{on ? 'X' : ' '}</span>
+      )}
+      <div style={{ flex: 1 }}>{children}</div>
+    </div>
+  )
+}
+
+export function ToBlock({ left, right }) {
+  return (
+    <div className="kp-to">
+      <div>TO:</div>
+      {[left, right].filter(Boolean).map((side) => (
+        <div key={side.label}>
+          <div className="kp-name">
+            <T k={side.k} label={side.fieldLabel || side.label} blank={false} />
+          </div>
+          <div className="kp-name" />
+          <div className="kp-label">{side.label}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function SignRow({ labels }) {
+  return (
+    <div className="kp-signrow" style={{ gridTemplateColumns: `repeat(${labels.length}, 1fr)` }}>
+      {labels.map((l) => (
+        <div key={l.label}>
+          <div className="kp-label kp-bold" style={{ textAlign: 'left' }}>{l.label}</div>
+          <div className="kp-name kp-name-sig">{l.nameKey ? <T k={l.nameKey} label={l.label} blank={false} /> : null}</div>
+          <div className="kp-name kp-name-sig" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function Footnote({ children }) {
+  return <p className="kp-foot">{children}</p>
 }

@@ -1,42 +1,26 @@
-import { useComplaintForForm, fmtDate, fmtTime, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
+import DocumentPage from '../../../components/forms/DocumentPage'
+import { withHearing } from '../../../components/forms/defaults'
+import { D, FormTitle, OfficeHeader, Para, PartyCaption, Pick, Sig, T, ToBlock } from '../../../components/forms/blocks'
 
-function Form13() {
-  const { complaint, loading } = useComplaintForForm()
-  if (loading) return <FormSkeleton />
-  if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
-  const now = new Date()
-
+function Body() {
   return (
-    <FormPage>
-      <FormHeader />
-      <PartiesTable complaint={complaint} />
-
-      <div className="font-bold text-[13px] uppercase text-center my-4 tracking-widest">S U B P O E N A</div>
-
-      <div className="text-justify leading-loose my-2.5">
-        TO: <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>
-        <br />
-        <div className="text-center text-[11px]">Witnesses</div>
+    <>
+      <OfficeHeader />
+      <PartyCaption />
+      <FormTitle>SUBPOENA</FormTitle>
+      <ToBlock left={{ k: 'witness1', label: 'Witnesses', fieldLabel: 'First witness' }} right={{ k: 'witness2', label: 'Witnesses ', fieldLabel: 'Second witness' }} />
+      <Para>
+        You are hereby commanded to appear before me on the <D k="hearingDate" label="Hearing date" /> at <T k="hearingTime" label="Hearing time" underline minCh={5} /> o&apos;clock, then and
+        there to testify in the hearing of the above-captioned case.
+      </Para>
+      <div className="kp-avoid">
+        This <D k="issueDate" label="Date of issue" />.
+        <Sig label={<Pick k="signerRole" label="Signed by" options={['Punong Barangay', 'Pangkat Chairman']} />} nameKey="signer" nameLabel="Name of signatory" align="right" />
       </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        You are hereby commanded to appear before me on the <u>{fmtDate(complaint.hearing_date, 'day')}</u> day
-        of <u>{fmtDate(complaint.hearing_date, 'month')}</u>, <u>{fmtDate(complaint.hearing_date, 'year')}</u>,
-        at <u>{fmtTime(complaint.hearing_time)}</u> o'clock, then and there to testify in the hearing of the
-        above-captioned case.
-      </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        This <u>{fmtDate(now, 'day')}</u> day of <u>{fmtDate(now, 'month')}</u>, <u>{fmtDate(now, 'year')}</u>.
-      </div>
-
-      <div className="border-b border-black w-[220px] mt-5 mb-1">&nbsp;</div>
-      Punong Barangay/Pangkat Chairman<br />
-      <span className="text-[11px]">(Cross out whichever one is not applicable).</span>
-    </FormPage>
+    </>
   )
 }
 
-export default Form13
+export default function Form13() {
+  return <DocumentPage formNo={13} title="Subpoena" makeDefaults={withHearing} Body={Body} />
+}

@@ -17,6 +17,16 @@ export const FORM_CSS = `
 .kp-avoid{break-inside:avoid}
 .kp-break{break-before:page;margin-top:40px}
 .kp-small{font-size:10.5pt;line-height:1.7}
+.kp-subtitle{text-align:center;font-weight:700;margin:-8px 0 12px}
+.kp-to{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 24px;align-items:start;margin:14px 0}
+.kp-signrow{display:grid;gap:40px;margin-top:22px;break-inside:avoid}
+.kp-name-sig{margin-top:18px;text-align:left}
+.kp-check{display:flex;gap:10px;align-items:flex-start;margin:8px 0 8px 18px}
+.kp-box{display:inline-block;width:20px;height:20px;border:1px solid #000;text-align:center;line-height:18px;font-weight:700;flex-shrink:0;margin-top:3px}
+.kp-list{margin:10px 0 10px 22px;padding:0 0 0 18px;list-style:decimal}
+.kp-list li{margin:6px 0;text-align:justify}
+.kp-foot{font-size:10pt;font-style:italic;margin-top:28px;text-align:justify}
+.kp-right{text-align:right}
 .kp-watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;font-size:140px;font-weight:700;letter-spacing:.08em;color:rgba(0,0,0,.06);transform:rotate(-28deg)}
 .kp-ed{display:inline-block;min-width:3ch;outline:1px dashed #185FA5;background:rgba(230,241,251,.85);border-radius:2px;cursor:text}
 .kp-ed:focus{outline:2px solid #185FA5}

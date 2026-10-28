@@ -7,6 +7,7 @@ function barangayFields(s = {}) {
     locality: s.locality || '',
     barangay: s.barangay || '',
     punongBarangay: s.punong_barangay || '',
+    signer: s.punong_barangay || '',
   }
 }
 
@@ -14,15 +15,23 @@ function caseFields(c = {}) {
   return {
     complainant: c.complainant_name || '',
     respondent: c.respondent_name || '',
+    respondentAddress: c.respondent_address || '',
     caseNo: c.reference_number || '',
     forWhat: c.category || '',
+    issueDate: '',
   }
 }
 
+function hearingFields(c = {}) {
+  const t = timeParts(c.hearing_time)
+  return { hearingDate: manilaDate(c.hearing_date), hearingTime: t.clock, hearingPeriod: t.period }
+}
+
+const base = (c, s) => ({ ...barangayFields(s), ...caseFields(c || {}) })
+
 export function defaults7(c, s) {
   return {
-    ...barangayFields(s),
-    ...caseFields(c),
+    ...base(c, s),
     narrative: c?.description || '',
     relief: c?.relief_requested || '',
     madeDate: manilaDate(c?.created_at),
@@ -31,19 +40,27 @@ export function defaults7(c, s) {
 }
 
 export function defaults9(c, s) {
-  const t = timeParts(c?.hearing_time)
   return {
-    ...barangayFields(s),
-    ...caseFields(c),
-    respondentAddress: c?.respondent_address || '',
-    hearingDate: manilaDate(c?.hearing_date),
-    hearingTime: t.clock,
-    hearingPeriod: t.period,
-    issueDate: '',
+    ...base(c, s),
+    ...hearingFields(c || {}),
     servedDate1: '',
     servedDate2: '',
     servedName2: '',
     leftWith1: '',
     leftWith2: '',
   }
+}
+
+export const withHearing = (c, s) => ({ ...base(c, s), ...hearingFields(c || {}) })
+
+export const plain = (c, s) => base(c, s)
+
+export function settlementDefaults(c, s) {
+  return { ...base(c, s), terms: c?.settlement_terms || '' }
+}
+
+export function repudiationDefaults(c, s) {
+  const reason = c?.cfa_reason || ''
+  const by = /\(Repudiated by: (.+)\)/.exec(reason)?.[1] || ''
+  return { ...base(c, s), repudiatedBy: by, repudiationGround: reason.replace(/\s*\(Repudiated by: .+\)$/, '') }
 }

@@ -15,6 +15,8 @@ import {
   MdOutlineDescription,
   MdArrowBack,
   MdCheck,
+  MdOutlineBalance,
+  MdOutlineTaskAlt,
 } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
@@ -24,27 +26,61 @@ import { HearingCard } from '../../components/cases'
 import { STATUS } from '../../components/status'
 import { formatDate, formatTime, upcomingHearings } from '../../lib/cases'
 
-const STEPS = [
+const BASE_STEPS = [
   { key: 'submitted', label: 'Complaint submitted', icon: MdOutlineSend, desc: 'Your complaint was sent to the barangay.' },
   { key: 'filed', label: 'Accepted and filed', icon: MdOutlineInbox, desc: 'The barangay accepted your complaint and officially filed it.' },
   { key: 'summoned', label: 'Summons issued', icon: MdOutlineMarkEmailRead, desc: 'The other party was summoned to appear at the barangay.' },
-  { key: 'mediation', label: 'Mediation', icon: MdOutlineHandshake, desc: 'The Punong Barangay helps both sides reach an agreement.' },
-  { key: 'pangkat_formed', label: 'Pangkat formed', icon: MdOutlineGroups, desc: 'If mediation fails, a 3-member Pangkat takes over.' },
-  { key: 'pangkat_hearing', label: 'Pangkat hearing', icon: MdOutlineGavel, desc: 'The Pangkat hears both sides to reach a settlement.' },
-  { key: 'outcome', label: 'Final outcome', icon: MdOutlineFlag, desc: 'The case is settled, dismissed, or a Certificate to File Action is issued.' },
+  { key: 'mediation', label: 'Mediation', icon: MdOutlineHandshake, desc: 'The Punong Barangay helps both sides reach an agreement (up to 15 days).' },
+  { key: 'pangkat_formed', label: 'Pangkat formed', icon: MdOutlineGroups, desc: 'If mediation fails, a 3-member Pangkat ng Tagapagkasundo takes over.' },
+  { key: 'pangkat_hearing', label: 'Conciliation', icon: MdOutlineGavel, desc: 'The Pangkat hears both sides to help them reach a settlement (15 to 30 days).' },
 ]
+const ARBITRATION_STEP = { key: 'arbitration', label: 'Arbitration', icon: MdOutlineBalance, desc: 'Both sides agreed to let the arbitrator decide the dispute.' }
+const OUTCOME_STEP = { key: 'outcome', label: 'Outcome', icon: MdOutlineFlag, desc: 'The case is settled, dismissed, or a Certificate to File Action is issued.' }
+const CLOSED_STEP = { key: 'closed', label: 'Settlement completed', icon: MdOutlineTaskAlt, desc: 'The settlement is final and has been complied with.' }
 
 const OUTCOMES = ['settled', 'cfa_issued', 'dismissed']
+const SETTLEMENT_PATH = ['settled', 'execution', 'closed']
 
-const OUTCOME_TEXT = {
-  settled: 'Both parties reached an amicable settlement. The agreement is binding.',
-  cfa_issued: 'No settlement was reached. You may now bring this case to court or the prosecutor using the Certificate to File Action.',
-  dismissed: 'The case was dismissed by the barangay.',
+const CFA_TEXT = {
+  repudiated: 'The settlement was repudiated. You may now bring this case to court or the proper government office using the Certificate to File Action.',
+  no_settlement: 'No settlement was reached. You may now bring this case to court or the proper government office using the Certificate to File Action.',
+  respondent_refused: 'The respondent refused to appear before the Pangkat. You may now bring this case to court or the proper government office using the Certificate to File Action.',
 }
 
-function currentIndex(status) {
-  if (OUTCOMES.includes(status)) return STEPS.length - 1
-  return STEPS.findIndex((s) => s.key === status)
+const DISMISS_TEXT = {
+  complainant_failed_to_appear: 'The case was dismissed because the complainant did not appear without a valid reason. Filing this action in court may be barred.',
+  withdrawn: 'The complaint was withdrawn.',
+  not_covered: 'The case is not covered by the Katarungang Pambarangay and should be brought to the proper office.',
+}
+
+function buildSteps(c, stageDates) {
+  const steps = [...BASE_STEPS]
+  if (c.status === 'arbitration' || c.settlement_type === 'arbitration_award' || stageDates.arbitration) steps.push(ARBITRATION_STEP)
+  steps.push(OUTCOME_STEP)
+  if (SETTLEMENT_PATH.includes(c.status)) steps.push(CLOSED_STEP)
+  return steps
+}
+
+function currentIndex(steps, status) {
+  if (status === 'closed' || status === 'execution') return steps.length - 1
+  if (OUTCOMES.includes(status)) return steps.findIndex((s) => s.key === 'outcome')
+  return steps.findIndex((s) => s.key === status)
+}
+
+const longDate = (d) => formatDate(d, { month: 'long', day: 'numeric', year: 'numeric' })
+
+function outcomeStep(c) {
+  if (c.status === 'cfa_issued') return { label: 'Certificate to File Action', desc: CFA_TEXT[c.cfa_type] || CFA_TEXT.no_settlement }
+  if (c.status === 'dismissed') return { label: 'Dismissed', desc: DISMISS_TEXT[c.dismissal_reason] || 'The case was dismissed by the barangay.' }
+  const award = c.settlement_type === 'arbitration_award'
+  const finalAt = c.settled_at ? new Date(new Date(c.settled_at).getTime() + 10 * 86400000) : null
+  const pending = c.status === 'settled' && finalAt && finalAt > new Date()
+  return {
+    label: award ? 'Arbitration award' : 'Amicable settlement',
+    desc: `${award ? 'The arbitrator issued an award.' : 'Both parties reached an amicable settlement.'}${
+      finalAt ? (pending ? ` It becomes final on ${longDate(finalAt)} unless repudiated within 10 days.` : ` It became final on ${longDate(finalAt)}.`) : ''
+    }`,
+  }
 }
 
 function TrackStatus() {
@@ -75,7 +111,7 @@ function TrackStatus() {
           .eq('complaint_id', complaint.id)
           .eq('entry_type', 'stage_change')
         for (const l of logs || []) {
-          const key = OUTCOMES.includes(l.stage) ? 'outcome' : l.stage
+          const key = OUTCOMES.includes(l.stage) ? 'outcome' : SETTLEMENT_PATH.includes(l.stage) ? 'closed' : l.stage
           if (!stageDates[key] || l.created_at > stageDates[key]) stageDates[key] = l.created_at
         }
       }
@@ -121,7 +157,9 @@ function TrackStatus() {
 }
 
 function CaseView({ complaint, stageDates }) {
-  const currentIdx = currentIndex(complaint.status)
+  const STEPS = buildSteps(complaint, stageDates)
+  const currentIdx = currentIndex(STEPS, complaint.status)
+  const outcome = outcomeStep(complaint)
   const isDeclined = complaint.status === 'declined'
   const hearing = upcomingHearings([complaint])[0]
 
@@ -184,13 +222,20 @@ function CaseView({ complaint, stageDates }) {
                 {STEPS.map((step, i) => {
                   const isDone = i < currentIdx
                   const isActive = i === currentIdx
-                  const isFinal = step.key === 'outcome'
-                  const Icon = isFinal && isActive ? STATUS[complaint.status]?.icon || step.icon : step.icon
-                  const label = isFinal && isActive ? STATUS[complaint.status]?.label || step.label : step.label
-                  const desc = isFinal && isActive ? OUTCOME_TEXT[complaint.status] : step.desc
+                  const isOutcome = step.key === 'outcome'
+                  const isFinal = isOutcome || step.key === 'closed'
+                  const reachedOutcome = isOutcome && (isDone || isActive)
+                  const execution = step.key === 'closed' && complaint.status === 'execution'
+                  const Icon = reachedOutcome ? STATUS[complaint.status]?.icon || step.icon : execution ? STATUS.execution.icon : step.icon
+                  const label = reachedOutcome ? outcome.label : execution ? 'Execution' : step.label
+                  const desc = reachedOutcome
+                    ? outcome.desc
+                    : execution
+                      ? 'The settlement was not complied with. The barangay is enforcing it through execution.'
+                      : step.desc
                   const date = (isDone || isActive) && stageDates[step.key]
                   const circle =
-                    isFinal && isActive && complaint.status === 'dismissed'
+                    isOutcome && isActive && complaint.status === 'dismissed'
                       ? 'bg-red-600 text-white'
                       : isDone || isActive
                         ? 'bg-accent text-accent-ink'
@@ -207,13 +252,13 @@ function CaseView({ complaint, stageDates }) {
                       <div className="flex-1 pt-1.5 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                           <span className={`text-base font-semibold ${isDone || isActive ? 'text-ink' : 'text-ink-faint'}`}>{label}</span>
-                          {isActive && !isFinal && (
+                          {isActive && !isFinal && complaint.status !== 'closed' && (
                             <span className="bg-accent-soft text-accent px-2.5 py-0.5 rounded-full text-xs font-semibold">You are here</span>
                           )}
                         </div>
                         {date && <div className="text-ink-faint text-xs mb-1">{formatDate(date, { month: 'long', day: 'numeric', year: 'numeric' })}</div>}
                         <div className={`text-sm leading-relaxed ${i > currentIdx ? 'text-ink-faint' : 'text-ink-soft'}`}>{desc}</div>
-                        {isFinal && isActive && complaint.status === 'settled' && complaint.settlement_terms && (
+                        {reachedOutcome && SETTLEMENT_PATH.includes(complaint.status) && complaint.settlement_terms && (
                           <div className="mt-2 text-sm text-ink bg-success-soft border border-success-strong/20 rounded-lg p-3 leading-relaxed">
                             <span className="font-semibold">Agreement: </span>
                             {complaint.settlement_terms}

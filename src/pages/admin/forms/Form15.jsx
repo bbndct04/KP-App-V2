@@ -1,56 +1,36 @@
-import { useComplaintForForm, fmtDate, FormPage, FormHeader, PartiesTable , FormSkeleton } from './FormShell'
+import DocumentPage from '../../../components/forms/DocumentPage'
+import { plain } from '../../../components/forms/defaults'
+import { D, Footnote, FormTitle, OfficeHeader, Para, PartyCaption, Pick, Ruled, Sig, T } from '../../../components/forms/blocks'
 
-function Form15() {
-  const { complaint, loading } = useComplaintForForm()
-  if (loading) return <FormSkeleton />
-  if (!complaint) return <div className="p-10 text-center">Complaint not found.</div>
-  const now = new Date()
-
+function Body() {
   return (
-    <FormPage>
-      <FormHeader />
-      <PartiesTable complaint={complaint} />
-
-      <div className="font-bold text-[13px] uppercase text-center my-4">ARBITRATION AWARD</div>
-
-      <div className="text-justify leading-loose my-2.5">
-        After hearing the testimonies given and careful examination of the evidence
-        presented in this case, award is hereby made as follows:
+    <>
+      <OfficeHeader />
+      <PartyCaption />
+      <FormTitle>ARBITRATION AWARD</FormTitle>
+      <Para>After hearing the testimonies given and careful examination of the evidence presented in this case, award is hereby made as follows:</Para>
+      <Ruled k="award" label="Arbitration award" lines={4} />
+      <Para>
+        Made this <D k="issueDate" label="Date made" /> at <T k="place" label="Place" underline minCh={14} />.
+      </Para>
+      <div className="kp-avoid">
+        <Sig label={<>{<Pick k="signerRole" label="Award made by" options={['Punong Barangay', 'Pangkat Chairman']} />} *</>} nameKey="signer" nameLabel="Name of signatory" />
+        <Sig label="Member" nameKey="member1" nameLabel="First Pangkat member" />
+        <Sig label="Member" nameKey="member2" nameLabel="Second Pangkat member" />
       </div>
-
-      <div className="my-4">
-        <div className="border-b border-black mb-1">&nbsp;</div>
-        <div className="border-b border-black mb-1">&nbsp;</div>
-        <div className="border-b border-black mb-1">&nbsp;</div>
-        {complaint.settlement_terms || ''}
+      <div className="kp-avoid" style={{ marginTop: 24 }}>
+        ATTESTED:
+        <Sig label={<>{<Pick k="attesterRole" label="Attested by" options={['Punong Barangay', 'Lupon Secretary']} />} **</>} nameKey="attester" nameLabel="Name of attesting officer" />
       </div>
-
-      <div className="text-justify leading-loose my-2.5">
-        Made this <u>{fmtDate(now, 'day')}</u> day of <u>{fmtDate(now, 'month')}</u>, <u>{fmtDate(now, 'year')}</u> at{' '}
-        <u>Barangay New Kababae, Olongapo City</u>.
-      </div>
-
-      <div className="border-b border-black w-[220px] mt-5 mb-1">&nbsp;</div>
-      Punong Barangay/Pangkat Chairman *
-      <br /><br />
-      <div className="border-b border-black w-[220px] mb-1">&nbsp;</div>
-      Member
-      <br /><br />
-      <div className="border-b border-black w-[220px] mb-1">&nbsp;</div>
-      Member
-      <br /><br />
-      ATTESTED:
-      <br /><br />
-      <div className="border-b border-black w-[220px] mb-1">&nbsp;</div>
-      Punong Barangay/Lupon Secretary **
-
-      <div className="text-[11px] mt-4">
-        * To be signed by either, whoever made the arbitration award.<br />
-        ** To be signed by the Punong Barangay if the award is made by the Pangkat
-        Chairman, and by the Lupon Secretary if the award is made by the Punong Barangay.
-      </div>
-    </FormPage>
+      <Footnote>
+        * To be signed by either, whoever made the arbitration award.
+        <br />
+        ** To be signed by the Punong Barangay if the award is made by the Pangkat Chairman, and by the Lupon Secretary if the award is made by the Punong Barangay.
+      </Footnote>
+    </>
   )
 }
 
-export default Form15
+export default function Form15() {
+  return <DocumentPage formNo={15} title="Arbitration Award" makeDefaults={plain} Body={Body} />
+}
