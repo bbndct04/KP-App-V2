@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
-  MdOutlineDashboard,
   MdOutlineHome,
   MdOutlineNoteAdd,
   MdOutlineFolderCopy,
-  MdOutlineManageSearch,
   MdOutlineNotifications,
   MdOutlineAccountCircle,
   MdOutlineLightMode,
@@ -20,10 +18,9 @@ import BottomNav from './BottomNav'
 import logo from '../../assets/kp-app-logo.png'
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: MdOutlineDashboard },
-  { to: '/complaints/new', label: 'Submit Complaint', icon: MdOutlineNoteAdd },
-  { to: '/my-reports', label: 'My Reports', icon: MdOutlineFolderCopy },
-  { to: '/track', label: 'Track Status', icon: MdOutlineManageSearch },
+  { to: '/dashboard', label: 'Home', icon: MdOutlineHome },
+  { to: '/complaints/new', label: 'File a Complaint', icon: MdOutlineNoteAdd },
+  { to: '/my-reports', label: 'My Cases', icon: MdOutlineFolderCopy, also: ['/track'] },
   { to: '/notifications', label: 'Notifications', icon: MdOutlineNotifications },
 ]
 
@@ -49,15 +46,18 @@ function ThemeToggle() {
 
 function NavItem({ item, badge, onClick }) {
   const Icon = item.icon
+  const { pathname } = useLocation()
+  const alsoActive = item.also?.some((p) => pathname.startsWith(p))
   return (
     <NavLink
       to={item.to}
       onClick={onClick}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-[15px] font-medium transition-colors ${
+      className={({ isActive: exact }) => {
+        const isActive = exact || alsoActive
+        return `flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-[15px] font-medium transition-colors ${
           isActive ? 'bg-accent-soft text-accent' : 'text-ink-soft hover:bg-surface-hover hover:text-ink'
         }`
-      }
+      }}
     >
       <Icon className="text-[22px] flex-shrink-0" aria-hidden="true" />
       <span className="flex-1">{item.label}</span>
@@ -116,10 +116,10 @@ function AppLayout({ title, children }) {
 
   const bottomItems = [
     { to: '/dashboard', label: 'Home', icon: MdOutlineHome, end: true },
-    { to: '/my-reports', label: 'Reports', icon: MdOutlineFolderCopy },
+    { to: '/my-reports', label: 'My Cases', icon: MdOutlineFolderCopy, also: ['/track'] },
     { to: '/complaints/new', label: 'File', icon: MdOutlineNoteAdd, primary: true },
-    { to: '/track', label: 'Track', icon: MdOutlineManageSearch },
     { to: '/notifications', label: 'Alerts', icon: MdOutlineNotifications, badge: badgeCount },
+    { to: '/profile', label: 'Profile', icon: MdOutlineAccountCircle },
   ]
 
   const SidebarContent = (

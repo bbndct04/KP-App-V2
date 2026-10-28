@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import {
   MdOutlineSend,
   MdOutlineBlock,
@@ -10,284 +10,265 @@ import {
   MdOutlineGroups,
   MdOutlineGavel,
   MdOutlineFlag,
-  MdOutlineManageSearch,
   MdOutlineSearchOff,
-  MdOutlineEvent,
   MdOutlinePerson,
   MdOutlineDescription,
+  MdArrowBack,
   MdCheck,
-  MdSearch,
 } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
-import { Card, StatusBadge, EmptyState, Skeleton, Button, Input, LinkButton } from '../../components/ui'
+import { Card, StatusBadge, EmptyState, Skeleton, LinkButton } from '../../components/ui'
+import { HearingCard } from '../../components/cases'
 import { STATUS } from '../../components/status'
+import { formatDate, formatTime, upcomingHearings } from '../../lib/cases'
 
 const STEPS = [
-  { key: 'submitted', label: 'Complaint Submitted', icon: MdOutlineSend, desc: 'Your complaint was sent. The barangay will review it.' },
-  { key: 'filed', label: 'Accepted and Filed', icon: MdOutlineInbox, desc: 'The barangay accepted your complaint and officially filed it.' },
-  { key: 'summoned', label: 'Summons Issued', icon: MdOutlineMarkEmailRead, desc: 'The respondent has been summoned to appear.' },
-  { key: 'mediation', label: 'Mediation', icon: MdOutlineHandshake, desc: 'The Punong Barangay is mediating between both parties.' },
-  { key: 'pangkat_formed', label: 'Pangkat Formed', icon: MdOutlineGroups, desc: 'A 3-member Pangkat has been formed to continue conciliation.' },
-  { key: 'pangkat_hearing', label: 'Pangkat Hearing', icon: MdOutlineGavel, desc: 'The Pangkat is hearing both parties to reach a settlement.' },
-  { key: 'outcome', label: 'Final Outcome', icon: MdOutlineFlag, desc: 'The case has reached a final outcome.' },
+  { key: 'submitted', label: 'Complaint submitted', icon: MdOutlineSend, desc: 'Your complaint was sent to the barangay.' },
+  { key: 'filed', label: 'Accepted and filed', icon: MdOutlineInbox, desc: 'The barangay accepted your complaint and officially filed it.' },
+  { key: 'summoned', label: 'Summons issued', icon: MdOutlineMarkEmailRead, desc: 'The other party was summoned to appear at the barangay.' },
+  { key: 'mediation', label: 'Mediation', icon: MdOutlineHandshake, desc: 'The Punong Barangay helps both sides reach an agreement.' },
+  { key: 'pangkat_formed', label: 'Pangkat formed', icon: MdOutlineGroups, desc: 'If mediation fails, a 3-member Pangkat takes over.' },
+  { key: 'pangkat_hearing', label: 'Pangkat hearing', icon: MdOutlineGavel, desc: 'The Pangkat hears both sides to reach a settlement.' },
+  { key: 'outcome', label: 'Final outcome', icon: MdOutlineFlag, desc: 'The case is settled, dismissed, or a Certificate to File Action is issued.' },
 ]
 
-const OUTCOME_STAGES = ['settled', 'cfa_issued', 'dismissed']
+const OUTCOMES = ['settled', 'cfa_issued', 'dismissed']
 
-function currentIndex(status) {
-  if (OUTCOME_STAGES.includes(status)) return STEPS.length - 1
-  return STEPS.findIndex((s) => s.key === status)
+const OUTCOME_TEXT = {
+  settled: 'Both parties reached an amicable settlement. The agreement is binding.',
+  cfa_issued: 'No settlement was reached. You may now bring this case to court or the prosecutor using the Certificate to File Action.',
+  dismissed: 'The case was dismissed by the barangay.',
 }
 
-function formatTime(t) {
-  if (!t) return ''
-  const [h, m] = t.split(':')
-  const hour = parseInt(h, 10)
-  return `${hour % 12 === 0 ? 12 : hour % 12}:${m} ${hour < 12 ? 'AM' : 'PM'}`
+function currentIndex(status) {
+  if (OUTCOMES.includes(status)) return STEPS.length - 1
+  return STEPS.findIndex((s) => s.key === status)
 }
 
 function TrackStatus() {
   const { user } = useAuth()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const refParam = searchParams.get('ref') || ''
-  const [refInput, setRefInput] = useState(refParam)
-  const [complaint, setComplaint] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+  const ref = (searchParams.get('ref') || '').toUpperCase()
+  const [result, setResult] = useState({ ref: null, complaint: null, stageDates: {} })
 
   useEffect(() => {
-    if (!user || !refParam) return
+    if (!user || !ref) return
     let cancelled = false
 
-    async function runSearch() {
-      setLoading(true)
-      const { data } = await supabase
+    async function load() {
+      const { data: complaint } = await supabase
         .from('complaints')
         .select('*')
-        .eq('reference_number', refParam)
+        .eq('reference_number', ref)
         .eq('user_id', user.id)
         .maybeSingle()
-      if (cancelled) return
-      setComplaint(data || null)
-      setLoading(false)
+
+      const stageDates = {}
+      if (complaint) {
+        stageDates.submitted = complaint.created_at
+        stageDates.filed = complaint.reviewed_at
+        const { data: logs } = await supabase
+          .from('case_activity_log')
+          .select('stage, created_at')
+          .eq('complaint_id', complaint.id)
+          .eq('entry_type', 'stage_change')
+        for (const l of logs || []) {
+          const key = OUTCOMES.includes(l.stage) ? 'outcome' : l.stage
+          if (!stageDates[key] || l.created_at > stageDates[key]) stageDates[key] = l.created_at
+        }
+      }
+      if (!cancelled) setResult({ ref, complaint, stageDates })
     }
-    runSearch()
+    load()
 
     return () => {
       cancelled = true
     }
-  }, [user, refParam])
+  }, [user, ref])
 
-  function handleSubmit(e) {
-    e.preventDefault()
-    const ref = refInput.trim().toUpperCase()
-    if (ref) setSearchParams({ ref })
-  }
+  if (!ref) return <Navigate to="/my-reports" replace />
 
-  const currentIdx = complaint ? currentIndex(complaint.status) : -1
-  const isOutcome = complaint && OUTCOME_STAGES.includes(complaint.status)
-  const isDeclined = complaint?.status === 'declined'
-  const isSubmitted = complaint?.status === 'submitted'
+  const loading = result.ref !== ref
+  const { complaint, stageDates } = result
 
   return (
-    <AppLayout title="Track Status">
-      <Card className="p-5 mb-5 max-w-[640px]">
-        <div className="flex items-center gap-2.5 mb-1">
-          <MdOutlineManageSearch className="text-2xl text-accent" aria-hidden="true" />
-          <div className="text-ink text-base font-semibold">Track Your Complaint</div>
-        </div>
-        <div className="text-ink-faint text-sm mb-4">Enter your reference number to see the current status</div>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-          <Input
-            value={refInput}
-            onChange={(e) => setRefInput(e.target.value)}
-            placeholder="e.g. KP-2026-001"
-            aria-label="Reference number"
-            className="flex-1 min-w-0"
-          />
-          <Button type="submit" icon={MdSearch} disabled={!refInput.trim()}>
-            Search
-          </Button>
-        </form>
-      </Card>
+    <AppLayout title="Case Details">
+      <Link to="/my-reports" className="inline-flex items-center gap-1.5 text-accent text-sm font-semibold mb-4">
+        <MdArrowBack aria-hidden="true" /> My Cases
+      </Link>
 
-      {!refParam && (
-        <Card className="max-w-[640px]">
-          <EmptyState
-            icon={MdOutlineManageSearch}
-            title="Enter a reference number"
-            message="You received a reference number after submitting a complaint. It looks like KP-2026-001."
-            action={
-              <LinkButton to="/my-reports" variant="secondary">
-                View All My Reports
-              </LinkButton>
-            }
-          />
-        </Card>
-      )}
-
-      {refParam && loading && (
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-5">
+      {loading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
           <Skeleton className="h-[420px] w-full rounded-2xl" />
           <Skeleton className="h-[220px] w-full rounded-2xl" />
         </div>
-      )}
-
-      {refParam && !loading && !complaint && (
+      ) : !complaint ? (
         <Card className="max-w-[640px]">
           <EmptyState
             icon={MdOutlineSearchOff}
-            title="Complaint not found"
-            message={`No complaint found with reference number ${refParam}. Make sure you entered it correctly.`}
-            action={<LinkButton to="/my-reports">View My Reports</LinkButton>}
+            title="Case not found"
+            message={`We couldn't find a complaint with reference number ${ref} on your account.`}
+            action={<LinkButton to="/my-reports">Go to My Cases</LinkButton>}
           />
         </Card>
-      )}
-
-      {refParam && !loading && complaint && (
-        <>
-          <div className="bg-accent-soft border border-accent/20 rounded-2xl px-5 md:px-6 py-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Reference Number</div>
-              <div className="text-xl font-bold text-ink font-mono">{complaint.reference_number}</div>
-            </div>
-            <div>
-              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Category</div>
-              <div className="text-base font-semibold text-ink">{complaint.category}</div>
-            </div>
-            <div>
-              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Date Submitted</div>
-              <div className="text-base font-semibold text-ink">
-                {new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-5 items-start">
-            {isDeclined ? (
-              <Card className="p-5 md:p-6 min-w-0 border-danger-strong/30">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-danger-soft text-danger-strong flex items-center justify-center flex-shrink-0">
-                    <MdOutlineBlock className="text-2xl" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <div className="text-ink text-lg font-bold">Your complaint was not accepted</div>
-                    {complaint.reviewed_at && (
-                      <div className="text-ink-faint text-sm">
-                        Reviewed on {new Date(complaint.reviewed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">Reason</div>
-                <div className="text-ink text-sm leading-relaxed bg-danger-soft border border-danger-strong/20 rounded-lg p-3.5 mb-5">
-                  {complaint.declined_reason || 'No reason was recorded.'}
-                </div>
-                <div className="text-ink text-sm font-semibold mb-1.5">What you can do</div>
-                <ul className="text-ink-soft text-sm leading-relaxed list-disc pl-5 mb-5 space-y-1">
-                  <li>Visit the barangay hall (8AM–5PM, Monday to Friday) to ask about the decision.</li>
-                  <li>If the reason can be fixed, submit a new complaint with the correct information.</li>
-                </ul>
-                <LinkButton to="/complaints/new">Submit a New Complaint</LinkButton>
-              </Card>
-            ) : (
-            <Card className="p-5 md:p-6 min-w-0">
-              <div className="text-ink text-base font-semibold mb-5">Case Progress</div>
-
-              {STEPS.map((step, i) => {
-                const isDone = i < currentIdx
-                const isActive = i === currentIdx
-                const isFinal = step.key === 'outcome'
-                const Icon = isFinal && isActive ? STATUS[complaint.status]?.icon || step.icon : step.icon
-                const label = isFinal && isActive ? STATUS[complaint.status]?.label || step.label : step.label
-                const dismissed = isFinal && isActive && complaint.status === 'dismissed'
-
-                const circle = dismissed
-                  ? 'bg-red-600 text-white'
-                  : isDone || isActive
-                  ? 'bg-accent text-accent-ink'
-                  : 'bg-surface-sunken text-ink-faint border border-border'
-
-                return (
-                  <div key={step.key} className="flex gap-4 pb-6 last:pb-0 relative">
-                    {i < STEPS.length - 1 && (
-                      <div className={`absolute left-[19px] top-10 bottom-0 w-0.5 ${isDone ? 'bg-accent' : 'bg-border'}`} />
-                    )}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${circle} ${isActive ? 'ring-4 ring-accent/20' : ''}`}>
-                      {isDone ? <MdCheck className="text-xl" aria-hidden="true" /> : <Icon className="text-xl" aria-hidden="true" />}
-                    </div>
-                    <div className="flex-1 pt-1.5 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-base font-semibold ${isDone || isActive ? 'text-ink' : 'text-ink-faint'}`}>{label}</span>
-                        {isActive && <span className="bg-accent-soft text-accent px-2.5 py-0.5 rounded-full text-xs font-semibold">Current</span>}
-                      </div>
-                      <div className={`text-sm leading-relaxed ${i > currentIdx ? 'text-ink-faint' : 'text-ink-soft'}`}>{step.desc}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </Card>
-            )}
-
-            <div className="flex flex-col gap-4 min-w-0">
-              <Card className="p-5 text-center">
-                <div className="text-xs text-ink-faint uppercase tracking-wide mb-3">Current Stage</div>
-                <StatusBadge status={complaint.status} size="lg" />
-              </Card>
-
-              {isSubmitted && (
-                <div className="bg-warning-soft border border-warning-strong/20 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-1.5 text-warning-strong">
-                    <MdOutlineSchedule className="text-xl" aria-hidden="true" />
-                    <div className="text-base font-semibold">Waiting for review</div>
-                  </div>
-                  <div className="text-sm text-warning-strong leading-relaxed">
-                    The complainant must appear in person at the Barangay Hall (8AM–5PM, Monday to Friday) within 24 hours of submitting.
-                  </div>
-                </div>
-              )}
-
-              {complaint.hearing_date && !isOutcome && (
-                <div className="bg-warning-soft border border-warning-strong/20 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-1.5 text-warning-strong">
-                    <MdOutlineEvent className="text-xl" aria-hidden="true" />
-                    <div className="text-base font-semibold">Upcoming Hearing</div>
-                  </div>
-                  <div className="text-sm text-warning-strong">
-                    {new Date(complaint.hearing_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                    {complaint.hearing_time && ` at ${formatTime(complaint.hearing_time)}`}
-                  </div>
-                </div>
-              )}
-
-              {complaint.respondent_name && (
-                <Card className="p-5">
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <MdOutlinePerson className="text-xl text-accent" aria-hidden="true" />
-                    <div className="text-ink text-base font-semibold">Respondent</div>
-                  </div>
-                  <div className="text-sm font-semibold text-ink">{complaint.respondent_name}</div>
-                  {complaint.respondent_address && <div className="text-sm text-ink-faint mt-1">{complaint.respondent_address}</div>}
-                </Card>
-              )}
-
-              {complaint.description && (
-                <Card className="p-5">
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <MdOutlineDescription className="text-xl text-accent" aria-hidden="true" />
-                    <div className="text-ink text-base font-semibold">Description</div>
-                  </div>
-                  <div className="text-sm text-ink-soft leading-relaxed bg-surface-sunken border border-border rounded-lg p-3">
-                    {complaint.description}
-                  </div>
-                </Card>
-              )}
-            </div>
-          </div>
-        </>
+      ) : (
+        <CaseView complaint={complaint} stageDates={stageDates} />
       )}
     </AppLayout>
+  )
+}
+
+function CaseView({ complaint, stageDates }) {
+  const currentIdx = currentIndex(complaint.status)
+  const isDeclined = complaint.status === 'declined'
+  const hearing = upcomingHearings([complaint])[0]
+
+  return (
+    <>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
+        <div className="min-w-0">
+          <h2 className="text-ink text-xl md:text-2xl font-bold">{complaint.category}</h2>
+          <div className="text-ink-faint text-sm mt-0.5">
+            <span className="font-mono">{complaint.reference_number}</span> · Filed {formatDate(complaint.created_at, { month: 'long', day: 'numeric', year: 'numeric' })}
+          </div>
+        </div>
+        <div className="flex-shrink-0">
+          <StatusBadge status={complaint.status} size="lg" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start">
+        <div className="flex flex-col gap-5 min-w-0">
+          {hearing && <HearingCard complaint={hearing} showLink={false} />}
+
+          {complaint.status === 'submitted' && (
+            <div className="flex gap-3 bg-warning-soft border border-warning-strong/25 rounded-2xl p-4 text-warning-strong">
+              <MdOutlineSchedule className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="text-sm leading-relaxed">
+                <div className="font-bold text-base">Next step: visit the Barangay Hall</div>
+                Please appear in person within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can review and accept your complaint.
+              </div>
+            </div>
+          )}
+
+          {isDeclined ? (
+            <Card className="p-5 md:p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-danger-soft text-danger-strong flex items-center justify-center flex-shrink-0">
+                  <MdOutlineBlock className="text-2xl" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="text-ink text-lg font-bold">Your complaint was not accepted</div>
+                  {complaint.reviewed_at && (
+                    <div className="text-ink-faint text-sm">Reviewed on {formatDate(complaint.reviewed_at, { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                  )}
+                </div>
+              </div>
+              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">Reason</div>
+              <div className="text-ink text-sm leading-relaxed bg-danger-soft border border-danger-strong/20 rounded-lg p-3.5 mb-5">
+                {complaint.declined_reason || 'No reason was recorded.'}
+              </div>
+              <div className="text-ink text-sm font-semibold mb-1.5">What you can do</div>
+              <ul className="text-ink-soft text-sm leading-relaxed list-disc pl-5 mb-5 space-y-1">
+                <li>Visit the Barangay Hall (8AM–5PM, Monday to Friday) to ask about the decision.</li>
+                <li>If the reason can be fixed, file a new complaint with the correct information.</li>
+              </ul>
+              <LinkButton to="/complaints/new">File a New Complaint</LinkButton>
+            </Card>
+          ) : (
+            <Card className="p-5 md:p-6">
+              <div className="text-ink text-base font-semibold mb-5">Case progress</div>
+              <ol>
+                {STEPS.map((step, i) => {
+                  const isDone = i < currentIdx
+                  const isActive = i === currentIdx
+                  const isFinal = step.key === 'outcome'
+                  const Icon = isFinal && isActive ? STATUS[complaint.status]?.icon || step.icon : step.icon
+                  const label = isFinal && isActive ? STATUS[complaint.status]?.label || step.label : step.label
+                  const desc = isFinal && isActive ? OUTCOME_TEXT[complaint.status] : step.desc
+                  const date = (isDone || isActive) && stageDates[step.key]
+                  const circle =
+                    isFinal && isActive && complaint.status === 'dismissed'
+                      ? 'bg-red-600 text-white'
+                      : isDone || isActive
+                        ? 'bg-accent text-accent-ink'
+                        : 'bg-surface-sunken text-ink-faint border border-border'
+
+                  return (
+                    <li key={step.key} className="flex gap-4 pb-6 last:pb-0 relative" aria-current={isActive ? 'step' : undefined}>
+                      {i < STEPS.length - 1 && (
+                        <div className={`absolute left-[19px] top-10 bottom-0 w-0.5 ${isDone ? 'bg-accent' : 'bg-border'}`} />
+                      )}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${circle} ${isActive ? 'ring-4 ring-accent/20' : ''}`}>
+                        {isDone ? <MdCheck className="text-xl" aria-hidden="true" /> : <Icon className="text-xl" aria-hidden="true" />}
+                      </div>
+                      <div className="flex-1 pt-1.5 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <span className={`text-base font-semibold ${isDone || isActive ? 'text-ink' : 'text-ink-faint'}`}>{label}</span>
+                          {isActive && !isFinal && (
+                            <span className="bg-accent-soft text-accent px-2.5 py-0.5 rounded-full text-xs font-semibold">You are here</span>
+                          )}
+                        </div>
+                        {date && <div className="text-ink-faint text-xs mb-1">{formatDate(date, { month: 'long', day: 'numeric', year: 'numeric' })}</div>}
+                        <div className={`text-sm leading-relaxed ${i > currentIdx ? 'text-ink-faint' : 'text-ink-soft'}`}>{desc}</div>
+                        {isFinal && isActive && complaint.status === 'settled' && complaint.settlement_terms && (
+                          <div className="mt-2 text-sm text-ink bg-success-soft border border-success-strong/20 rounded-lg p-3 leading-relaxed">
+                            <span className="font-semibold">Agreement: </span>
+                            {complaint.settlement_terms}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ol>
+            </Card>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4 min-w-0">
+          {complaint.respondent_name && (
+            <Card className="p-5">
+              <div className="flex items-center gap-2 mb-2.5">
+                <MdOutlinePerson className="text-xl text-accent" aria-hidden="true" />
+                <div className="text-ink text-base font-semibold">Complaint against</div>
+              </div>
+              <div className="text-sm font-semibold text-ink">{complaint.respondent_name}</div>
+              {complaint.respondent_address && <div className="text-sm text-ink-faint mt-1">{complaint.respondent_address}</div>}
+            </Card>
+          )}
+
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <MdOutlineDescription className="text-xl text-accent" aria-hidden="true" />
+              <div className="text-ink text-base font-semibold">What happened</div>
+            </div>
+            {(complaint.incident_date || complaint.location) && (
+              <div className="text-sm text-ink-soft mb-3 space-y-0.5">
+                {complaint.incident_date && (
+                  <div>
+                    {formatDate(complaint.incident_date, { month: 'long', day: 'numeric', year: 'numeric' })}
+                    {complaint.incident_time && ` at ${formatTime(complaint.incident_time)}`}
+                  </div>
+                )}
+                {complaint.location && <div>{complaint.location}</div>}
+              </div>
+            )}
+            <div className="text-sm text-ink-soft leading-relaxed bg-surface-sunken border border-border rounded-lg p-3 whitespace-pre-line">
+              {complaint.description}
+            </div>
+            {complaint.relief_requested && (
+              <div className="text-sm text-ink-soft mt-3">
+                <span className="font-semibold text-ink">You asked for: </span>
+                {complaint.relief_requested}
+              </div>
+            )}
+          </Card>
+        </div>
+      </div>
+    </>
   )
 }
 

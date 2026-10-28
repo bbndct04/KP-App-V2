@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { MdArrowForward } from 'react-icons/md'
 import { StatusBadge } from './ui'
 
-function ComplaintCards({ complaints, linkFor, linkLabel = 'Track', showResident = false }) {
+function ComplaintCards({ complaints, linkFor, linkLabel = 'View', showResident = false, renderExtra }) {
   return (
     <ul className="sm:hidden divide-y divide-border">
       {complaints.map((c) => (
@@ -14,6 +14,7 @@ function ComplaintCards({ complaints, linkFor, linkLabel = 'Track', showResident
             </div>
             {showResident && <div className="text-ink text-sm font-medium mb-0.5">{c.profiles?.full_name || '—'}</div>}
             <div className="text-ink-soft text-sm mb-2.5">{c.category}</div>
+            {renderExtra && <div className="mb-2.5">{renderExtra(c)}</div>}
             <div className="flex items-center justify-between">
               <span className="text-ink-faint text-xs">
                 {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}

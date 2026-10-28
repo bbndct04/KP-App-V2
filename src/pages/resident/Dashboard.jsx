@@ -1,32 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   MdOutlineFolderCopy,
-  MdOutlinePendingActions,
-  MdOutlineHourglassTop,
-  MdOutlineCheckCircle,
-  MdOutlineNoteAdd,
-  MdOutlineManageSearch,
   MdOutlineSupportAgent,
-  MdOutlineHistory,
+  MdOutlinePendingActions,
+  MdOutlineAssignment,
   MdAdd,
   MdArrowForward,
 } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
-import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton, Button, Input } from '../../components/ui'
-import ComplaintCards from '../../components/ComplaintCards'
-
-const IN_PROGRESS = ['filed', 'summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing']
-const CLOSED = ['settled', 'cfa_issued', 'dismissed', 'declined']
+import { Card, CardHeader, EmptyState, Skeleton, SkeletonRows, LinkButton } from '../../components/ui'
+import { HearingCard, CaseRow } from '../../components/cases'
+import { ACTIVE_STAGES } from '../../components/status'
+import { upcomingHearings } from '../../lib/cases'
 
 function Dashboard() {
   const { user, profile } = useAuth()
-  const navigate = useNavigate()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
-  const [trackRef, setTrackRef] = useState('')
 
   useEffect(() => {
     async function loadComplaints() {
@@ -42,158 +35,102 @@ function Dashboard() {
     loadComplaints()
   }, [user])
 
-  function handleQuickTrack(e) {
-    e.preventDefault()
-    const ref = trackRef.trim().toUpperCase()
-    if (ref) navigate(`/track?ref=${encodeURIComponent(ref)}`)
-  }
-
-  const stats = [
-    { label: 'Total Reports', val: complaints.length, icon: MdOutlineFolderCopy, color: 'text-accent', bg: 'bg-accent-soft' },
-    { label: 'Awaiting Review', val: complaints.filter((c) => c.status === 'submitted').length, icon: MdOutlinePendingActions, color: 'text-warning-strong', bg: 'bg-warning-soft' },
-    { label: 'In Progress', val: complaints.filter((c) => IN_PROGRESS.includes(c.status)).length, icon: MdOutlineHourglassTop, color: 'text-info-strong', bg: 'bg-info-soft' },
-    { label: 'Closed', val: complaints.filter((c) => CLOSED.includes(c.status)).length, icon: MdOutlineCheckCircle, color: 'text-success-strong', bg: 'bg-success-soft' },
-  ]
-
-  const firstName = (profile?.full_name || 'Resident').split(' ')[0]
-  const recent = complaints.slice(0, 5)
+  const firstName = (profile?.full_name || '').split(' ')[0]
+  const nextHearing = upcomingHearings(complaints)[0]
+  const awaiting = complaints.filter((c) => c.status === 'submitted')
+  const open = complaints.filter((c) => c.status === 'submitted' || ACTIVE_STAGES.includes(c.status))
+  const closedCount = complaints.length - open.length
 
   return (
-    <AppLayout title="Dashboard">
-      <Card className="px-5 md:px-6 py-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h2 className="text-ink text-xl font-bold mb-0.5">Welcome back, {firstName}!</h2>
+    <AppLayout title="Home">
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <div className="min-w-0">
+          <h2 className="text-ink text-xl md:text-2xl font-bold truncate">{firstName ? `Hello, ${firstName}!` : 'Hello!'}</h2>
           <p className="text-ink-soft text-sm">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        <LinkButton to="/complaints/new" icon={MdAdd}>
-          New Report
-        </LinkButton>
-      </Card>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-5">
-        {stats.map((s) => {
-          const Icon = s.icon
-          return (
-            <Card key={s.label} className="p-4 md:p-5">
-              <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>
-                <Icon className="text-xl" aria-hidden="true" />
-              </div>
-              <div className={`text-2xl md:text-3xl font-bold mb-0.5 ${s.color}`}>{loading ? '–' : s.val}</div>
-              <div className="text-ink-soft text-sm">{s.label}</div>
-            </Card>
-          )
-        })}
+        <div className="hidden md:block flex-shrink-0">
+          <LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-4 items-start">
-        <Card className="overflow-hidden">
-          <CardHeader
-            icon={MdOutlineHistory}
-            title="Recent Reports"
-            subtitle="Your latest complaint submissions"
-            action={
-              <Link to="/my-reports" className="text-accent text-sm font-semibold flex items-center gap-1 flex-shrink-0">
-                View all <MdArrowForward aria-hidden="true" />
-              </Link>
-            }
-          />
-
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start">
+        <div className="flex flex-col gap-5 min-w-0">
           {loading ? (
-            <SkeletonRows rows={4} />
-          ) : recent.length === 0 ? (
-            <EmptyState
-              icon={MdOutlineFolderCopy}
-              title="No reports yet"
-              message="Submit your first complaint to get started."
+            <Skeleton className="h-[220px] rounded-2xl" />
+          ) : (
+            nextHearing && (
+              <div className="lg:hidden">
+                <HearingCard complaint={nextHearing} />
+              </div>
+            )
+          )}
+
+          {!loading && awaiting.length > 0 && (
+            <div className="flex gap-3 bg-warning-soft border border-warning-strong/25 rounded-2xl p-4 text-warning-strong">
+              <MdOutlinePendingActions className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="text-sm leading-relaxed">
+                <div className="font-bold text-base">
+                  {awaiting.length === 1 ? 'Your complaint is' : `${awaiting.length} complaints are`} waiting for review
+                </div>
+                Please visit the Barangay Hall within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can accept it.
+              </div>
+            </div>
+          )}
+
+          <Card className="overflow-hidden">
+            <CardHeader
+              icon={MdOutlineAssignment}
+              title="Your active cases"
+              subtitle={loading ? ' ' : `${open.length} active · ${closedCount} closed`}
               action={
-                <LinkButton to="/complaints/new" icon={MdAdd}>
-                  Submit Complaint
-                </LinkButton>
+                complaints.length > 0 && (
+                  <Link to="/my-reports" className="text-accent text-sm font-semibold flex items-center gap-1 flex-shrink-0">
+                    All cases <MdArrowForward aria-hidden="true" />
+                  </Link>
+                )
               }
             />
-          ) : (
-            <>
-              <ComplaintCards complaints={recent} linkFor={(c) => `/track?ref=${c.reference_number}`} />
-              <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Reference No.</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap hidden sm:table-cell">Date Filed</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Stage</th>
-                    <th className="px-5 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map((c) => (
-                    <tr key={c.id} className="border-b border-border last:border-0">
-                      <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                      <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
-                      <td className="px-5 py-3.5 text-ink-faint text-sm hidden sm:table-cell whitespace-nowrap">
-                        {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <StatusBadge status={c.status} />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <Link
-                          to={`/track?ref=${c.reference_number}`}
-                          className="text-accent text-sm font-semibold whitespace-nowrap flex items-center gap-1"
-                        >
-                          Track <MdArrowForward aria-hidden="true" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            </>
-          )}
-        </Card>
+            {loading ? (
+              <SkeletonRows rows={3} />
+            ) : open.length === 0 ? (
+              <EmptyState
+                icon={MdOutlineFolderCopy}
+                title={complaints.length ? 'No active cases' : 'No complaints yet'}
+                message={
+                  complaints.length
+                    ? 'All your cases are closed. You can view them in All cases.'
+                    : 'If you have a dispute with a neighbor or another resident, you can file a complaint here.'
+                }
+                action={<LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>}
+              />
+            ) : (
+              <ul className="divide-y divide-border">
+                {open.map((c) => (
+                  <li key={c.id}>
+                    <CaseRow complaint={c} to={`/track?ref=${c.reference_number}`} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
 
         <div className="flex flex-col gap-4">
-          <div className="bg-accent-soft border border-accent/20 rounded-2xl p-5 shadow-token-md">
-            <div className="w-10 h-10 rounded-xl bg-surface text-accent flex items-center justify-center mb-3">
-              <MdOutlineNoteAdd className="text-xl" aria-hidden="true" />
+          {!loading && nextHearing && (
+            <div className="hidden lg:block">
+              <HearingCard complaint={nextHearing} />
             </div>
-            <div className="text-ink text-base font-bold mb-1">File a Complaint</div>
-            <div className="text-ink-soft text-sm mb-4 leading-relaxed">Submit a new complaint or incident report online.</div>
-            <LinkButton to="/complaints/new" variant="secondary" icon={MdAdd} className="w-full">
-              New Report
-            </LinkButton>
-          </div>
-
-          <Card className="p-5">
-            <div className="flex items-center gap-2.5 mb-1">
-              <MdOutlineManageSearch className="text-xl text-accent" aria-hidden="true" />
-              <div className="text-ink text-base font-semibold">Quick Track</div>
-            </div>
-            <div className="text-ink-faint text-sm mb-3">Enter your reference number</div>
-            <form onSubmit={handleQuickTrack} className="flex gap-2">
-              <Input
-                value={trackRef}
-                onChange={(e) => setTrackRef(e.target.value)}
-                placeholder="KP-2026-001"
-                aria-label="Reference number"
-                className="flex-1 min-w-0"
-              />
-              <Button type="submit" disabled={!trackRef.trim()}>
-                Go
-              </Button>
-            </form>
-          </Card>
+          )}
 
           <Card className="p-5">
             <div className="flex items-center gap-2.5 mb-2">
               <MdOutlineSupportAgent className="text-xl text-accent" aria-hidden="true" />
-              <div className="text-ink text-base font-semibold">Need Help?</div>
+              <div className="text-ink text-base font-semibold">Need help?</div>
             </div>
             <div className="text-ink-soft text-sm leading-relaxed">
-              Visit the barangay office at <strong className="text-ink">8AM–5PM</strong>, Monday to Friday, or call your barangay hotline for urgent concerns.
+              Visit the Barangay Hall at <strong className="text-ink">8AM–5PM</strong>, Monday to Friday, or call your barangay hotline for urgent concerns.
             </div>
           </Card>
         </div>

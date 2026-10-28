@@ -1,6 +1,7 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
 function BottomNav({ items }) {
+  const { pathname } = useLocation()
   return (
     <nav
       aria-label="Main navigation"
@@ -17,8 +18,9 @@ function BottomNav({ items }) {
                 aria-label={item.badge > 0 ? `${item.label}, ${item.badge} new` : item.label}
                 className="flex flex-col items-center min-w-[64px] pb-2 pt-1.5 group"
               >
-                {({ isActive }) =>
-                  item.primary ? (
+                {({ isActive: exact }) => {
+                  const isActive = exact || item.also?.some((p) => pathname.startsWith(p))
+                  return item.primary ? (
                     <>
                       <span className="relative -mt-6 w-14 h-14 rounded-full bg-accent text-accent-ink shadow-token-lg flex items-center justify-center ring-4 ring-surface">
                         <Icon className="text-3xl" aria-hidden="true" />
@@ -44,7 +46,7 @@ function BottomNav({ items }) {
                       </span>
                     </>
                   )
-                }
+                }}
               </NavLink>
             </li>
           )

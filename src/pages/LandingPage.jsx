@@ -16,13 +16,13 @@ const APP_URL = 'https://kp-app-v2.vercel.app'
 const FEATURES = [
   {
     icon: MdOutlineNoteAdd,
-    title: 'Submit a complaint',
+    title: 'File a complaint',
     text: 'Describe the dispute and send it to the barangay without waiting in line.',
   },
   {
     icon: MdOutlineFolderCopy,
     title: 'Keep your reports',
-    text: 'Every complaint you file is saved in My Reports so you can open it again anytime.',
+    text: 'Every complaint you file is saved in My Cases so you can open it again anytime.',
   },
   {
     icon: MdOutlineManageSearch,
@@ -79,7 +79,7 @@ export default function LandingPage() {
             </h1>
             <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
               KP App connects the residents of Brgy. New Kababae with the
-              Katarungang Pambarangay. Submit a complaint, follow its status,
+              Katarungang Pambarangay. File a complaint, follow its status,
               and get notified when the barangay acts on it.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

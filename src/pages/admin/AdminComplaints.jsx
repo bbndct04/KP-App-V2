@@ -152,8 +152,8 @@ function AdminComplaints() {
                     return (
                       <tr key={c.id} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
                         <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                        <td className="px-5 py-3.5 text-ink text-sm">{c.profiles?.full_name || c.complainant_name || '—'}</td>
-                        <td className="px-5 py-3.5 text-ink-soft text-sm">{c.category}</td>
+                        <td className="px-5 py-3.5 text-ink text-sm whitespace-nowrap max-w-[200px] truncate">{c.profiles?.full_name || c.complainant_name || '—'}</td>
+                        <td className="px-5 py-3.5 text-ink-soft text-sm max-w-[220px] truncate">{c.category}</td>
                         {tab === 'submitted' ? (
                           <>
                             <td className="px-5 py-3.5 text-ink-faint text-sm whitespace-nowrap">{shortDate(c.created_at)}</td>
