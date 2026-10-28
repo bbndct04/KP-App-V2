@@ -141,7 +141,7 @@ function AdminCases() {
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="stagger">
                   {list.map((c) => (
                     <tr key={c.id} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
                       <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>

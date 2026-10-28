@@ -24,7 +24,7 @@ const BUTTON_SIZES = {
 export function Button({ variant = 'primary', size = 'md', icon: Icon, className = '', children, ...props }) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg font-semibold transition-[background-color,transform] active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]} ${className}`}
       {...props}
     >
       {Icon && <Icon className="text-[1.25em] flex-shrink-0" aria-hidden="true" />}
@@ -37,7 +37,7 @@ export function LinkButton({ to, variant = 'primary', size = 'md', icon: Icon, c
   return (
     <Link
       to={to}
-      className={`inline-flex items-center justify-center rounded-lg font-semibold transition-colors ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg font-semibold transition-[background-color,transform] active:scale-[0.97] ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]} ${className}`}
       {...props}
     >
       {Icon && <Icon className="text-[1.25em] flex-shrink-0" aria-hidden="true" />}

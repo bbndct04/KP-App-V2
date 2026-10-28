@@ -125,7 +125,7 @@ function AdminDashboard() {
         </Link>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 items-start stagger">
         <Card className="overflow-hidden">
           <CardHeader
             icon={MdOutlineEvent}
@@ -204,11 +204,11 @@ function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5 stagger">
         {statCards.map((s) => {
           const Icon = s.icon
           return (
-            <Card key={s.label} className="p-5">
+            <Card key={s.label} className="p-5 lift">
               <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>
                 <Icon className="text-xl" aria-hidden="true" />
               </div>
@@ -251,7 +251,7 @@ function AdminDashboard() {
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="stagger">
                   {recent.map((c) => (
                     <tr key={c.id} className="border-b border-border last:border-0">
                       <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>

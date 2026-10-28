@@ -220,7 +220,9 @@ function AdminLayout({ title, children }) {
             )}
           </NavLink>
         </header>
-        <main className="flex-1 p-4 md:p-7 overflow-y-auto min-w-0">{children}</main>
+        <main className="flex-1 p-4 md:p-7 overflow-y-auto min-w-0">
+          <div key={location.pathname} className="page-in">{children}</div>
+        </main>
       </div>
 
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 w-[calc(100%-2rem)] max-w-[380px]">

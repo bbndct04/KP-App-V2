@@ -80,7 +80,7 @@ function MyReports() {
             <EmptyState icon={MdOutlineFilterAltOff} title={`No ${filter.label.toLowerCase()} cases`} />
           )
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-border stagger">
             {filtered.map((c) => (
               <li key={c.id}>
                 <CaseRow complaint={c} to={`/track?ref=${c.reference_number}`} />
