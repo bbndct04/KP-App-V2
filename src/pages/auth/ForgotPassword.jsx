@@ -95,7 +95,7 @@ function ForgotPassword() {
 
           <p className="text-ink-soft font-sans text-sm text-center mt-6">
             <Link to="/login" className="text-accent hover:text-accent-hover font-medium inline-flex items-center gap-1">
-              <MdArrowBack aria-hidden="true" /> Back to Sign In
+              <MdArrowBack aria-hidden="true" /> Back to Log in
             </Link>
           </p>
         </div>

@@ -14,8 +14,11 @@ import {
   MdArrowForward,
   MdOutlineFileDownload,
   MdExpandMore,
+  MdOutlineLightMode,
+  MdOutlineDarkMode,
 } from 'react-icons/md'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import AuthBackground from '../components/AuthBackground'
 import useReveal from '../hooks/useReveal'
 import logo from '../assets/kp-app-logo.png'
@@ -99,6 +102,29 @@ function FaqItem({ q, a, open, onToggle, id }) {
         </div>
       </div>
     </div>
+  )
+}
+
+function ThemeToggle() {
+  const { theme, setLight, setDark } = useTheme()
+  const dark = theme === 'dark'
+  return (
+    <button
+      type="button"
+      onClick={dark ? setLight : setDark}
+      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={dark ? 'Light mode' : 'Dark mode'}
+      className={`relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border text-ink transition-colors hover:bg-surface-hover ${focus}`}
+    >
+      <MdOutlineLightMode
+        className={`absolute text-xl transition-all duration-300 ${dark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-50 opacity-0'}`}
+        aria-hidden="true"
+      />
+      <MdOutlineDarkMode
+        className={`absolute text-xl transition-all duration-300 ${dark ? 'rotate-90 scale-50 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}
+        aria-hidden="true"
+      />
+    </button>
   )
 }
 
@@ -201,6 +227,7 @@ export default function LandingPage() {
             </ul>
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Link to="/register" className={`hidden sm:inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-ink-soft hover:text-ink ${focus}`}>
               Register
             </Link>
