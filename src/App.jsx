@@ -1,265 +1,121 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastProvider'
 import ProtectedRoute from './components/ProtectedRoute'
-import Login from './pages/auth/Login'
-import Register from './pages/auth/Register'
-import ForgotPassword from './pages/auth/ForgotPassword'
-import ResetPassword from './pages/auth/ResetPassword'
-import Dashboard from './pages/resident/Dashboard'
-import MyReports from './pages/resident/MyReports'
-import SubmitComplaint from './pages/resident/SubmitComplaint'
-import TrackStatus from './pages/resident/TrackStatus'
-import Notifications from './pages/resident/Notifications'
-import Profile from './pages/resident/Profile'
 import AdminRoute from './components/AdminRoute'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminComplaints from './pages/admin/AdminComplaints'
-import AdminUsers from './pages/admin/AdminUsers'
-import AdminAnalytics from './pages/admin/AdminAnalytics'
-import Form7 from './pages/admin/forms/Form7'
-import Form8 from './pages/admin/forms/Form8'
-import Form9 from './pages/admin/forms/Form9'
-import Form10 from './pages/admin/forms/Form10'
-import Form11 from './pages/admin/forms/Form11'
-import Form16 from './pages/admin/forms/Form16'
-import Form20 from './pages/admin/forms/Form20'
-import Form13 from './pages/admin/forms/Form13'
-import Form14 from './pages/admin/forms/Form14'
-import Form15 from './pages/admin/forms/Form15'
-import Form18 from './pages/admin/forms/Form18'
-import Form19 from './pages/admin/forms/Form19'
-import Form22 from './pages/admin/forms/Form22'
-import Form25 from './pages/admin/forms/Form25'
-import Form27 from './pages/admin/forms/Form27'
-import ComplaintRouter from './pages/admin/ComplaintRouter'
-import AdminCases from './pages/admin/AdminCases'
-import AdminSettings from './pages/admin/AdminSettings'
-import AdminNotifications from './pages/admin/AdminNotifications'
+import AppSkeleton from './components/AppSkeleton'
+import ErrorBoundary from './components/ErrorBoundary'
+import NotFound from './pages/NotFound'
+
+const Login = lazy(() => import('./pages/auth/Login'))
+const Register = lazy(() => import('./pages/auth/Register'))
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'))
+
+const Dashboard = lazy(() => import('./pages/resident/Dashboard'))
+const MyReports = lazy(() => import('./pages/resident/MyReports'))
+const SubmitComplaint = lazy(() => import('./pages/resident/SubmitComplaint'))
+const TrackStatus = lazy(() => import('./pages/resident/TrackStatus'))
+const Notifications = lazy(() => import('./pages/resident/Notifications'))
+const Profile = lazy(() => import('./pages/resident/Profile'))
+
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminComplaints = lazy(() => import('./pages/admin/AdminComplaints'))
+const AdminCases = lazy(() => import('./pages/admin/AdminCases'))
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'))
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'))
+const ComplaintRouter = lazy(() => import('./pages/admin/ComplaintRouter'))
+
+const FORMS = {
+  7: lazy(() => import('./pages/admin/forms/Form7')),
+  8: lazy(() => import('./pages/admin/forms/Form8')),
+  9: lazy(() => import('./pages/admin/forms/Form9')),
+  10: lazy(() => import('./pages/admin/forms/Form10')),
+  11: lazy(() => import('./pages/admin/forms/Form11')),
+  13: lazy(() => import('./pages/admin/forms/Form13')),
+  14: lazy(() => import('./pages/admin/forms/Form14')),
+  15: lazy(() => import('./pages/admin/forms/Form15')),
+  16: lazy(() => import('./pages/admin/forms/Form16')),
+  18: lazy(() => import('./pages/admin/forms/Form18')),
+  19: lazy(() => import('./pages/admin/forms/Form19')),
+  20: lazy(() => import('./pages/admin/forms/Form20')),
+  22: lazy(() => import('./pages/admin/forms/Form22')),
+  25: lazy(() => import('./pages/admin/forms/Form25')),
+  27: lazy(() => import('./pages/admin/forms/Form27')),
+}
+
+const RESIDENT_ROUTES = [
+  ['/dashboard', Dashboard],
+  ['/my-reports', MyReports],
+  ['/complaints/new', SubmitComplaint],
+  ['/track', TrackStatus],
+  ['/notifications', Notifications],
+  ['/profile', Profile],
+]
+
+const ADMIN_ROUTES = [
+  ['/admin/dashboard', AdminDashboard],
+  ['/admin/complaints', AdminComplaints],
+  ['/admin/complaints/:id', ComplaintRouter],
+  ['/admin/cases', AdminCases],
+  ['/admin/cases/:id', ComplaintRouter],
+  ['/admin/users', AdminUsers],
+  ['/admin/analytics', AdminAnalytics],
+  ['/admin/notifications', AdminNotifications],
+  ['/admin/settings', AdminSettings],
+  ...Object.entries(FORMS).map(([n, Form]) => [`/admin/complaints/:id/form${n}`, Form]),
+]
+
+const isAdmin = (profile) => ['admin', 'staff'].includes(profile?.role)
+
+function HomeRedirect() {
+  const { user, profile, loading } = useAuth()
+  if (loading) return <AppSkeleton />
+  if (!user) return <Navigate to="/login" replace />
+  return <Navigate to={isAdmin(profile) ? '/admin/dashboard' : '/dashboard'} replace />
+}
+
+function GuestRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <AppSkeleton />
+  if (user) return <HomeRedirect />
+  return children
+}
 
 function App() {
   return (
-    <ThemeProvider>
-    <ToastProvider>
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-reports"
-            element={
-              <ProtectedRoute>
-                <MyReports />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/complaints/new"
-            element={
-              <ProtectedRoute>
-                <SubmitComplaint />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/track"
-            element={
-              <ProtectedRoute>
-                <TrackStatus />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints"
-            element={
-              <AdminRoute>
-                <AdminComplaints />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <AdminRoute>
-                <AdminUsers />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/analytics"
-            element={
-              <AdminRoute>
-                <AdminAnalytics />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form7"
-            element={
-              <AdminRoute>
-                <Form7 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form8"
-            element={
-              <AdminRoute>
-                <Form8 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form9"
-            element={
-              <AdminRoute>
-                <Form9 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form10"
-            element={
-              <AdminRoute>
-                <Form10 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form11"
-            element={
-              <AdminRoute>
-                <Form11 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form13"
-            element={
-              <AdminRoute>
-                <Form13 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form14"
-            element={
-              <AdminRoute>
-                <Form14 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form15"
-            element={
-              <AdminRoute>
-                <Form15 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form16"
-            element={
-              <AdminRoute>
-                <Form16 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form18"
-            element={
-              <AdminRoute>
-                <Form18 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form19"
-            element={
-              <AdminRoute>
-                <Form19 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form20"
-            element={
-              <AdminRoute>
-                <Form20 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form22"
-            element={
-              <AdminRoute>
-                <Form22 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form25"
-            element={
-              <AdminRoute>
-                <Form25 />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints/:id/form27"
-            element={
-              <AdminRoute>
-                <Form27 />
-              </AdminRoute>
-            }
-          />
-          <Route path="/admin/complaints/:id" element={<AdminRoute><ComplaintRouter /></AdminRoute>} />
-          <Route path="/admin/cases" element={<AdminRoute><AdminCases /></AdminRoute>} />
-          <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-          <Route path="/admin/cases/:id" element={<AdminRoute><ComplaintRouter /></AdminRoute>} />
-          <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
-          <Route path="/" element={<Navigate to="/login" />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-    </ToastProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Suspense fallback={<AppSkeleton />}>
+                <Routes>
+                  <Route path="/" element={<HomeRedirect />} />
+                  <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+                  <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+
+                  {RESIDENT_ROUTES.map(([path, Page]) => (
+                    <Route key={path} path={path} element={<ProtectedRoute><Page /></ProtectedRoute>} />
+                  ))}
+                  {ADMIN_ROUTES.map(([path, Page]) => (
+                    <Route key={path} path={path} element={<AdminRoute><Page /></AdminRoute>} />
+                  ))}
+
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
 

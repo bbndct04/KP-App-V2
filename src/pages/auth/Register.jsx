@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { MdArrowBack, MdArrowForward, MdArrowDownward, MdCheck, MdOutlineLock, MdOutlineCheckCircle, MdOutlineWarningAmber, MdOutlineNoPhotography, MdOutlinePhotoCamera, MdOutlineMail, MdOutlineMarkEmailUnread, MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
+import { compressImage } from '../../lib/image'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
 
@@ -120,13 +121,13 @@ function Register() {
     setIdTypeMismatch(false)
     setMismatchOverride(false)
 
-    const reader = new FileReader()
-    reader.onloadend = async () => {
-      const base64 = reader.result.split(',')[1]
+    scanId()
 
+    async function scanId() {
       try {
+        const imageBase64 = await compressImage(file)
         const { data, error } = await supabase.functions.invoke('verify-id', {
-          body: { imageBase64: base64 },
+          body: { imageBase64 },
         })
 
         if (error || !data?.text) {
@@ -148,9 +149,9 @@ function Register() {
           }
         }
 
-        const dobMatch = text.match(/(\d{2}[\/\-]\d{2}[\/\-]\d{4})/)
+        const dobMatch = text.match(/(\d{2}[/-]\d{2}[/-]\d{4})/)
         if (dobMatch) {
-          const [d, m, y] = dobMatch[1].split(/[\/\-]/)
+          const [d, m, y] = dobMatch[1].split(/[/-]/)
           if (y && m && d) setDob(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
         }
 
@@ -172,7 +173,6 @@ function Register() {
         setIdTypeMismatch(true)
       }
     }
-    reader.readAsDataURL(file)
   }
 
   function resetID() {

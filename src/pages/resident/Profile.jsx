@@ -6,15 +6,15 @@ import { useToast } from '../../context/toastContext'
 import { MdOutlinePerson, MdOutlineLock, MdOutlineVerified, MdOutlineWarningAmber } from 'react-icons/md'
 
 function Profile() {
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const toast = useToast()
   const [stats, setStats] = useState({ total: 0, closed: 0, active: 0 })
 
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [contact, setContact] = useState('')
-  const [address, setAddress] = useState('')
-  const [officialTitle, setOfficialTitle] = useState('')
+  const [fullName, setFullName] = useState(profile?.full_name || '')
+  const email = user?.email || ''
+  const [contact, setContact] = useState(profile?.contact_number || '')
+  const [address, setAddress] = useState(profile?.address || '')
+  const [officialTitle, setOfficialTitle] = useState(profile?.official_title || '')
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileError, setProfileError] = useState('')
 
@@ -23,16 +23,6 @@ function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
-
-  useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name || '')
-      setContact(profile.contact_number || '')
-      setAddress(profile.address || '')
-      setOfficialTitle(profile.official_title || '')
-    }
-    if (user) setEmail(user.email || '')
-  }, [profile, user])
 
   useEffect(() => {
     async function loadStats() {
@@ -69,7 +59,10 @@ function Profile() {
 
     setSavingProfile(false)
     if (error) setProfileError(error.message)
-    else toast.success('Your profile has been updated.')
+    else {
+      toast.success('Your profile has been updated.')
+      refreshProfile()
+    }
   }
 
   async function handlePasswordSave(e) {
