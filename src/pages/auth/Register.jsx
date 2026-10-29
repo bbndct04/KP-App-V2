@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { MdArrowBack, MdArrowForward, MdArrowDownward, MdCheck, MdOutlineLock, MdOutlineCheckCircle, MdOutlineWarningAmber, MdOutlineNoPhotography, MdOutlinePhotoCamera, MdOutlineMail, MdOutlineMarkEmailUnread, MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
+import { passwordProblem } from '../../lib/accounts'
 import { compressImage } from '../../lib/image'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
@@ -324,8 +325,9 @@ function Register() {
   async function handleSubmit() {
     setSubmitError('')
 
-    if (password.length < 8) {
-      setSubmitError('Password must be at least 8 characters.')
+    const pwProblem = passwordProblem(password)
+    if (pwProblem) {
+      setSubmitError(pwProblem)
       return
     }
     if (password !== passwordConfirm) {
@@ -872,7 +874,7 @@ function Register() {
                     autoFocus
                     autoComplete="new-password"
                     className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
-                    placeholder="Min 8 characters"
+                    placeholder="8+ characters, letters and numbers"
                   />
                   <button
                     type="button"

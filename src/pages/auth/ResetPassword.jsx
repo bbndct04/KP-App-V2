@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MdOutlineErrorOutline, MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
+import { passwordProblem } from '../../lib/accounts'
 import logo from '../../assets/kp-app-logo.png'
 import AuthBackground from '../../components/AuthBackground'
 
 function ResetPassword() {
   const navigate = useNavigate()
+  const invite = useSearchParams()[0].get('invite') === '1'
   const [checkingSession, setCheckingSession] = useState(true)
   const [validLink, setValidLink] = useState(false)
 
@@ -32,8 +34,9 @@ function ResetPassword() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+    const pwProblem = passwordProblem(password)
+    if (pwProblem) {
+      setError(pwProblem)
       return
     }
     if (password !== passwordConfirm) {
@@ -51,7 +54,7 @@ function ResetPassword() {
     }
 
     await supabase.auth.signOut()
-    navigate('/login', { state: { message: 'Password updated. Please log in with your new password.' } })
+    navigate('/login', { state: { message: invite ? 'Your password is set. You can now log in to your official account.' : 'Password updated. Please log in with your new password.' } })
   }
 
   return (
@@ -83,7 +86,9 @@ function ResetPassword() {
               </div>
               <h2 className="text-ink font-sans text-xl font-semibold mb-2">Link expired or invalid</h2>
               <p className="text-ink-soft text-sm leading-relaxed mb-5">
-                This password reset link is no longer valid. Reset links expire after a short time — please request a new one.
+                {invite
+                  ? 'This invitation link is no longer valid. You can set your password with a reset link instead, or ask the barangay admin to send a new invitation.'
+                  : 'This password reset link is no longer valid. Reset links expire after a short time — please request a new one.'}
               </p>
               <button
                 onClick={() => navigate('/forgot-password')}
@@ -94,8 +99,10 @@ function ResetPassword() {
             </div>
           ) : (
             <>
-              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">Set a new password</h2>
-              <p className="text-ink-soft text-sm mb-6">Choose a new password for your account.</p>
+              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">{invite ? 'Set your password' : 'Set a new password'}</h2>
+              <p className="text-ink-soft text-sm mb-6">
+                {invite ? 'Welcome! Create a password for your barangay official account.' : 'Choose a new password for your account.'}
+              </p>
 
               {error && (
                 <div className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-xl px-4 py-3 mb-4">
@@ -116,7 +123,7 @@ function ResetPassword() {
                       autoComplete="new-password"
                       minLength={8}
                       className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-2.5 pr-11 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
-                      placeholder="Min 8 characters"
+                      placeholder="8+ characters, letters and numbers"
                     />
                     <button
                       type="button"
@@ -147,7 +154,7 @@ function ResetPassword() {
                   disabled={saving}
                   className="w-full bg-accent hover:bg-accent-hover transition-all text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 mt-2 disabled:opacity-50 shadow-token-md"
                 >
-                  {saving ? 'Updating...' : 'Update Password'}
+                  {saving ? 'Saving...' : invite ? 'Set Password' : 'Update Password'}
                 </button>
               </form>
             </>

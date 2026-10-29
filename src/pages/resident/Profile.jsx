@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { passwordProblem } from '../../lib/accounts'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
 import { useToast } from '../../context/toastContext'
@@ -73,8 +74,9 @@ function Profile() {
       setPasswordError('Enter your current password.')
       return
     }
-    if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters.')
+    const pwProblem = passwordProblem(newPassword)
+    if (pwProblem) {
+      setPasswordError(pwProblem)
       return
     }
     if (newPassword !== confirmPassword) {

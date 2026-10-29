@@ -12,6 +12,8 @@ import {
   MdOutlineEvent,
 } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
+import { accountState, blockedMessage } from '../../lib/accounts'
+import { clearIdle } from '../../lib/useIdleLogout'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
 import AuthBackground from '../../components/AuthBackground'
@@ -109,8 +111,20 @@ function Login() {
       return
     }
 
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('role, account_status, status_until, status_reason')
+      .eq('id', data.user.id)
+      .single()
+    if (accountState(profileData) === 'blocked') {
+      await supabase.auth.signOut()
+      setLoading(false)
+      setErrorMsg(blockedMessage(profileData))
+      shake()
+      return
+    }
+    clearIdle()
     setSuccess(true)
-    const { data: profileData } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
     navigate(['admin', 'staff'].includes(profileData?.role) ? '/admin/dashboard' : '/dashboard', { replace: true })
   }
 

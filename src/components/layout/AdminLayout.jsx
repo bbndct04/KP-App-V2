@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   MdOutlineDashboard,
@@ -22,6 +22,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
+import useIdleLogout, { clearIdle } from '../../lib/useIdleLogout'
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: MdOutlineDashboard },
@@ -70,9 +71,18 @@ function AdminLayout({ title, children }) {
   const badgeCount = location.pathname === '/admin/notifications' ? 0 : unreadCount
 
   async function handleLogout() {
+    clearIdle()
     await signOut()
     navigate('/login')
   }
+
+  const idleLogout = useCallback(async () => {
+    clearIdle()
+    await signOut()
+    navigate('/login', { state: { message: 'You were logged out after 30 minutes of inactivity.' } })
+  }, [signOut, navigate])
+
+  useIdleLogout(!!user, idleLogout)
 
   function dismissToast(id) {
     setToasts((t) => t.filter((x) => x.id !== id))
