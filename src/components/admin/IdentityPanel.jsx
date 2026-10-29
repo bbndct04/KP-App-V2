@@ -49,7 +49,7 @@ function Row({ label, value }) {
   )
 }
 
-function IdentityPanel({ userId, collapsible = false, defaultOpen = true, className = '' }) {
+function IdentityPanel({ userId, collapsible = false, defaultOpen = true, className = '', title = 'Complainant identity', onChange }) {
   const { user, profile: adminProfile } = useAuth()
   const toast = useToast()
   const [open, setOpen] = useState(defaultOpen)
@@ -68,6 +68,7 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
         signedUrl('id-uploads', `${userId}/id.jpg`),
       ])
       if (!cancelled) setData({ key: userId, profile, verification, selfie, id })
+      if (selfie || id) supabase.rpc('log_identity_view', { p_user: userId })
     }
     load()
     return () => {
@@ -89,6 +90,7 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
     }
     setData((d) => ({ ...d, verification: saved || { ...row, verified_at: new Date().toISOString() } }))
     toast.success('Identity marked as verified.')
+    onChange?.()
   }
 
   async function undoVerified() {
@@ -101,13 +103,14 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
     }
     setData((d) => ({ ...d, verification: null }))
     toast.success('Verification removed.')
+    onChange?.()
   }
 
   return (
     <Card className={className}>
       <CardHeader
         icon={MdOutlineLockPerson}
-        title="Complainant identity"
+        title={title}
         subtitle="Confidential — for identity verification only"
         action={
           collapsible ? (

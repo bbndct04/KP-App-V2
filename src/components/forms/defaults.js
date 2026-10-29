@@ -1,13 +1,17 @@
 import { manilaDate, timeParts } from '../../lib/formsKit'
 
 function barangayFields(s = {}) {
+  const o = s.officials || {}
+  const punong = s.punong_barangay || o['Punong Barangay'] || ''
   return {
     province: s.province || '',
     localityType: s.locality_type || 'City',
     locality: s.locality || '',
     barangay: s.barangay || '',
-    punongBarangay: s.punong_barangay || '',
-    signer: s.punong_barangay || '',
+    punongBarangay: punong,
+    signer: punong,
+    luponSecretary: o['Lupon Secretary'] || '',
+    barangaySecretary: o['Barangay Secretary'] || '',
   }
 }
 

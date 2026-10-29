@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
 import { Button, Field, Input, Select, Textarea } from '../../components/ui'
 import { formatDate, formatTime } from '../../lib/cases'
+import { accountState } from '../../lib/accounts'
 import {
   MdOutlineCheckCircle,
   MdOutlineSend,
@@ -17,6 +18,7 @@ import {
   MdArrowBack,
   MdArrowForward,
   MdOutlineEdit,
+  MdOutlineDoNotDisturbOn,
 } from 'react-icons/md'
 
 const CATEGORIES = [
@@ -158,6 +160,28 @@ function SubmitComplaint() {
 
   const current = STEPS[step]
   const isLast = step === STEPS.length - 1
+
+  if (accountState(profile) === 'restricted') {
+    return (
+      <AppLayout title="File a Complaint">
+        <div className="max-w-[560px] mx-auto bg-surface border border-border rounded-2xl shadow-token-md p-7 text-center">
+          <div className="w-14 h-14 rounded-full bg-danger-soft text-danger-strong flex items-center justify-center mx-auto mb-4">
+            <MdOutlineDoNotDisturbOn className="text-3xl" aria-hidden="true" />
+          </div>
+          <h2 className="text-ink text-xl font-bold mb-2">You can't file complaints right now</h2>
+          <p className="text-ink-soft text-sm leading-relaxed">
+            Your account has been restricted
+            {profile.status_until ? ` until ${formatDate(profile.status_until, { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}.
+            {profile.status_reason ? ` Reason: ${profile.status_reason}.` : ''} You can still view and track your existing cases.
+          </p>
+          <p className="text-ink-faint text-sm mt-3">Please visit the Barangay Hall if you have questions.</p>
+          <Button className="mt-6" onClick={() => navigate('/my-reports')}>
+            View my reports
+          </Button>
+        </div>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout title="File a Complaint">

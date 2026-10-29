@@ -15,14 +15,17 @@ export function useCaseDocument(formNo, title, makeDefaults) {
   const [busy, setBusy] = useState(false)
 
   const fetchAll = useCallback(async () => {
-    const [{ data: complaint }, { data: settings }, { data: docs }] = await Promise.all([
+    const [{ data: complaint }, { data: settings }, { data: docs }, { data: officials }] = await Promise.all([
       supabase.from('complaints').select('*').eq('id', id).maybeSingle(),
       supabase.from('barangay_settings').select('*').eq('id', 1).maybeSingle(),
       supabase.from('case_documents').select('*').eq('complaint_id', id).eq('form_no', formNo).order('version', { ascending: false }),
+      supabase.from('profiles').select('full_name, official_title').in('role', ['admin', 'staff']).not('official_title', 'is', null).order('created_at'),
     ])
     const list = docs || []
     const active = list.find((d) => d.status !== 'void') || null
-    const base = makeDefaults(complaint, settings || {})
+    const byTitle = {}
+    for (const o of officials || []) byTitle[o.official_title] ??= o.full_name
+    const base = makeDefaults(complaint, { ...(settings || {}), officials: byTitle })
     let initial = base
     if (active) initial = active.status === 'draft' ? { ...base, ...active.fields } : { ...active.fields }
     return { complaint, settings, list, active, initial }

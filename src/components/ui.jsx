@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { STATUS } from './status'
@@ -171,7 +172,7 @@ export function ConfirmDialog({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-5" onClick={onCancel}>
       <div
         role="dialog"
@@ -205,6 +206,7 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

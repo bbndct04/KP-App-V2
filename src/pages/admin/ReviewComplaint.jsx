@@ -29,6 +29,7 @@ const DECLINE_REASONS = [
 function DeclineDialog({ open, busy, onCancel, onSubmit }) {
   const [reason, setReason] = useState('')
   const [details, setDetails] = useState('')
+  const [restrict, setRestrict] = useState(false)
   const needsDetails = reason === 'Other'
   const valid = reason && (!needsDetails || details.trim())
 
@@ -36,7 +37,7 @@ function DeclineDialog({ open, busy, onCancel, onSubmit }) {
 
   function submit() {
     if (!valid) return
-    onSubmit(details.trim() ? `${reason}. ${details.trim()}` : reason)
+    onSubmit(details.trim() ? `${reason}. ${details.trim()}` : reason, restrict)
   }
 
   return (
@@ -76,8 +77,15 @@ function DeclineDialog({ open, busy, onCancel, onSubmit }) {
           onChange={(e) => setDetails(e.target.value)}
           rows={3}
           placeholder="Add a short explanation the resident will understand"
-          className="mb-5"
+          className="mb-4"
         />
+
+        <label className="flex items-start gap-2.5 mb-5 cursor-pointer">
+          <input type="checkbox" checked={restrict} onChange={(e) => setRestrict(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[var(--color-danger-strong)]" />
+          <span className="text-sm text-ink-soft">
+            <span className="font-semibold text-ink">Also restrict this user for 30 days.</span> Use this for spam, fake or abusive complaints. They can still view their cases.
+          </span>
+        </label>
 
         <div className="flex gap-2.5 justify-end">
           <Button variant="secondary" onClick={onCancel} disabled={busy}>
@@ -126,7 +134,7 @@ function ReviewComplaint() {
     }
   }, [id])
 
-  async function review(decision, reason) {
+  async function review(decision, reason, restrict) {
     setBusy(true)
     const { error } = await supabase.rpc('review_complaint', {
       p_complaint_id: Number(id),
@@ -144,7 +152,18 @@ function ReviewComplaint() {
       toast.success('Complaint accepted. It is now in Active Cases and the resident has been notified.')
       navigate(`/admin/cases/${id}`)
     } else {
-      toast.success('Complaint declined. The resident has been notified of the reason.')
+      if (restrict) {
+        const { error: rErr } = await supabase.rpc('set_account_status', {
+          p_user: data.complaint.user_id,
+          p_status: 'restricted',
+          p_reason: reason,
+          p_days: 30,
+        })
+        if (rErr) toast.error(`Complaint declined, but the user could not be restricted. ${rErr.message}`)
+        else toast.success('Complaint declined and the user is restricted for 30 days.')
+      } else {
+        toast.success('Complaint declined. The resident has been notified of the reason.')
+      }
       navigate('/admin/complaints')
     }
   }
@@ -277,7 +296,7 @@ function ReviewComplaint() {
         onConfirm={() => review('accept')}
         onCancel={() => setAcceptOpen(false)}
       />
-      <DeclineDialog open={declineOpen} busy={busy} onCancel={() => setDeclineOpen(false)} onSubmit={(reason) => review('decline', reason)} />
+      <DeclineDialog open={declineOpen} busy={busy} onCancel={() => setDeclineOpen(false)} onSubmit={(reason, restrict) => review('decline', reason, restrict)} />
     </AdminLayout>
   )
 }
