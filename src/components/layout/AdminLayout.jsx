@@ -19,6 +19,7 @@ import {
   MdClose,
 } from 'react-icons/md'
 import { useAuth } from '../../context/AuthContext'
+import LogoutDialog from '../LogoutDialog'
 import { useTheme } from '../../context/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
@@ -64,17 +65,13 @@ function AdminLayout({ title, children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [awaiting, setAwaiting] = useState(0)
   const [toasts, setToasts] = useState([])
 
   const badgeCount = location.pathname === '/admin/notifications' ? 0 : unreadCount
 
-  async function handleLogout() {
-    clearIdle()
-    await signOut()
-    navigate('/login')
-  }
 
   const idleLogout = useCallback(async () => {
     clearIdle()
@@ -181,7 +178,10 @@ function AdminLayout({ title, children }) {
           </div>
         </div>
         <button
-          onClick={handleLogout}
+          onClick={() => {
+            setMobileOpen(false)
+            setConfirmLogout(true)
+          }}
           className="w-full flex items-center gap-3 text-ink-soft hover:text-ink hover:bg-surface-hover rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors"
         >
           <MdLogout className="text-[22px]" aria-hidden="true" /> Log Out
@@ -266,6 +266,7 @@ function AdminLayout({ title, children }) {
           )
         })}
       </div>
+      <LogoutDialog open={confirmLogout} onCancel={() => setConfirmLogout(false)} />
     </div>
   )
 }

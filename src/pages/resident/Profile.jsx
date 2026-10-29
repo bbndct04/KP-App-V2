@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   MdOutlinePerson,
   MdOutlineLock,
@@ -27,6 +27,7 @@ import { useToast } from '../../context/toastContext'
 import { useT } from '../../i18n/LanguageContext'
 import AppLayout from '../../components/layout/AppLayout'
 import ProfileAvatar from '../../components/ProfileAvatar'
+import LogoutDialog from '../../components/LogoutDialog'
 import { Button, Field, Input } from '../../components/ui'
 
 function Section({ title, children }) {
@@ -252,16 +253,16 @@ function Help({ onBack }) {
 }
 
 function Profile() {
-  const { user, profile, refreshProfile, signOut } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const { theme, setLight, setDark } = useTheme()
   const { t, lang, setLanguage } = useT()
   const toast = useToast()
-  const navigate = useNavigate()
   const fileRef = useRef(null)
   const [view, setView] = useState('main')
   const [stats, setStats] = useState({ total: 0, active: 0, closed: 0 })
   const [verified, setVerified] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [confirmLogout, setConfirmLogout] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -315,10 +316,6 @@ function Profile() {
     toast.success(t('Profile photo removed.'))
   }
 
-  async function logout() {
-    await signOut()
-    navigate('/login')
-  }
 
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString(lang === 'tl' ? 'fil-PH' : 'en-US', { month: 'long', year: 'numeric' })
@@ -420,13 +417,14 @@ function Profile() {
 
             <Section title={t('Support')}>
               <Row icon={MdOutlineHelpOutline} label={t('Help & barangay hours')} onClick={() => go('help')} />
-              <Row icon={MdLogout} label={t('Log Out')} onClick={logout} danger />
+              <Row icon={MdLogout} label={t('Log Out')} onClick={() => setConfirmLogout(true)} danger />
             </Section>
 
             {memberSince && <div className="text-center text-ink-faint text-xs">{t('Member since {date}', { date: memberSince })}</div>}
           </div>
         )}
       </div>
+      <LogoutDialog open={confirmLogout} onCancel={() => setConfirmLogout(false)} />
     </AppLayout>
   )
 }

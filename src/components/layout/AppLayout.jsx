@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   MdOutlineHome,
   MdOutlineNoteAdd,
@@ -10,6 +10,7 @@ import {
   MdLogout,
 } from 'react-icons/md'
 import { useAuth } from '../../context/AuthContext'
+import LogoutDialog from '../LogoutDialog'
 import { useT } from '../../i18n/LanguageContext'
 import ProfileAvatar from '../ProfileAvatar'
 import { supabase } from '../../lib/supabaseClient'
@@ -53,19 +54,15 @@ function NavItem({ item, badge, onClick }) {
 }
 
 function AppLayout({ title, children }) {
-  const { profile, user, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { profile, user } = useAuth()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const { t } = useT()
 
   const badgeCount = location.pathname === '/notifications' ? 0 : unreadCount
 
-  async function handleLogout() {
-    await signOut()
-    navigate('/login')
-  }
 
   useEffect(() => {
     if (!user) return
@@ -134,7 +131,10 @@ function AppLayout({ title, children }) {
           </div>
         </NavLink>
         <button
-          onClick={handleLogout}
+          onClick={() => {
+            close()
+            setConfirmLogout(true)
+          }}
           className="w-full flex items-center gap-3 text-ink-soft hover:text-ink hover:bg-surface-hover rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors"
         >
           <MdLogout className="text-[22px]" aria-hidden="true" /> {t('Log Out')}
@@ -191,6 +191,7 @@ function AppLayout({ title, children }) {
         </main>
         <BottomNav items={bottomItems} />
       </div>
+      <LogoutDialog open={confirmLogout} onCancel={() => setConfirmLogout(false)} />
     </div>
   )
 }
