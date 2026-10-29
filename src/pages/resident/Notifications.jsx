@@ -11,6 +11,7 @@ import {
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { useT } from '../../i18n/LanguageContext'
 import { Card, EmptyState, Skeleton } from '../../components/ui'
 
 const TYPES = {
@@ -20,14 +21,14 @@ const TYPES = {
   success: { icon: MdOutlineCheckCircle, color: 'text-success-strong', bg: 'bg-success-soft', border: 'border-success-strong/30' },
 }
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr, t) {
   const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000)
   const intervals = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]]
   for (const [label, secs] of intervals) {
     const count = Math.floor(seconds / secs)
-    if (count >= 1) return `${count} ${label}${count > 1 ? 's' : ''} ago`
+    if (count >= 1) return t(`{n} ${label}${count > 1 ? 's' : ''} ago`, { n: count })
   }
-  return 'just now'
+  return t('just now')
 }
 
 function stripLeadingEmoji(text) {
@@ -36,6 +37,7 @@ function stripLeadingEmoji(text) {
 
 function Notifications() {
   const { user } = useAuth()
+  const { t: tr } = useT()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -65,9 +67,9 @@ function Notifications() {
     <AppLayout title="Notifications">
       <div className="max-w-[720px] mx-auto">
         <div className="flex items-center justify-between mb-5">
-          <p className="text-ink-soft text-sm">Updates about your complaints</p>
+          <p className="text-ink-soft text-sm">{tr('Updates about your complaints')}</p>
           {unreadCount > 0 && (
-            <span className="bg-danger-soft text-danger-strong text-sm font-semibold px-3 py-1 rounded-full">{unreadCount} new</span>
+            <span className="bg-danger-soft text-danger-strong text-sm font-semibold px-3 py-1 rounded-full">{tr('{n} new', { n: unreadCount })}</span>
           )}
         </div>
 
@@ -81,8 +83,8 @@ function Notifications() {
           <Card>
             <EmptyState
               icon={MdOutlineNotifications}
-              title="No notifications yet"
-              message="You'll be notified here when your complaint status changes."
+              title={tr('No notifications yet')}
+              message={tr("You'll be notified here when your complaint status changes.")}
             />
           </Card>
         ) : (
@@ -102,18 +104,18 @@ function Notifications() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2.5 mb-1">
-                      <div className="text-base font-bold text-ink">{stripLeadingEmoji(n.title) || 'Notification'}</div>
-                      {!n.is_read && <span className="w-2.5 h-2.5 rounded-full bg-danger-strong flex-shrink-0" aria-label="Unread" />}
+                      <div className="text-base font-bold text-ink">{tr(stripLeadingEmoji(n.title) || 'Notification')}</div>
+                      {!n.is_read && <span className="w-2.5 h-2.5 rounded-full bg-danger-strong flex-shrink-0" aria-label={tr('Unread')} />}
                     </div>
                     <div className="text-sm text-ink-soft leading-relaxed mb-2">{n.message}</div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="text-xs text-ink-faint">{timeAgo(n.created_at)}</div>
+                      <div className="text-xs text-ink-faint">{timeAgo(n.created_at, tr)}</div>
                       {n.complaints?.reference_number && (
                         <Link
                           to={`/track?ref=${n.complaints.reference_number}`}
                           className="text-sm font-semibold text-accent flex items-center gap-1"
                         >
-                          Track complaint <MdArrowForward aria-hidden="true" />
+                          {tr('Track complaint')} <MdArrowForward aria-hidden="true" />
                         </Link>
                       )}
                     </div>

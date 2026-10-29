@@ -3,6 +3,7 @@ import { MdOutlineFolderCopy, MdOutlineFilterAltOff, MdAdd } from 'react-icons/m
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { useT } from '../../i18n/LanguageContext'
 import { Card, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
 import { CaseRow } from '../../components/cases'
 import { ACTIVE_STAGES } from '../../components/status'
@@ -17,6 +18,7 @@ const FILTERS = [
 
 function MyReports() {
   const { user } = useAuth()
+  const { t } = useT()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('all')
@@ -54,14 +56,14 @@ function MyReports() {
                   isActive ? 'bg-accent border-accent text-accent-ink' : 'bg-surface border-border text-ink-soft hover:bg-surface-hover'
                 }`}
               >
-                {f.label}
+                {t(f.label)}
                 {!loading && <span className="ml-1.5 opacity-80">{count}</span>}
               </button>
             )
           })}
         </div>
         <div className="hidden md:block flex-shrink-0">
-          <LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>
+          <LinkButton to="/complaints/new" icon={MdAdd}>{t('File a Complaint')}</LinkButton>
         </div>
       </div>
 
@@ -72,12 +74,12 @@ function MyReports() {
           activeFilter === 'all' ? (
             <EmptyState
               icon={MdOutlineFolderCopy}
-              title="No complaints yet"
-              message="Complaints you file will appear here so you can follow their progress."
-              action={<LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>}
+              title={t('No complaints yet')}
+              message={t('Complaints you file will appear here so you can follow their progress.')}
+              action={<LinkButton to="/complaints/new" icon={MdAdd}>{t('File a Complaint')}</LinkButton>}
             />
           ) : (
-            <EmptyState icon={MdOutlineFilterAltOff} title={`No ${filter.label.toLowerCase()} cases`} />
+            <EmptyState icon={MdOutlineFilterAltOff} title={filter.key === 'active' ? t('No active cases') : t('No closed cases')} />
           )
         ) : (
           <ul className="divide-y divide-border stagger">

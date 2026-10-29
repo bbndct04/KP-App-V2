@@ -41,7 +41,7 @@ function BottomNav({ items }) {
                           </span>
                         )}
                       </span>
-                      <span className={`text-xs mt-0.5 ${isActive ? 'font-semibold text-accent' : 'font-medium text-ink-soft'}`}>
+                      <span className={`text-xs mt-0.5 whitespace-nowrap ${isActive ? 'font-semibold text-accent' : 'font-medium text-ink-soft'}`}>
                         {item.label}
                       </span>
                     </>

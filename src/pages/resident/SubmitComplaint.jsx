@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { useT } from '../../i18n/LanguageContext'
 import { Button, Field, Input, Select, Textarea } from '../../components/ui'
 import { formatDate, formatTime } from '../../lib/cases'
 import { accountState } from '../../lib/accounts'
@@ -59,6 +60,7 @@ const today = () => new Date().toLocaleDateString('en-CA')
 
 function SubmitComplaint() {
   const { user, profile } = useAuth()
+  const { t } = useT()
   const navigate = useNavigate()
   const formRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -102,8 +104,8 @@ function SubmitComplaint() {
     const f = e.target.files[0]
     e.target.value = ''
     if (!f) return
-    if (f.size > MAX_FILE_SIZE) return setError('That file is too large. The maximum size is 10MB.')
-    if (!ALLOWED_FILE_TYPES.includes(f.type)) return setError('Unsupported file type. Please upload a photo, PDF, or Word document.')
+    if (f.size > MAX_FILE_SIZE) return setError(t('That file is too large. The maximum size is 10MB.'))
+    if (!ALLOWED_FILE_TYPES.includes(f.type)) return setError(t('Unsupported file type. Please upload a photo, PDF, or Word document.'))
     setError('')
     setFile(f)
   }
@@ -111,7 +113,7 @@ function SubmitComplaint() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (step < STEPS.length - 1) return handleNext()
-    if (!certified) return setError('Please confirm that the information you gave is true and correct.')
+    if (!certified) return setError(t('Please confirm that the information you gave is true and correct.'))
 
     setError('')
     setSubmitting(true)
@@ -123,7 +125,7 @@ function SubmitComplaint() {
       const { error: uploadError } = await supabase.storage.from('complaint-attachments').upload(path, file)
       if (uploadError) {
         setSubmitting(false)
-        setError("We couldn't upload your evidence file, so the complaint was not submitted. Please try again, or remove the file.")
+        setError(t("We couldn't upload your evidence file, so the complaint was not submitted. Please try again, or remove the file."))
         return
       }
       attachmentUrl = path
@@ -152,7 +154,7 @@ function SubmitComplaint() {
 
     setSubmitting(false)
     if (insertError) {
-      setError(`Your complaint could not be submitted. ${insertError.message}`)
+      setError(`${t('Your complaint could not be submitted.')} ${insertError.message}`)
       return
     }
     setSuccessRef(inserted.reference_number)
@@ -168,15 +170,16 @@ function SubmitComplaint() {
           <div className="w-14 h-14 rounded-full bg-danger-soft text-danger-strong flex items-center justify-center mx-auto mb-4">
             <MdOutlineDoNotDisturbOn className="text-3xl" aria-hidden="true" />
           </div>
-          <h2 className="text-ink text-xl font-bold mb-2">You can't file complaints right now</h2>
+          <h2 className="text-ink text-xl font-bold mb-2">{t("You can't file complaints right now")}</h2>
           <p className="text-ink-soft text-sm leading-relaxed">
-            Your account has been restricted
-            {profile.status_until ? ` until ${formatDate(profile.status_until, { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}.
-            {profile.status_reason ? ` Reason: ${profile.status_reason}.` : ''} You can still view and track your existing cases.
+            {profile.status_until
+              ? t('Your account has been restricted until {date}.', { date: formatDate(profile.status_until, { month: 'long', day: 'numeric', year: 'numeric' }) })
+              : t('Your account has been restricted.')}
+            {profile.status_reason ? ` ${t('Reason')}: ${profile.status_reason}.` : ''} {t('You can still view and track your existing cases.')}
           </p>
-          <p className="text-ink-faint text-sm mt-3">Please visit the Barangay Hall if you have questions.</p>
+          <p className="text-ink-faint text-sm mt-3">{t('Please visit the Barangay Hall if you have questions.')}</p>
           <Button className="mt-6" onClick={() => navigate('/my-reports')}>
-            View my reports
+            {t('View my reports')}
           </Button>
         </div>
       </AppLayout>
@@ -193,20 +196,20 @@ function SubmitComplaint() {
             ))}
           </div>
           <div className="text-ink-faint text-xs font-semibold uppercase tracking-wide">
-            Step {step + 1} of {STEPS.length}
+            {t('Step {step} of {total}', { step: step + 1, total: STEPS.length })}
           </div>
-          <h2 className="text-ink text-xl md:text-2xl font-bold">{current.title}</h2>
-          <p className="text-ink-soft text-sm">{current.subtitle}</p>
+          <h2 className="text-ink text-xl md:text-2xl font-bold">{t(current.title)}</h2>
+          <p className="text-ink-soft text-sm">{t(current.subtitle)}</p>
         </div>
 
         <form ref={formRef} onSubmit={handleSubmit} noValidate={isLast} className="bg-surface border border-border rounded-2xl shadow-token-md">
           <div className="p-5 md:p-6 flex flex-col gap-4">
             {step === 0 && (
               <>
-                <Field label="Full name" required>
+                <Field label={t('Full name')} required>
                   <Input value={form.complainantName} onChange={set('complainantName')} required autoComplete="name" />
                 </Field>
-                <Field label="Contact number" required hint="The barangay may call or text you about your case.">
+                <Field label={t('Contact number')} required hint={t('The barangay may call or text you about your case.')}>
                   <Input
                     value={form.complainantContact}
                     onChange={set('complainantContact')}
@@ -214,12 +217,12 @@ function SubmitComplaint() {
                     type="tel"
                     inputMode="tel"
                     pattern="^(\+63|0)9\d{2}[- ]?\d{3}[- ]?\d{4}$"
-                    title="Enter a mobile number like 09171234567"
+                    title={t('Enter a mobile number like 09171234567')}
                     placeholder="09171234567"
                     autoComplete="tel"
                   />
                 </Field>
-                <Field label="Home address" required>
+                <Field label={t('Home address')} required>
                   <Input
                     value={form.complainantAddress}
                     onChange={set('complainantAddress')}
@@ -233,10 +236,10 @@ function SubmitComplaint() {
 
             {step === 1 && (
               <>
-                <Field label="Full name of the person" required hint="If you don't know their full name, write what you know (e.g. nickname and surname).">
+                <Field label={t('Full name of the person')} required hint={t("If you don't know their full name, write what you know (e.g. nickname and surname).")}>
                   <Input value={form.respondentName} onChange={set('respondentName')} required placeholder="e.g. Pedro Santos" />
                 </Field>
-                <Field label="Their address" required>
+                <Field label={t('Their address')} required>
                   <Input value={form.respondentAddress} onChange={set('respondentAddress')} required placeholder="Purok, Street, Barangay" />
                 </Field>
               </>
@@ -244,45 +247,45 @@ function SubmitComplaint() {
 
             {step === 2 && (
               <>
-                <Field label="Type of complaint" required>
+                <Field label={t('Type of complaint')} required>
                   <Select value={form.category} onChange={set('category')} required>
-                    <option value="">Choose one</option>
+                    <option value="">{t('Choose one')}</option>
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
-                        {c}
+                        {t(c)}
                       </option>
                     ))}
                   </Select>
                 </Field>
                 {form.category === 'Other' && (
-                  <Field label="Describe the type of complaint" required>
+                  <Field label={t('Describe the type of complaint')} required>
                     <Input value={form.otherCategory} onChange={set('otherCategory')} required placeholder="e.g. Blocked driveway" />
                   </Field>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Date it happened" required>
+                  <Field label={t('Date it happened')} required>
                     <Input type="date" value={form.incidentDate} onChange={set('incidentDate')} max={today()} required />
                   </Field>
-                  <Field label="Time it happened" required>
+                  <Field label={t('Time it happened')} required>
                     <Input type="time" value={form.incidentTime} onChange={set('incidentTime')} required />
                   </Field>
                 </div>
-                <Field label="Where it happened" required>
+                <Field label={t('Where it happened')} required>
                   <Input value={form.location} onChange={set('location')} required placeholder="e.g. Purok 3, Mabini Street, near the chapel" />
                 </Field>
-                <Field label="What happened?" required hint="Include what happened, who was involved, and if it happened before.">
+                <Field label={t('What happened?')} required hint={t('Include what happened, who was involved, and if it happened before.')}>
                   <Textarea value={form.description} onChange={set('description')} required minLength={20} rows={5} />
                 </Field>
-                <Field label="What do you want to happen?" required hint="For example: an apology, payment of the debt, or for the noise to stop.">
+                <Field label={t('What do you want to happen?')} required hint={t('For example: an apology, payment of the debt, or for the noise to stop.')}>
                   <Textarea value={form.reliefRequested} onChange={set('reliefRequested')} required rows={3} />
                 </Field>
-                <Field label="Evidence (optional)" hint="Photos, PDF, or Word documents, up to 10MB.">
+                <Field label={t('Evidence (optional)')} hint={t('Photos, PDF, or Word documents, up to 10MB.')}>
                   <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
                   {file ? (
                     <div className="flex items-center gap-3 bg-success-soft border border-success-strong/25 rounded-lg px-3.5 py-3">
                       <MdOutlineAttachFile className="text-xl text-success-strong flex-shrink-0" aria-hidden="true" />
                       <span className="text-sm font-semibold text-ink truncate flex-1">{file.name}</span>
-                      <button type="button" onClick={() => setFile(null)} aria-label="Remove file" className="text-ink-soft hover:text-ink p-1">
+                      <button type="button" onClick={() => setFile(null)} aria-label={t('Remove file')} className="text-ink-soft hover:text-ink p-1">
                         <MdClose className="text-xl" aria-hidden="true" />
                       </button>
                     </div>
@@ -293,7 +296,7 @@ function SubmitComplaint() {
                       className="w-full border-2 border-dashed border-border rounded-xl py-5 text-center bg-surface-sunken hover:bg-surface-hover transition-colors"
                     >
                       <MdOutlineCloudUpload className="text-3xl text-ink-faint mx-auto mb-1" aria-hidden="true" />
-                      <span className="text-sm font-semibold text-ink">Add a photo or document</span>
+                      <span className="text-sm font-semibold text-ink">{t('Add a photo or document')}</span>
                     </button>
                   )}
                 </Field>
@@ -302,25 +305,25 @@ function SubmitComplaint() {
 
             {isLast && (
               <>
-                <ReviewSection title="About you" onEdit={() => goTo(0)}>
-                  <ReviewItem label="Name" value={form.complainantName} />
-                  <ReviewItem label="Contact" value={form.complainantContact} />
-                  <ReviewItem label="Address" value={form.complainantAddress} />
+                <ReviewSection title={t('About you')} onEdit={() => goTo(0)}>
+                  <ReviewItem label={t('Name')} value={form.complainantName} />
+                  <ReviewItem label={t('Contact')} value={form.complainantContact} />
+                  <ReviewItem label={t('Address')} value={form.complainantAddress} />
                 </ReviewSection>
-                <ReviewSection title="Complaint against" onEdit={() => goTo(1)}>
-                  <ReviewItem label="Name" value={form.respondentName} />
-                  <ReviewItem label="Address" value={form.respondentAddress} />
+                <ReviewSection title={t('Complaint against')} onEdit={() => goTo(1)}>
+                  <ReviewItem label={t('Name')} value={form.respondentName} />
+                  <ReviewItem label={t('Address')} value={form.respondentAddress} />
                 </ReviewSection>
-                <ReviewSection title="What happened" onEdit={() => goTo(2)}>
-                  <ReviewItem label="Type" value={finalCategory} />
+                <ReviewSection title={t('What happened')} onEdit={() => goTo(2)}>
+                  <ReviewItem label={t('Type')} value={t(finalCategory)} />
                   <ReviewItem
-                    label="When"
-                    value={`${formatDate(form.incidentDate, { month: 'long', day: 'numeric', year: 'numeric' })} at ${formatTime(form.incidentTime)}`}
+                    label={t('When')}
+                    value={`${formatDate(form.incidentDate, { month: 'long', day: 'numeric', year: 'numeric' })} · ${formatTime(form.incidentTime)}`}
                   />
-                  <ReviewItem label="Where" value={form.location} />
-                  <ReviewItem label="Details" value={form.description} />
-                  <ReviewItem label="Request" value={form.reliefRequested} />
-                  <ReviewItem label="Evidence" value={file ? file.name : 'None'} />
+                  <ReviewItem label={t('Where')} value={form.location} />
+                  <ReviewItem label={t('Details')} value={form.description} />
+                  <ReviewItem label={t('Request')} value={form.reliefRequested} />
+                  <ReviewItem label={t('Evidence')} value={file ? file.name : t('None')} />
                 </ReviewSection>
                 <label className="flex gap-3 items-start bg-surface-sunken border border-border rounded-xl p-4 cursor-pointer">
                   <input
@@ -330,7 +333,7 @@ function SubmitComplaint() {
                     className="mt-0.5 w-5 h-5 accent-[var(--accent)] flex-shrink-0"
                   />
                   <span className="text-sm text-ink leading-relaxed">
-                    I certify that the information above is true and correct to the best of my knowledge.
+                    {t('I certify that the information above is true and correct to the best of my knowledge.')}
                   </span>
                 </label>
               </>
@@ -346,20 +349,20 @@ function SubmitComplaint() {
           <div className="px-5 md:px-6 py-4 border-t border-border flex gap-2.5">
             {step === 0 ? (
               <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')}>
-                Cancel
+                {t('Cancel')}
               </Button>
             ) : (
               <Button type="button" variant="secondary" icon={MdArrowBack} onClick={() => goTo(step - 1)} disabled={submitting}>
-                Back
+                {t('Back')}
               </Button>
             )}
             {isLast ? (
               <Button type="submit" icon={MdOutlineSend} className="flex-1" disabled={submitting || !certified}>
-                {submitting ? 'Submitting...' : 'Submit complaint'}
+                {submitting ? t('Submitting...') : t('Submit complaint')}
               </Button>
             ) : (
               <Button type="button" className="flex-1" onClick={handleNext}>
-                Next <MdArrowForward className="text-lg" aria-hidden="true" />
+                {t('Next')} <MdArrowForward className="text-lg" aria-hidden="true" />
               </Button>
             )}
           </div>
@@ -372,24 +375,24 @@ function SubmitComplaint() {
             <div className="w-16 h-16 rounded-full bg-success-soft text-success-strong flex items-center justify-center mx-auto mb-4">
               <MdOutlineCheckCircle className="text-5xl" aria-hidden="true" />
             </div>
-            <h2 className="text-ink text-xl font-bold mb-3">Complaint submitted</h2>
+            <h2 className="text-ink text-xl font-bold mb-3">{t('Complaint submitted')}</h2>
 
             <div className="bg-surface-sunken border border-border rounded-lg px-4 py-2.5 mb-4">
-              <div className="text-xs text-ink-soft mb-1">Your reference number</div>
+              <div className="text-xs text-ink-soft mb-1">{t('Your reference number')}</div>
               <div className="text-2xl font-bold text-accent font-mono">{successRef}</div>
             </div>
 
             <div className="bg-warning-soft border border-warning-strong/20 rounded-xl px-4 py-3.5 mb-5 text-left flex gap-2.5">
               <MdOutlineWarningAmber className="text-2xl text-warning-strong flex-shrink-0" aria-hidden="true" />
               <div className="text-sm text-warning-strong leading-relaxed">
-                <div className="font-bold mb-1">Next step: visit the Barangay Hall within 24 hours</div>
-                You need to appear in person so the barangay can formally accept your complaint.
+                <div className="font-bold mb-1">{t('Next step: visit the Barangay Hall within 24 hours')}</div>
+                {t('You need to appear in person so the barangay can formally accept your complaint.')}
                 <div className="text-xs mt-2 font-semibold space-y-0.5">
                   <span className="flex items-center gap-1.5">
                     <MdOutlineLocationOn className="text-base" aria-hidden="true" /> Barangay New Kababae Hall, Olongapo City
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <MdOutlineSchedule className="text-base" aria-hidden="true" /> 8:00 AM – 5:00 PM, Monday to Friday
+                    <MdOutlineSchedule className="text-base" aria-hidden="true" /> {t('8:00 AM – 5:00 PM, Monday to Friday')}
                   </span>
                 </div>
               </div>
@@ -397,10 +400,10 @@ function SubmitComplaint() {
 
             <div className="flex gap-2.5">
               <Button className="flex-1" onClick={() => navigate(`/track?ref=${successRef}`)}>
-                View case
+                {t('View case')}
               </Button>
               <Button variant="secondary" className="flex-1" onClick={() => navigate('/dashboard')}>
-                Go home
+                {t('Go home')}
               </Button>
             </div>
           </div>
@@ -411,12 +414,13 @@ function SubmitComplaint() {
 }
 
 function ReviewSection({ title, onEdit, children }) {
+  const { t } = useT()
   return (
     <div className="border border-border rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 bg-surface-sunken border-b border-border">
         <span className="text-sm font-bold text-ink">{title}</span>
         <button type="button" onClick={onEdit} className="text-accent text-sm font-semibold flex items-center gap-1">
-          <MdOutlineEdit aria-hidden="true" /> Edit
+          <MdOutlineEdit aria-hidden="true" /> {t('Edit')}
         </button>
       </div>
       <dl className="px-4 py-3 space-y-2">{children}</dl>
