@@ -27,11 +27,37 @@ import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton } f
 import { ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
 import ComplaintCards from '../../components/ComplaintCards'
 
+function HearingList({ items, showDay = false }) {
+  return (
+    <ul className="divide-y divide-border">
+      {items.map((c) => (
+        <li key={c.id}>
+          <Link to={`/admin/cases/${c.id}`} className="flex items-center gap-4 px-5 py-3 hover:bg-surface-hover transition-colors">
+            <div className="w-[84px] flex-shrink-0">
+              {showDay && <div className="text-ink-faint text-xs font-semibold">{relativeDay(c.hearing_date)}</div>}
+              <div className="text-accent font-bold text-sm">{c.hearing_time ? formatTime(c.hearing_time) : 'TBA'}</div>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-ink text-sm font-semibold truncate">
+                {c.complainant_name || c.profiles?.full_name || '—'} vs. {c.respondent_name || '—'}
+              </div>
+              <div className="text-ink-faint text-xs truncate">
+                <span className="font-mono">{c.reference_number}</span> · {c.category}
+              </div>
+            </div>
+            <StatusBadge status={c.status} />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function AdminDashboard() {
   const [stats, setStats] = useState({ total: 0, awaiting: 0, inProgress: 0, closed: 0, totalUsers: 0, residents: 0 })
   const [recent, setRecent] = useState([])
   const [categories, setCategories] = useState([])
-  const [hearings, setHearings] = useState({ today: [], next: null })
+  const [hearings, setHearings] = useState({ today: [], week: [] })
   const [attention, setAttention] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -56,7 +82,7 @@ function AdminDashboard() {
       const upcoming = upcomingHearings(complaints || [])
       setHearings({
         today: upcoming.filter((c) => daysFromToday(c.hearing_date) === 0),
-        next: upcoming.find((c) => daysFromToday(c.hearing_date) > 0) || null,
+        week: upcoming.filter((c) => daysFromToday(c.hearing_date) > 0 && daysFromToday(c.hearing_date) <= 7).slice(0, 5),
       })
 
       const open = (complaints || []).filter((c) => c.status === 'submitted' || ACTIVE_STAGES.includes(c.status))
@@ -125,53 +151,37 @@ function AdminDashboard() {
         </Link>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 items-start stagger">
-        <Card className="overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5 items-stretch stagger">
+        <Card className="overflow-hidden flex flex-col">
           <CardHeader
             icon={MdOutlineEvent}
-            title="Today's hearings"
+            title="Hearings"
             subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           />
           {loading ? (
-            <SkeletonRows rows={2} />
-          ) : hearings.today.length === 0 ? (
-            <div className="px-5 py-6 flex items-center gap-3">
-              <MdOutlineEventAvailable className="text-3xl text-ink-faint flex-shrink-0" aria-hidden="true" />
-              <div className="text-sm">
-                <div className="text-ink font-semibold">No hearings today</div>
-                {hearings.next ? (
-                  <Link to={`/admin/cases/${hearings.next.id}`} className="text-accent font-semibold">
-                    Next: {relativeDay(hearings.next.hearing_date)}
-                    {hearings.next.hearing_time && `, ${formatTime(hearings.next.hearing_time)}`} · {hearings.next.reference_number}
-                  </Link>
-                ) : (
-                  <div className="text-ink-faint">No upcoming hearings scheduled.</div>
-                )}
-              </div>
-            </div>
+            <SkeletonRows rows={3} />
           ) : (
-            <ul className="divide-y divide-border">
-              {hearings.today.map((c) => (
-                <li key={c.id}>
-                  <Link to={`/admin/cases/${c.id}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-hover transition-colors">
-                    <div className="w-[72px] flex-shrink-0 text-accent font-bold text-base">{c.hearing_time ? formatTime(c.hearing_time) : 'TBA'}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-ink text-sm font-semibold truncate">
-                        {c.complainant_name || c.profiles?.full_name || '—'} vs. {c.respondent_name || '—'}
-                      </div>
-                      <div className="text-ink-faint text-xs truncate">
-                        <span className="font-mono">{c.reference_number}</span> · {c.category}
-                      </div>
-                    </div>
-                    <StatusBadge status={c.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="flex-1 flex flex-col">
+              <div className="px-5 pt-3 pb-1 text-ink-faint text-xs font-semibold uppercase tracking-wide">Today</div>
+              {hearings.today.length === 0 ? (
+                <div className="px-5 pb-3 flex items-center gap-2.5 text-sm text-ink-soft">
+                  <MdOutlineEventAvailable className="text-xl text-ink-faint flex-shrink-0" aria-hidden="true" />
+                  No hearings today
+                </div>
+              ) : (
+                <HearingList items={hearings.today} />
+              )}
+              <div className="px-5 pt-3 pb-1 text-ink-faint text-xs font-semibold uppercase tracking-wide border-t border-border">Next 7 days</div>
+              {hearings.week.length === 0 ? (
+                <div className="px-5 pb-4 text-sm text-ink-soft">No hearings scheduled this week.</div>
+              ) : (
+                <HearingList items={hearings.week} showDay />
+              )}
+            </div>
           )}
         </Card>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden flex flex-col">
           <CardHeader icon={MdOutlinePriorityHigh} title="Needs attention" subtitle="Cases near or past their KP deadlines" />
           {loading ? (
             <SkeletonRows rows={2} />
@@ -184,7 +194,7 @@ function AdminDashboard() {
               </div>
             </div>
           ) : (
-            <ul className="divide-y divide-border max-h-[300px] overflow-y-auto">
+            <ul className="divide-y divide-border max-h-[340px] overflow-y-auto">
               {attention.map((c) => (
                 <li key={c.id}>
                   <Link
