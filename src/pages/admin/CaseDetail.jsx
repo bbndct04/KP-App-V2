@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { CFA_TYPES, DISMISSAL_REASONS } from '../../lib/outcomes'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
@@ -74,19 +75,6 @@ const STAGE_LABELS = {
   closed: 'Closed (complied)',
   cfa_issued: 'Certificate to File Action',
   dismissed: 'Dismissed',
-}
-
-const CFA_TYPES = {
-  repudiated: 'The settlement was repudiated (Form 20)',
-  no_settlement: 'No settlement after conciliation (Form 21)',
-  respondent_refused: 'Respondent refused to appear before the Pangkat (Form 22)',
-}
-
-const DISMISSAL_REASONS = {
-  complainant_failed_to_appear: 'Complainant failed to appear without justifiable reason',
-  withdrawn: 'Complaint withdrawn by the complainant',
-  not_covered: 'Not covered by Katarungang Pambarangay',
-  other: 'Other (explain in remarks)',
 }
 
 const DAY = 86400000
