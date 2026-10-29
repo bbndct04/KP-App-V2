@@ -21,6 +21,7 @@ import {
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { useT } from '../../i18n/LanguageContext'
 import { Card, StatusBadge, EmptyState, Skeleton, LinkButton } from '../../components/ui'
 import { HearingCard } from '../../components/cases'
 import { STATUS } from '../../components/status'
@@ -69,22 +70,25 @@ function currentIndex(steps, status) {
 
 const longDate = (d) => formatDate(d, { month: 'long', day: 'numeric', year: 'numeric' })
 
-function outcomeStep(c) {
-  if (c.status === 'cfa_issued') return { label: 'Certificate to File Action', desc: CFA_TEXT[c.cfa_type] || CFA_TEXT.no_settlement }
-  if (c.status === 'dismissed') return { label: 'Dismissed', desc: DISMISS_TEXT[c.dismissal_reason] || 'The case was dismissed by the barangay.' }
+function outcomeStep(c, t) {
+  if (c.status === 'cfa_issued') return { label: t('Certificate to File Action'), desc: t(CFA_TEXT[c.cfa_type] || CFA_TEXT.no_settlement) }
+  if (c.status === 'dismissed') return { label: t('Dismissed'), desc: t(DISMISS_TEXT[c.dismissal_reason] || 'The case was dismissed by the barangay.') }
   const award = c.settlement_type === 'arbitration_award'
   const finalAt = c.settled_at ? new Date(new Date(c.settled_at).getTime() + 10 * 86400000) : null
   const pending = c.status === 'settled' && finalAt && finalAt > new Date()
   return {
-    label: award ? 'Arbitration award' : 'Amicable settlement',
-    desc: `${award ? 'The arbitrator issued an award.' : 'Both parties reached an amicable settlement.'}${
-      finalAt ? (pending ? ` It becomes final on ${longDate(finalAt)} unless repudiated within 10 days.` : ` It became final on ${longDate(finalAt)}.`) : ''
+    label: award ? t('Arbitration award') : t('Amicable settlement'),
+    desc: `${award ? t('The arbitrator issued an award.') : t('Both parties reached an amicable settlement.')}${
+      finalAt
+        ? ' ' + (pending ? t('It becomes final on {date} unless repudiated within 10 days.', { date: longDate(finalAt) }) : t('It became final on {date}.', { date: longDate(finalAt) }))
+        : ''
     }`,
   }
 }
 
 function TrackStatus() {
   const { user } = useAuth()
+  const { t } = useT()
   const [searchParams] = useSearchParams()
   const ref = (searchParams.get('ref') || '').toUpperCase()
   const [result, setResult] = useState({ ref: null, complaint: null, stageDates: {} })
@@ -132,7 +136,7 @@ function TrackStatus() {
   return (
     <AppLayout title="Case Details">
       <Link to="/my-reports" className="inline-flex items-center gap-1.5 text-accent text-sm font-semibold mb-4">
-        <MdArrowBack aria-hidden="true" /> My Cases
+        <MdArrowBack aria-hidden="true" /> {t('My Cases')}
       </Link>
 
       {loading ? (
@@ -144,9 +148,9 @@ function TrackStatus() {
         <Card className="max-w-[640px]">
           <EmptyState
             icon={MdOutlineSearchOff}
-            title="Case not found"
-            message={`We couldn't find a complaint with reference number ${ref} on your account.`}
-            action={<LinkButton to="/my-reports">Go to My Cases</LinkButton>}
+            title={t('Case not found')}
+            message={t("We couldn't find a complaint with reference number {ref} on your account.", { ref })}
+            action={<LinkButton to="/my-reports">{t('Go to My Cases')}</LinkButton>}
           />
         </Card>
       ) : (
@@ -157,9 +161,10 @@ function TrackStatus() {
 }
 
 function CaseView({ complaint, stageDates }) {
+  const { t } = useT()
   const STEPS = buildSteps(complaint, stageDates)
   const currentIdx = currentIndex(STEPS, complaint.status)
-  const outcome = outcomeStep(complaint)
+  const outcome = outcomeStep(complaint, t)
   const isDeclined = complaint.status === 'declined'
   const hearing = upcomingHearings([complaint])[0]
 
@@ -167,9 +172,9 @@ function CaseView({ complaint, stageDates }) {
     <>
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
         <div className="min-w-0">
-          <h2 className="text-ink text-xl md:text-2xl font-bold">{complaint.category}</h2>
+          <h2 className="text-ink text-xl md:text-2xl font-bold">{t(complaint.category)}</h2>
           <div className="text-ink-faint text-sm mt-0.5">
-            <span className="font-mono">{complaint.reference_number}</span> · Filed {formatDate(complaint.created_at, { month: 'long', day: 'numeric', year: 'numeric' })}
+            <span className="font-mono">{complaint.reference_number}</span> · {t('Filed {date}', { date: formatDate(complaint.created_at, { month: 'long', day: 'numeric', year: 'numeric' }) })}
           </div>
         </div>
         <div className="flex-shrink-0">
@@ -185,8 +190,8 @@ function CaseView({ complaint, stageDates }) {
             <div className="flex gap-3 bg-warning-soft border border-warning-strong/25 rounded-2xl p-4 text-warning-strong">
               <MdOutlineSchedule className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="text-sm leading-relaxed">
-                <div className="font-bold text-base">Next step: visit the Barangay Hall</div>
-                Please appear in person within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can review and accept your complaint.
+                <div className="font-bold text-base">{t('Next step: visit the Barangay Hall')}</div>
+                {t('Please appear in person within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can review and accept your complaint.')}
               </div>
             </div>
           )}
@@ -198,26 +203,26 @@ function CaseView({ complaint, stageDates }) {
                   <MdOutlineBlock className="text-2xl" aria-hidden="true" />
                 </div>
                 <div>
-                  <div className="text-ink text-lg font-bold">Your complaint was not accepted</div>
+                  <div className="text-ink text-lg font-bold">{t('Your complaint was not accepted')}</div>
                   {complaint.reviewed_at && (
-                    <div className="text-ink-faint text-sm">Reviewed on {formatDate(complaint.reviewed_at, { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                    <div className="text-ink-faint text-sm">{t('Reviewed on {date}', { date: formatDate(complaint.reviewed_at, { month: 'long', day: 'numeric', year: 'numeric' }) })}</div>
                   )}
                 </div>
               </div>
-              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">Reason</div>
+              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">{t('Reason')}</div>
               <div className="text-ink text-sm leading-relaxed bg-danger-soft border border-danger-strong/20 rounded-lg p-3.5 mb-5">
-                {complaint.declined_reason || 'No reason was recorded.'}
+                {complaint.declined_reason ? t(complaint.declined_reason) : t('No reason was recorded.')}
               </div>
-              <div className="text-ink text-sm font-semibold mb-1.5">What you can do</div>
+              <div className="text-ink text-sm font-semibold mb-1.5">{t('What you can do')}</div>
               <ul className="text-ink-soft text-sm leading-relaxed list-disc pl-5 mb-5 space-y-1">
-                <li>Visit the Barangay Hall (8AM–5PM, Monday to Friday) to ask about the decision.</li>
-                <li>If the reason can be fixed, file a new complaint with the correct information.</li>
+                <li>{t('Visit the Barangay Hall (8AM–5PM, Monday to Friday) to ask about the decision.')}</li>
+                <li>{t('If the reason can be fixed, file a new complaint with the correct information.')}</li>
               </ul>
-              <LinkButton to="/complaints/new">File a New Complaint</LinkButton>
+              <LinkButton to="/complaints/new">{t('File a New Complaint')}</LinkButton>
             </Card>
           ) : (
             <Card className="p-5 md:p-6">
-              <div className="text-ink text-base font-semibold mb-5">Case progress</div>
+              <div className="text-ink text-base font-semibold mb-5">{t('Case progress')}</div>
               <ol className="stagger">
                 {STEPS.map((step, i) => {
                   const isDone = i < currentIdx
@@ -227,12 +232,12 @@ function CaseView({ complaint, stageDates }) {
                   const reachedOutcome = isOutcome && (isDone || isActive)
                   const execution = step.key === 'closed' && complaint.status === 'execution'
                   const Icon = reachedOutcome ? STATUS[complaint.status]?.icon || step.icon : execution ? STATUS.execution.icon : step.icon
-                  const label = reachedOutcome ? outcome.label : execution ? 'Execution' : step.label
+                  const label = reachedOutcome ? outcome.label : execution ? t('Execution') : t(step.label)
                   const desc = reachedOutcome
                     ? outcome.desc
                     : execution
-                      ? 'The settlement was not complied with. The barangay is enforcing it through execution.'
-                      : step.desc
+                      ? t('The settlement was not complied with. The barangay is enforcing it through execution.')
+                      : t(step.desc)
                   const date = (isDone || isActive) && stageDates[step.key]
                   const circle =
                     isOutcome && isActive && complaint.status === 'dismissed'
@@ -253,14 +258,14 @@ function CaseView({ complaint, stageDates }) {
                         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                           <span className={`text-base font-semibold ${isDone || isActive ? 'text-ink' : 'text-ink-faint'}`}>{label}</span>
                           {isActive && !isFinal && complaint.status !== 'closed' && (
-                            <span className="bg-accent-soft text-accent px-2.5 py-0.5 rounded-full text-xs font-semibold">You are here</span>
+                            <span className="bg-accent-soft text-accent px-2.5 py-0.5 rounded-full text-xs font-semibold">{t('You are here')}</span>
                           )}
                         </div>
                         {date && <div className="text-ink-faint text-xs mb-1">{formatDate(date, { month: 'long', day: 'numeric', year: 'numeric' })}</div>}
                         <div className={`text-sm leading-relaxed ${i > currentIdx ? 'text-ink-faint' : 'text-ink-soft'}`}>{desc}</div>
                         {reachedOutcome && SETTLEMENT_PATH.includes(complaint.status) && complaint.settlement_terms && (
                           <div className="mt-2 text-sm text-ink bg-success-soft border border-success-strong/20 rounded-lg p-3 leading-relaxed">
-                            <span className="font-semibold">Agreement: </span>
+                            <span className="font-semibold">{t('Agreement:')} </span>
                             {complaint.settlement_terms}
                           </div>
                         )}
@@ -278,7 +283,7 @@ function CaseView({ complaint, stageDates }) {
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-2.5">
                 <MdOutlinePerson className="text-xl text-accent" aria-hidden="true" />
-                <div className="text-ink text-base font-semibold">Complaint against</div>
+                <div className="text-ink text-base font-semibold">{t('Complaint against')}</div>
               </div>
               <div className="text-sm font-semibold text-ink">{complaint.respondent_name}</div>
               {complaint.respondent_address && <div className="text-sm text-ink-faint mt-1">{complaint.respondent_address}</div>}
@@ -288,14 +293,14 @@ function CaseView({ complaint, stageDates }) {
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <MdOutlineDescription className="text-xl text-accent" aria-hidden="true" />
-              <div className="text-ink text-base font-semibold">What happened</div>
+              <div className="text-ink text-base font-semibold">{t('What happened')}</div>
             </div>
             {(complaint.incident_date || complaint.location) && (
               <div className="text-sm text-ink-soft mb-3 space-y-0.5">
                 {complaint.incident_date && (
                   <div>
                     {formatDate(complaint.incident_date, { month: 'long', day: 'numeric', year: 'numeric' })}
-                    {complaint.incident_time && ` at ${formatTime(complaint.incident_time)}`}
+                    {complaint.incident_time && ` · ${formatTime(complaint.incident_time)}`}
                   </div>
                 )}
                 {complaint.location && <div>{complaint.location}</div>}
@@ -306,7 +311,7 @@ function CaseView({ complaint, stageDates }) {
             </div>
             {complaint.relief_requested && (
               <div className="text-sm text-ink-soft mt-3">
-                <span className="font-semibold text-ink">You asked for: </span>
+                <span className="font-semibold text-ink">{t('You asked for:')} </span>
                 {complaint.relief_requested}
               </div>
             )}

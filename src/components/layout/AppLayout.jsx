@@ -6,13 +6,12 @@ import {
   MdOutlineFolderCopy,
   MdOutlineNotifications,
   MdOutlineAccountCircle,
-  MdOutlineLightMode,
-  MdOutlineDarkMode,
   MdMenu,
   MdLogout,
 } from 'react-icons/md'
 import { useAuth } from '../../context/AuthContext'
-import { useTheme } from '../../context/ThemeContext'
+import { useT } from '../../i18n/LanguageContext'
+import ProfileAvatar from '../ProfileAvatar'
 import { supabase } from '../../lib/supabaseClient'
 import BottomNav from './BottomNav'
 import logo from '../../assets/kp-app-logo.png'
@@ -26,27 +25,10 @@ const navItems = [
 
 const accountItems = [{ to: '/profile', label: 'My Profile', icon: MdOutlineAccountCircle }]
 
-function ThemeToggle() {
-  const { theme, setLight, setDark } = useTheme()
-  const btn = (active) =>
-    `flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-sm font-semibold transition-colors ${
-      active ? 'bg-surface text-ink shadow-token-sm' : 'text-ink-faint hover:text-ink-soft'
-    }`
-  return (
-    <div className="flex items-center gap-1 p-1 rounded-lg bg-surface-sunken border border-border mb-2.5">
-      <button onClick={setLight} aria-pressed={theme === 'light'} className={btn(theme === 'light')}>
-        <MdOutlineLightMode className="text-lg" aria-hidden="true" /> Light
-      </button>
-      <button onClick={setDark} aria-pressed={theme === 'dark'} className={btn(theme === 'dark')}>
-        <MdOutlineDarkMode className="text-lg" aria-hidden="true" /> Dark
-      </button>
-    </div>
-  )
-}
-
 function NavItem({ item, badge, onClick }) {
   const Icon = item.icon
   const { pathname } = useLocation()
+  const { t } = useT()
   const alsoActive = item.also?.some((p) => pathname.startsWith(p))
   return (
     <NavLink
@@ -60,7 +42,7 @@ function NavItem({ item, badge, onClick }) {
       }}
     >
       <Icon className="text-[22px] flex-shrink-0" aria-hidden="true" />
-      <span className="flex-1">{item.label}</span>
+      <span className="flex-1">{t(item.label)}</span>
       {badge > 0 && (
         <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-danger-strong text-white text-xs font-bold flex items-center justify-center">
           {badge > 9 ? '9+' : badge}
@@ -76,6 +58,7 @@ function AppLayout({ title, children }) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const { t } = useT()
 
   const badgeCount = location.pathname === '/notifications' ? 0 : unreadCount
 
@@ -111,15 +94,14 @@ function AppLayout({ title, children }) {
     }
   }, [user])
 
-  const firstInitial = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase()
   const close = () => setMobileOpen(false)
 
   const bottomItems = [
-    { to: '/dashboard', label: 'Home', icon: MdOutlineHome, end: true },
-    { to: '/my-reports', label: 'My Cases', icon: MdOutlineFolderCopy, also: ['/track'] },
-    { to: '/complaints/new', label: 'File', icon: MdOutlineNoteAdd, primary: true },
-    { to: '/notifications', label: 'Alerts', icon: MdOutlineNotifications, badge: badgeCount },
-    { to: '/profile', label: 'Profile', icon: MdOutlineAccountCircle },
+    { to: '/dashboard', label: t('Home'), icon: MdOutlineHome, end: true },
+    { to: '/my-reports', label: t('My Cases'), icon: MdOutlineFolderCopy, also: ['/track'] },
+    { to: '/complaints/new', label: t('File'), icon: MdOutlineNoteAdd, primary: true },
+    { to: '/notifications', label: t('Alerts'), icon: MdOutlineNotifications, badge: badgeCount },
+    { to: '/profile', label: t('Profile'), icon: MdOutlineAccountCircle },
   ]
 
   const SidebarContent = (
@@ -133,32 +115,29 @@ function AppLayout({ title, children }) {
       </div>
 
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2">Menu</div>
+        <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2">{t('Menu')}</div>
         {navItems.map((item) => (
           <NavItem key={item.to} item={item} onClick={close} badge={item.to === '/notifications' ? badgeCount : 0} />
         ))}
-        <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2 pt-4">Account</div>
+        <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2 pt-4">{t('Account')}</div>
         {accountItems.map((item) => (
           <NavItem key={item.to} item={item} onClick={close} />
         ))}
       </nav>
 
       <div className="p-3 border-t border-border">
-        <ThemeToggle />
-        <div className="flex items-center gap-2.5 px-2.5 py-2 mb-1">
-          <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-accent-ink text-sm font-bold flex-shrink-0">
-            {firstInitial}
-          </div>
+        <NavLink to="/profile" onClick={close} className="flex items-center gap-2.5 px-2.5 py-2 mb-1 rounded-xl hover:bg-surface-hover">
+          <ProfileAvatar path={profile?.avatar_path} name={profile?.full_name || user?.email} />
           <div className="flex-1 min-w-0">
             <div className="text-ink text-sm font-semibold truncate">{profile?.full_name || user?.email}</div>
-            <div className="text-ink-faint text-xs capitalize">{profile?.role || 'resident'}</div>
+            <div className="text-ink-faint text-xs">{t('Resident')}</div>
           </div>
-        </div>
+        </NavLink>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 text-ink-soft hover:text-ink hover:bg-surface-hover rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors"
         >
-          <MdLogout className="text-[22px]" aria-hidden="true" /> Log Out
+          <MdLogout className="text-[22px]" aria-hidden="true" /> {t('Log Out')}
         </button>
       </div>
     </>
@@ -189,11 +168,11 @@ function AppLayout({ title, children }) {
           >
             <MdMenu className="text-2xl" aria-hidden="true" />
           </button>
-          <div className="text-ink text-lg font-bold truncate">{title}</div>
+          <div className="text-ink text-lg font-bold truncate">{t(title)}</div>
           <div className="flex-1" />
           <NavLink
             to="/notifications"
-            aria-label={badgeCount > 0 ? `Notifications, ${badgeCount} unread` : 'Notifications'}
+            aria-label={t('Notifications')}
             className="relative w-10 h-10 rounded-lg hover:bg-surface-hover hidden md:flex items-center justify-center text-ink-soft transition-colors flex-shrink-0"
           >
             <MdOutlineNotifications className="text-2xl" aria-hidden="true" />
@@ -203,12 +182,8 @@ function AppLayout({ title, children }) {
               </span>
             )}
           </NavLink>
-          <NavLink
-            to="/profile"
-            aria-label="My profile"
-            className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-accent-ink text-sm font-bold flex-shrink-0"
-          >
-            {firstInitial}
+          <NavLink to="/profile" aria-label={t('My Profile')} className="flex-shrink-0 rounded-full">
+            <ProfileAvatar path={profile?.avatar_path} name={profile?.full_name || user?.email} />
           </NavLink>
         </header>
         <main className="flex-1 p-4 pb-8 md:p-7 overflow-y-auto overflow-x-hidden min-w-0">

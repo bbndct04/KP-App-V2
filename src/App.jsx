@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { LanguageProvider } from './i18n/LanguageContext'
 import { ToastProvider } from './context/ToastProvider'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -105,26 +106,28 @@ function App() {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-            <BrowserRouter>
-              <Suspense fallback={<AppSkeleton />}>
-                <Routes>
-                  <Route path="/" element={<HomeRedirect />} />
-                  <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-                  <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
+            <LanguageProvider>
+              <BrowserRouter>
+                <Suspense fallback={<AppSkeleton />}>
+                  <Routes>
+                    <Route path="/" element={<HomeRedirect />} />
+                    <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+                    <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
 
-                  {RESIDENT_ROUTES.map(([path, Page]) => (
-                    <Route key={path} path={path} element={<ProtectedRoute><Page /></ProtectedRoute>} />
-                  ))}
-                  {ADMIN_ROUTES.map(([path, Page]) => (
-                    <Route key={path} path={path} element={<AdminRoute><Page /></AdminRoute>} />
-                  ))}
+                    {RESIDENT_ROUTES.map(([path, Page]) => (
+                      <Route key={path} path={path} element={<ProtectedRoute><Page /></ProtectedRoute>} />
+                    ))}
+                    {ADMIN_ROUTES.map(([path, Page]) => (
+                      <Route key={path} path={path} element={<AdminRoute><Page /></AdminRoute>} />
+                    ))}
 
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </LanguageProvider>
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>

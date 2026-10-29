@@ -11,6 +11,7 @@ import {
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
+import { useT } from '../../i18n/LanguageContext'
 import { Card, CardHeader, EmptyState, Skeleton, SkeletonRows, LinkButton } from '../../components/ui'
 import { HearingCard, CaseRow } from '../../components/cases'
 import { ACTIVE_STAGES } from '../../components/status'
@@ -18,6 +19,7 @@ import { upcomingHearings } from '../../lib/cases'
 
 function Dashboard() {
   const { user, profile } = useAuth()
+  const { t, lang } = useT()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -45,13 +47,13 @@ function Dashboard() {
     <AppLayout title="Home">
       <div className="flex items-center justify-between gap-3 mb-5">
         <div className="min-w-0">
-          <h2 className="text-ink text-xl md:text-2xl font-bold truncate">{firstName ? `Hello, ${firstName}!` : 'Hello!'}</h2>
+          <h2 className="text-ink text-xl md:text-2xl font-bold truncate">{firstName ? t('Hello, {name}!', { name: firstName }) : t('Hello!')}</h2>
           <p className="text-ink-soft text-sm">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            {new Date().toLocaleDateString(lang === 'tl' ? 'fil-PH' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
         <div className="hidden md:block flex-shrink-0">
-          <LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>
+          <LinkButton to="/complaints/new" icon={MdAdd}>{t('File a Complaint')}</LinkButton>
         </div>
       </div>
 
@@ -72,9 +74,9 @@ function Dashboard() {
               <MdOutlinePendingActions className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="text-sm leading-relaxed">
                 <div className="font-bold text-base">
-                  {awaiting.length === 1 ? 'Your complaint is' : `${awaiting.length} complaints are`} waiting for review
+                  {awaiting.length === 1 ? t('Your complaint is waiting for review') : t('{n} complaints are waiting for review', { n: awaiting.length })}
                 </div>
-                Please visit the Barangay Hall within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can accept it.
+                {t('Please visit the Barangay Hall within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can accept it.')}
               </div>
             </div>
           )}
@@ -82,12 +84,12 @@ function Dashboard() {
           <Card className="overflow-hidden">
             <CardHeader
               icon={MdOutlineAssignment}
-              title="Your active cases"
-              subtitle={loading ? ' ' : `${open.length} active · ${closedCount} closed`}
+              title={t('Your active cases')}
+              subtitle={loading ? ' ' : t('{open} active · {closed} closed', { open: open.length, closed: closedCount })}
               action={
                 complaints.length > 0 && (
                   <Link to="/my-reports" className="text-accent text-sm font-semibold flex items-center gap-1 flex-shrink-0">
-                    All cases <MdArrowForward aria-hidden="true" />
+                    {t('All cases')} <MdArrowForward aria-hidden="true" />
                   </Link>
                 )
               }
@@ -97,13 +99,13 @@ function Dashboard() {
             ) : open.length === 0 ? (
               <EmptyState
                 icon={MdOutlineFolderCopy}
-                title={complaints.length ? 'No active cases' : 'No complaints yet'}
+                title={complaints.length ? t('No active cases') : t('No complaints yet')}
                 message={
                   complaints.length
-                    ? 'All your cases are closed. You can view them in All cases.'
-                    : 'If you have a dispute with a neighbor or another resident, you can file a complaint here.'
+                    ? t('All your cases are closed. You can view them in All cases.')
+                    : t('If you have a dispute with a neighbor or another resident, you can file a complaint here.')
                 }
-                action={<LinkButton to="/complaints/new" icon={MdAdd}>File a Complaint</LinkButton>}
+                action={<LinkButton to="/complaints/new" icon={MdAdd}>{t('File a Complaint')}</LinkButton>}
               />
             ) : (
               <ul className="divide-y divide-border stagger">
@@ -127,10 +129,10 @@ function Dashboard() {
           <Card className="p-5">
             <div className="flex items-center gap-2.5 mb-2">
               <MdOutlineSupportAgent className="text-xl text-accent" aria-hidden="true" />
-              <div className="text-ink text-base font-semibold">Need help?</div>
+              <div className="text-ink text-base font-semibold">{t('Need help?')}</div>
             </div>
             <div className="text-ink-soft text-sm leading-relaxed">
-              Visit the Barangay Hall at <strong className="text-ink">8AM–5PM</strong>, Monday to Friday, or call your barangay hotline for urgent concerns.
+              {t('Visit the Barangay Hall at 8AM–5PM, Monday to Friday, or call your barangay hotline for urgent concerns.')}
             </div>
           </Card>
         </div>

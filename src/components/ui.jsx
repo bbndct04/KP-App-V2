@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { useT } from '../i18n/LanguageContext'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { STATUS } from './status'
@@ -112,13 +113,14 @@ export function CardHeader({ icon: Icon, title, subtitle, action }) {
 
 
 export function StatusBadge({ status, size = 'sm' }) {
+  const { t } = useT()
   const s = STATUS[status] || STATUS.filed
   const Icon = s.icon
   const sizing = size === 'lg' ? 'text-sm px-3.5 py-1.5 gap-1.5' : 'text-xs px-2.5 py-1 gap-1'
   return (
     <span className={`inline-flex items-center rounded-full font-semibold whitespace-nowrap ${sizing} ${s.className}`}>
       <Icon className="text-[1.15em]" aria-hidden="true" />
-      {s.label}
+      {t(s.label)}
     </span>
   )
 }
