@@ -13,6 +13,9 @@ const TL = {
   Account: 'Account',
   Resident: 'Residente',
   'Log Out': 'Mag-log out',
+  'Log out?': 'Mag-log out?',
+  'Log out': 'Mag-log out',
+  'You will need to enter your email and password again to use the app.': 'Kailangan mong ilagay muli ang iyong email at password para magamit ang app.',
   'Case Details': 'Detalye ng Kaso',
 
   // Case stages (status badges)
