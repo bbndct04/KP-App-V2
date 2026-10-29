@@ -27,6 +27,8 @@ const AdminComplaints = lazy(() => import('./pages/admin/AdminComplaints'))
 const AdminCases = lazy(() => import('./pages/admin/AdminCases'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminUserDetail = lazy(() => import('./pages/admin/AdminUserDetail'))
+const MonthlyReport = lazy(() => import('./pages/admin/reports/MonthlyReport'))
+const CaseRecordPrint = lazy(() => import('./pages/admin/reports/CaseRecordPrint'))
 const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'))
@@ -76,6 +78,8 @@ const ADMIN_ROUTES = [
   ['/admin/analytics', AdminAnalytics],
   ['/admin/notifications', AdminNotifications],
   ['/admin/settings', AdminSettings],
+  ['/admin/reports/monthly', MonthlyReport],
+  ['/admin/reports/request/:rid', CaseRecordPrint],
   ...Object.entries(FORMS).map(([n, Form]) => [`/admin/complaints/:id/form${n}`, Form]),
 ]
 

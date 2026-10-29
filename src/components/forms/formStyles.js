@@ -33,6 +33,15 @@ export const FORM_CSS = `
 .kp-ed:empty::before{content:attr(data-placeholder);color:#6b7a90}
 .kp-ed-block{display:block;white-space:pre-wrap;background:transparent;min-height:28px}
 .kp-date{font:inherit;border:1px dashed #185FA5;background:rgba(230,241,251,.85);border-radius:2px;padding:0 4px}
+
+.kp-table{width:100%;border-collapse:collapse;font-size:10.5pt;line-height:1.35;margin:8px 0 14px}
+.kp-table th,.kp-table td{border:1px solid #000;padding:4px 6px;vertical-align:top;text-align:left}
+.kp-table th{font-weight:700;text-align:center}
+.kp-table td.kp-num{text-align:center;width:1%;white-space:nowrap}
+.kp-table thead{display:table-header-group}
+.kp-table tr{break-inside:avoid}
+.kp-h{font-weight:700;margin:18px 0 4px}
+.kp-meta{display:flex;justify-content:space-between;gap:16px;font-size:10.5pt;margin-top:10px}
 @media print{
   .kp-noprint{display:none !important}
   .kp-page-bg{background:#fff !important;padding:0 !important}

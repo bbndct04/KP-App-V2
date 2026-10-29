@@ -11,6 +11,7 @@ import {
   MdOutlineCalendarMonth,
 } from 'react-icons/md'
 import { Skeleton } from '../../components/ui'
+import PrintReports from '../../components/admin/PrintReports'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CAT_COLORS = ['#5ba0f5', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#38bdf8', '#2dd4bf']
@@ -76,7 +77,9 @@ function AdminAnalytics() {
 
   return (
     <AdminLayout title="Reports & Analytics">
-      <p className="text-ink-soft text-sm mb-5">System statistics and complaint insights</p>
+      <p className="text-ink-soft text-sm mb-5">Print monthly reports and case records, and view complaint statistics</p>
+
+      <PrintReports />
 
       {loading ? (
         <div className="flex flex-col gap-4">
