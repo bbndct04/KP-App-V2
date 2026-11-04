@@ -51,6 +51,7 @@ const TL = {
   // Dashboard
   'Hello, {name}!': 'Kumusta, {name}!',
   'Hello!': 'Kumusta!',
+  'Email confirmed! Welcome to the KP App.': 'Nakumpirma ang email! Maligayang pagdating sa KP App.',
   'Your complaint is waiting for review': 'Hinihintay ang pagsusuri sa iyong reklamo',
   '{n} complaints are waiting for review': '{n} reklamo ang hinihintay ang pagsusuri',
   'Please visit the Barangay Hall within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can accept it.':

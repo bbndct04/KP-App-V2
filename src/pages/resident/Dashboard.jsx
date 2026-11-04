@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   MdOutlineFolderCopy,
   MdOutlineSupportAgent,
@@ -10,6 +10,7 @@ import {
 } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/toastContext'
 import AppLayout from '../../components/layout/AppLayout'
 import { useT } from '../../i18n/LanguageContext'
 import { Card, CardHeader, EmptyState, Skeleton, SkeletonRows, LinkButton } from '../../components/ui'
@@ -22,6 +23,14 @@ function Dashboard() {
   const { t, lang } = useT()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
+  const [params, setParams] = useSearchParams()
+  const toast = useToast()
+
+  useEffect(() => {
+    if (params.get('welcome') !== '1') return
+    toast.success(t('Email confirmed! Welcome to the KP App.'))
+    setParams({}, { replace: true })
+  }, [params, setParams, toast, t])
 
   useEffect(() => {
     async function loadComplaints() {

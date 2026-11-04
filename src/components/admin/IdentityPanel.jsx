@@ -61,13 +61,14 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
     if (!open || !userId) return
     let cancelled = false
     async function load() {
-      const [{ data: profile }, { data: verification }, selfie, id] = await Promise.all([
+      const [{ data: profile }, { data: verification }, selfie, id, idBack] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
         supabase.from('identity_verifications').select('*').eq('user_id', userId).maybeSingle(),
         signedUrl('face-uploads', `${userId}/face.jpg`),
         signedUrl('id-uploads', `${userId}/id.jpg`),
+        signedUrl('id-uploads', `${userId}/id_back.jpg`),
       ])
-      if (!cancelled) setData({ key: userId, profile, verification, selfie, id })
+      if (!cancelled) setData({ key: userId, profile, verification, selfie, id, idBack })
       if (selfie || id) supabase.rpc('log_identity_view', { p_user: userId })
     }
     load()
@@ -133,9 +134,10 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 mb-5">
+              <div className={`grid gap-3 mb-5 ${data.idBack ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
                 <Tile label="Selfie" url={data.selfie} onZoom={setZoom} />
-                <Tile label="Government ID" url={data.id} onZoom={setZoom} />
+                <Tile label={data.idBack ? 'ID front' : 'Government ID'} url={data.id} onZoom={setZoom} />
+                {data.idBack && <Tile label="ID back" url={data.idBack} onZoom={setZoom} />}
               </div>
 
               {!data.selfie && !data.id && (
