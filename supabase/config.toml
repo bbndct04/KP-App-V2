@@ -15,3 +15,9 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/invite-official/deno.json"
 entrypoint = "./functions/invite-official/index.ts"
+
+[functions.register-upload]
+enabled = true
+verify_jwt = true
+import_map = "./functions/register-upload/deno.json"
+entrypoint = "./functions/register-upload/index.ts"

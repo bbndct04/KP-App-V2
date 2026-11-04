@@ -29,6 +29,7 @@ export default defineConfig({
       workbox: {
         // Precache the built app shell (JS/CSS/HTML/fonts/icons) for offline load
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globIgnores: ['**/face-api*.js', 'models/**'],
         runtimeCaching: [
           {
             // Supabase reads (SELECT via GET) — serve cache instantly, refresh in background.

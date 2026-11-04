@@ -79,6 +79,15 @@ function Login() {
   const [resendMsg, setResendMsg] = useState('')
 
   const infoMsg = location.state?.message || ''
+  const [linkError] = useState(() => {
+    try {
+      const code = sessionStorage.getItem('kp-auth-error')
+      sessionStorage.removeItem('kp-auth-error')
+      return code
+    } catch {
+      return null
+    }
+  })
 
   function shake() {
     const el = cardRef.current
@@ -131,7 +140,11 @@ function Login() {
   async function handleResend() {
     setResending(true)
     setResendMsg('')
-    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() })
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/dashboard?welcome=1` },
+    })
     setResending(false)
     setResendMsg(error ? error.message : 'Verification email sent. Please check your inbox.')
   }
@@ -200,6 +213,15 @@ function Login() {
                 </div>
               )}
 
+              {linkError && !errorMsg && (
+                <div role="alert" className="bg-warning-soft border border-warning-strong/25 text-warning-strong text-sm rounded-xl px-4 py-3 mb-4">
+                  {linkError === 'otp_expired'
+                    ? 'This confirmation link has expired or was already used.'
+                    : 'This confirmation link is not valid.'}{' '}
+                  Log in below. If your email is not confirmed yet, you can send a new link.
+                </div>
+              )}
+
               {errorMsg && (
                 <div role="alert" className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-xl px-4 py-3 mb-4">
                   {errorMsg}
@@ -211,7 +233,7 @@ function Login() {
                         disabled={resending || !email}
                         className="text-danger-strong font-semibold underline disabled:opacity-50"
                       >
-                        {resending ? 'Sending...' : 'Resend verification email'}
+                        {resending ? 'Sending...' : 'Send a new confirmation link'}
                       </button>
                     </div>
                   )}
