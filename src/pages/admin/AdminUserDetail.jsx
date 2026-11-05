@@ -176,7 +176,7 @@ function AdminUserDetail() {
                         <div className="text-ink text-sm font-semibold">{c.reference_number}</div>
                         <div className="text-ink-faint text-xs truncate">
                           {c.category}
-                          {c.respondent_name ? ` · vs. ${c.respondent_name}` : ''} · {formatDate(c.created_at)}
+                          {c.respondent_name ? ` · against ${c.respondent_name}` : ''} · {formatDate(c.created_at)}
                         </div>
                       </div>
                       <StatusBadge status={c.status} />

@@ -50,7 +50,7 @@ function RequestDialog({ complaint, onClose }) {
           <div>
             <div className="text-ink text-lg font-bold">Release a case record</div>
             <div className="text-ink-soft text-sm mt-0.5">
-              {complaint.reference_number} · {complaint.complainant_name} vs. {complaint.respondent_name}
+              {complaint.reference_number} · {complaint.complainant_name} against {complaint.respondent_name}
             </div>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="text-ink-faint hover:text-ink p-1">
@@ -197,7 +197,7 @@ function PrintReports() {
                       <div className="min-w-0 flex-1">
                         <div className="text-ink text-sm font-semibold">{c.reference_number}</div>
                         <div className="text-ink-faint text-xs truncate">
-                          {c.complainant_name} vs. {c.respondent_name} · {c.category}
+                          {c.complainant_name} against {c.respondent_name} · {c.category}
                         </div>
                       </div>
                       <StatusBadge status={c.status} />
