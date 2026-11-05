@@ -19,6 +19,7 @@ import {
   MdClose,
 } from 'react-icons/md'
 import { useAuth } from '../../context/AuthContext'
+import OfflineBanner from '../OfflineBanner'
 import LogoutDialog from '../LogoutDialog'
 import { useTheme } from '../../context/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
@@ -230,6 +231,7 @@ function AdminLayout({ title, children }) {
             )}
           </NavLink>
         </header>
+        <OfflineBanner />
         <main className="flex-1 p-4 md:p-7 overflow-y-auto min-w-0">
           <div key={location.pathname} className="page-in">{children}</div>
         </main>

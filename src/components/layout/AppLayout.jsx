@@ -10,6 +10,7 @@ import {
   MdLogout,
 } from 'react-icons/md'
 import { useAuth } from '../../context/AuthContext'
+import OfflineBanner from '../OfflineBanner'
 import LogoutDialog from '../LogoutDialog'
 import { useT } from '../../i18n/LanguageContext'
 import ProfileAvatar from '../ProfileAvatar'
@@ -186,6 +187,7 @@ function AppLayout({ title, children }) {
             <ProfileAvatar path={profile?.avatar_path} name={profile?.full_name || user?.email} />
           </NavLink>
         </header>
+        <OfflineBanner />
         <main className="flex-1 p-4 pb-8 md:p-7 overflow-y-auto overflow-x-hidden min-w-0">
           <div key={location.pathname} className="page-in">{children}</div>
         </main>
