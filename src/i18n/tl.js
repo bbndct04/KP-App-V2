@@ -13,6 +13,7 @@ const TL = {
   Account: 'Account',
   Resident: 'Residente',
   'Log Out': 'Mag-log out',
+  "You're offline. Showing your last saved information.": 'Offline ka. Ipinapakita ang huling naka-save na impormasyon.',
   'Log out?': 'Mag-log out?',
   'Log out': 'Mag-log out',
   'You will need to enter your email and password again to use the app.': 'Kailangan mong ilagay muli ang iyong email at password para magamit ang app.',

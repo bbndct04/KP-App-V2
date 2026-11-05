@@ -1,23 +1,52 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { supabase, isOffline, storedSession } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
+const PROFILE_KEY = 'kp-profile-cache'
+
+function cachedProfile(userId) {
+  try {
+    const p = JSON.parse(localStorage.getItem(PROFILE_KEY))
+    return p?.id === userId ? p : null
+  } catch {
+    return null
+  }
+}
+
+function saveProfile(profile) {
+  try {
+    if (profile) localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
+    else localStorage.removeItem(PROFILE_KEY)
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 async function loadProfile(userId) {
   const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-  return data
+  if (data) saveProfile(data)
+  return data || cachedProfile(userId)
+}
+
+function offlineState() {
+  const saved = isOffline() ? storedSession() : null
+  return saved?.user ? { user: saved.user, profile: cachedProfile(saved.user.id), loading: false } : null
 }
 
 export function AuthProvider({ children }) {
-  const [state, setState] = useState({ user: null, profile: null, loading: true })
+  const [state, setState] = useState(() => offlineState() || { user: null, profile: null, loading: true })
 
   useEffect(() => {
     let active = true
+    const reconnect = () => supabase.auth.getSession()
+    window.addEventListener('online', reconnect)
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       const nextUser = session?.user ?? null
 
       if (!nextUser) {
+        const saved = offlineState()
+        if (saved) return setState(saved)
         setState({ user: null, profile: null, loading: false })
         return
       }
@@ -35,6 +64,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       active = false
+      window.removeEventListener('online', reconnect)
       listener.subscription.unsubscribe()
     }
   }, [])
@@ -47,6 +77,7 @@ export function AuthProvider({ children }) {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
+    saveProfile(null)
     setState({ user: null, profile: null, loading: false })
   }, [])
 
