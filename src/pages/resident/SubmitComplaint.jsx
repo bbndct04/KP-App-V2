@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
@@ -40,11 +40,24 @@ const CATEGORIES = [
 ]
 
 const STEPS = [
-  { title: 'About you', subtitle: 'Check that your details are correct.' },
-  { title: 'The other person', subtitle: 'Who is your complaint against?' },
-  { title: 'What happened', subtitle: 'Tell the barangay about the incident.' },
-  { title: 'Review and submit', subtitle: 'Make sure everything is correct before submitting.' },
+  { title: 'Complainant Information', subtitle: 'Your details as the person filing the complaint.' },
+  { title: 'Respondent Information', subtitle: 'The person you are filing the complaint against.' },
+  { title: 'Details of the Complaint', subtitle: 'Facts of the incident being complained of.' },
+  { title: 'Review and Certification', subtitle: 'Review your complaint before submitting.' },
 ]
+
+const DESKTOP = '(min-width: 1024px)'
+
+function useDesktop() {
+  const [desktop, setDesktop] = useState(() => typeof window !== 'undefined' && window.matchMedia(DESKTOP).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(DESKTOP)
+    const on = () => setDesktop(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return desktop
+}
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ALLOWED_FILE_TYPES = [
@@ -62,6 +75,7 @@ function SubmitComplaint() {
   const { user, profile } = useAuth()
   const { t } = useT()
   const navigate = useNavigate()
+  const desktop = useDesktop()
   const formRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -112,8 +126,9 @@ function SubmitComplaint() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (step < STEPS.length - 1) return handleNext()
+    if (!desktop && step < STEPS.length - 1) return handleNext()
     if (!certified) return setError(t('Please confirm that the information you gave is true and correct.'))
+    if (form.category === 'Other' && !form.otherCategory.trim()) return setError(t('Please specify the nature of complaint.'))
 
     setError('')
     setSubmitting(true)
@@ -186,190 +201,7 @@ function SubmitComplaint() {
     )
   }
 
-  return (
-    <AppLayout title="File a Complaint">
-      <div className="max-w-[680px] mx-auto">
-        <div className="mb-5">
-          <div className="flex gap-1.5 mb-3" aria-hidden="true">
-            {STEPS.map((s, i) => (
-              <div key={s.title} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? 'bg-accent' : 'bg-border'}`} />
-            ))}
-          </div>
-          <div className="text-ink-faint text-xs font-semibold uppercase tracking-wide">
-            {t('Step {step} of {total}', { step: step + 1, total: STEPS.length })}
-          </div>
-          <h2 className="text-ink text-xl md:text-2xl font-bold">{t(current.title)}</h2>
-          <p className="text-ink-soft text-sm">{t(current.subtitle)}</p>
-        </div>
-
-        <form ref={formRef} onSubmit={handleSubmit} noValidate={isLast} className="bg-surface border border-border rounded-2xl shadow-token-md">
-          <div className="p-5 md:p-6 flex flex-col gap-4">
-            {step === 0 && (
-              <>
-                <Field label={t('Full name')} required>
-                  <Input value={form.complainantName} onChange={set('complainantName')} required autoComplete="name" />
-                </Field>
-                <Field label={t('Contact number')} required hint={t('The barangay may call or text you about your case.')}>
-                  <Input
-                    value={form.complainantContact}
-                    onChange={set('complainantContact')}
-                    required
-                    type="tel"
-                    inputMode="tel"
-                    pattern="^(\+63|0)9\d{2}[- ]?\d{3}[- ]?\d{4}$"
-                    title={t('Enter a mobile number like 09171234567')}
-                    placeholder="09171234567"
-                    autoComplete="tel"
-                  />
-                </Field>
-                <Field label={t('Home address')} required>
-                  <Input
-                    value={form.complainantAddress}
-                    onChange={set('complainantAddress')}
-                    required
-                    placeholder="Purok, Street, Barangay New Kababae"
-                    autoComplete="street-address"
-                  />
-                </Field>
-              </>
-            )}
-
-            {step === 1 && (
-              <>
-                <Field label={t('Full name of the person')} required hint={t("If you don't know their full name, write what you know (e.g. nickname and surname).")}>
-                  <Input value={form.respondentName} onChange={set('respondentName')} required placeholder="e.g. Pedro Santos" />
-                </Field>
-                <Field label={t('Their address')} required>
-                  <Input value={form.respondentAddress} onChange={set('respondentAddress')} required placeholder="Purok, Street, Barangay" />
-                </Field>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <Field label={t('Type of complaint')} required>
-                  <Select value={form.category} onChange={set('category')} required>
-                    <option value="">{t('Choose one')}</option>
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {t(c)}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                {form.category === 'Other' && (
-                  <Field label={t('Describe the type of complaint')} required>
-                    <Input value={form.otherCategory} onChange={set('otherCategory')} required placeholder="e.g. Blocked driveway" />
-                  </Field>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label={t('Date it happened')} required>
-                    <Input type="date" value={form.incidentDate} onChange={set('incidentDate')} max={today()} required />
-                  </Field>
-                  <Field label={t('Time it happened')} required>
-                    <Input type="time" value={form.incidentTime} onChange={set('incidentTime')} required />
-                  </Field>
-                </div>
-                <Field label={t('Where it happened')} required>
-                  <Input value={form.location} onChange={set('location')} required placeholder="e.g. Purok 3, Mabini Street, near the chapel" />
-                </Field>
-                <Field label={t('What happened?')} required hint={t('Include what happened, who was involved, and if it happened before.')}>
-                  <Textarea value={form.description} onChange={set('description')} required minLength={20} rows={5} />
-                </Field>
-                <Field label={t('What do you want to happen?')} required hint={t('For example: an apology, payment of the debt, or for the noise to stop.')}>
-                  <Textarea value={form.reliefRequested} onChange={set('reliefRequested')} required rows={3} />
-                </Field>
-                <Field label={t('Evidence (optional)')} hint={t('Photos, PDF, or Word documents, up to 10MB.')}>
-                  <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
-                  {file ? (
-                    <div className="flex items-center gap-3 bg-success-soft border border-success-strong/25 rounded-lg px-3.5 py-3">
-                      <MdOutlineAttachFile className="text-xl text-success-strong flex-shrink-0" aria-hidden="true" />
-                      <span className="text-sm font-semibold text-ink truncate flex-1">{file.name}</span>
-                      <button type="button" onClick={() => setFile(null)} aria-label={t('Remove file')} className="text-ink-soft hover:text-ink p-1">
-                        <MdClose className="text-xl" aria-hidden="true" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current.click()}
-                      className="w-full border-2 border-dashed border-border rounded-xl py-5 text-center bg-surface-sunken hover:bg-surface-hover transition-colors"
-                    >
-                      <MdOutlineCloudUpload className="text-3xl text-ink-faint mx-auto mb-1" aria-hidden="true" />
-                      <span className="text-sm font-semibold text-ink">{t('Add a photo or document')}</span>
-                    </button>
-                  )}
-                </Field>
-              </>
-            )}
-
-            {isLast && (
-              <>
-                <ReviewSection title={t('About you')} onEdit={() => goTo(0)}>
-                  <ReviewItem label={t('Name')} value={form.complainantName} />
-                  <ReviewItem label={t('Contact')} value={form.complainantContact} />
-                  <ReviewItem label={t('Address')} value={form.complainantAddress} />
-                </ReviewSection>
-                <ReviewSection title={t('Complaint against')} onEdit={() => goTo(1)}>
-                  <ReviewItem label={t('Name')} value={form.respondentName} />
-                  <ReviewItem label={t('Address')} value={form.respondentAddress} />
-                </ReviewSection>
-                <ReviewSection title={t('What happened')} onEdit={() => goTo(2)}>
-                  <ReviewItem label={t('Type')} value={t(finalCategory)} />
-                  <ReviewItem
-                    label={t('When')}
-                    value={`${formatDate(form.incidentDate, { month: 'long', day: 'numeric', year: 'numeric' })} · ${formatTime(form.incidentTime)}`}
-                  />
-                  <ReviewItem label={t('Where')} value={form.location} />
-                  <ReviewItem label={t('Details')} value={form.description} />
-                  <ReviewItem label={t('Request')} value={form.reliefRequested} />
-                  <ReviewItem label={t('Evidence')} value={file ? file.name : t('None')} />
-                </ReviewSection>
-                <label className="flex gap-3 items-start bg-surface-sunken border border-border rounded-xl p-4 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={certified}
-                    onChange={(e) => setCertified(e.target.checked)}
-                    className="mt-0.5 w-5 h-5 accent-[var(--accent)] flex-shrink-0"
-                  />
-                  <span className="text-sm text-ink leading-relaxed">
-                    {t('I certify that the information above is true and correct to the best of my knowledge.')}
-                  </span>
-                </label>
-              </>
-            )}
-
-            {error && (
-              <div role="alert" className="bg-danger-soft border border-danger-strong/20 rounded-lg px-4 py-3 text-sm text-danger-strong">
-                {error}
-              </div>
-            )}
-          </div>
-
-          <div className="px-5 md:px-6 py-4 border-t border-border flex gap-2.5">
-            {step === 0 ? (
-              <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')}>
-                {t('Cancel')}
-              </Button>
-            ) : (
-              <Button type="button" variant="secondary" icon={MdArrowBack} onClick={() => goTo(step - 1)} disabled={submitting}>
-                {t('Back')}
-              </Button>
-            )}
-            {isLast ? (
-              <Button type="submit" icon={MdOutlineSend} className="flex-1" disabled={submitting || !certified}>
-                {submitting ? t('Submitting...') : t('Submit complaint')}
-              </Button>
-            ) : (
-              <Button type="button" className="flex-1" onClick={handleNext}>
-                {t('Next')} <MdArrowForward className="text-lg" aria-hidden="true" />
-              </Button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {successRef && (
+  const successDialog = successRef && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-5">
           <div role="dialog" aria-modal="true" className="bg-surface border border-border rounded-2xl p-6 md:p-8 max-w-[460px] w-full text-center shadow-token-lg max-h-full overflow-y-auto">
             <div className="w-16 h-16 rounded-full bg-success-soft text-success-strong flex items-center justify-center mx-auto mb-4">
@@ -408,7 +240,260 @@ function SubmitComplaint() {
             </div>
           </div>
         </div>
+      )
+
+  const complainantFields = (
+    <>
+      <Field label={t('Full name of complainant')} required>
+        <Input value={form.complainantName} onChange={set('complainantName')} required autoComplete="name" />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label={t('Contact number')} required hint={t('The barangay may call or text you about your case.')}>
+          <Input
+            value={form.complainantContact}
+            onChange={set('complainantContact')}
+            required
+            type="tel"
+            inputMode="tel"
+            pattern="^(\+63|0)9\d{2}[- ]?\d{3}[- ]?\d{4}$"
+            title={t('Enter a mobile number like 09171234567')}
+            placeholder="09171234567"
+            autoComplete="tel"
+          />
+        </Field>
+        <Field label={t('Address of complainant')} required>
+          <Input
+            value={form.complainantAddress}
+            onChange={set('complainantAddress')}
+            required
+            placeholder="Purok, Street, Barangay New Kababae"
+            autoComplete="street-address"
+          />
+        </Field>
+      </div>
+    </>
+  )
+
+  const respondentFields = (
+    <>
+      <Field label={t('Full name of respondent')} required hint={t('If the full name is unknown, write the name or alias by which the respondent is known.')}>
+        <Input value={form.respondentName} onChange={set('respondentName')} required placeholder="e.g. Pedro Santos" />
+      </Field>
+      <Field label={t('Address of respondent')} required>
+        <Input value={form.respondentAddress} onChange={set('respondentAddress')} required placeholder="Purok, Street, Barangay" />
+      </Field>
+    </>
+  )
+
+  const detailFields = (
+    <>
+      <Field label={t('Nature of complaint')} required>
+        <Select value={form.category} onChange={set('category')} required>
+          <option value="">{t('Choose one')}</option>
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {t(c)}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      {form.category === 'Other' && (
+        <Field label={t('Specify the nature of complaint')} required>
+          <Input value={form.otherCategory} onChange={set('otherCategory')} required placeholder="e.g. Blocked driveway" />
+        </Field>
       )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label={t('Date of incident')} required>
+          <Input type="date" value={form.incidentDate} onChange={set('incidentDate')} max={today()} required />
+        </Field>
+        <Field label={t('Time of incident')} required>
+          <Input type="time" value={form.incidentTime} onChange={set('incidentTime')} required />
+        </Field>
+      </div>
+      <Field label={t('Place of incident')} required>
+        <Input value={form.location} onChange={set('location')} required placeholder="e.g. Purok 3, Mabini Street, near the chapel" />
+      </Field>
+      <Field label={t('Statement of facts')} required hint={t('State clearly what happened, who were involved, and whether it happened before.')}>
+        <Textarea value={form.description} onChange={set('description')} required minLength={20} rows={desktop ? 6 : 5} />
+      </Field>
+      <Field
+        label={t('Relief sought')}
+        required
+        hint={t('State what you are asking the barangay to do, for example payment of a debt, an apology, or to stop the disturbance.')}
+      >
+        <Textarea value={form.reliefRequested} onChange={set('reliefRequested')} required rows={3} />
+      </Field>
+      <Field label={t('Supporting evidence (optional)')} hint={t('Photos, PDF, or Word documents, up to 10MB.')}>
+        <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
+        {file ? (
+          <div className="flex items-center gap-3 bg-success-soft border border-success-strong/25 rounded-lg px-3.5 py-3">
+            <MdOutlineAttachFile className="text-xl text-success-strong flex-shrink-0" aria-hidden="true" />
+            <span className="text-sm font-semibold text-ink truncate flex-1">{file.name}</span>
+            <button type="button" onClick={() => setFile(null)} aria-label={t('Remove file')} className="text-ink-soft hover:text-ink p-1">
+              <MdClose className="text-xl" aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current.click()}
+            className="w-full border-2 border-dashed border-border rounded-xl py-5 text-center bg-surface-sunken hover:bg-surface-hover transition-colors"
+          >
+            <MdOutlineCloudUpload className="text-3xl text-ink-faint mx-auto mb-1" aria-hidden="true" />
+            <span className="text-sm font-semibold text-ink">{t('Add a photo or document')}</span>
+          </button>
+        )}
+      </Field>
+    </>
+  )
+
+  const certification = (
+    <label className="flex gap-3 items-start bg-surface-sunken border border-border rounded-xl p-4 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={certified}
+        onChange={(e) => setCertified(e.target.checked)}
+        className="mt-0.5 w-5 h-5 accent-[var(--accent)] flex-shrink-0"
+      />
+      <span className="text-sm text-ink leading-relaxed">
+        {t('I hereby certify that the foregoing statements are true and correct to the best of my knowledge and belief.')}
+      </span>
+    </label>
+  )
+
+  const errorBox = error && (
+    <div role="alert" className="bg-danger-soft border border-danger-strong/20 rounded-lg px-4 py-3 text-sm text-danger-strong">
+      {error}
+    </div>
+  )
+
+  if (desktop) {
+    const sections = [
+      [STEPS[0], complainantFields],
+      [STEPS[1], respondentFields],
+      [STEPS[2], detailFields],
+    ]
+    return (
+      <AppLayout title="File a Complaint">
+        <div className="max-w-[860px] mx-auto">
+          <div className="mb-5">
+            <h2 className="text-ink text-2xl font-bold">{t('Complaint Form')}</h2>
+            <p className="text-ink-soft text-sm">{t('Fill out all required fields marked with *. Your complaint will be reviewed by the Lupong Tagapamayapa.')}</p>
+          </div>
+          <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-2xl shadow-token-md">
+            {sections.map(([info, fields], i) => (
+              <section key={info.title} className="p-7 border-b border-border">
+                <div className="flex items-start gap-3 mb-5">
+                  <span className="w-8 h-8 rounded-full bg-accent text-accent-ink text-sm font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                  <div>
+                    <h3 className="text-ink text-lg font-bold leading-tight">{t(info.title)}</h3>
+                    <p className="text-ink-soft text-sm">{t(info.subtitle)}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-4">{fields}</div>
+              </section>
+            ))}
+            <section className="p-7 flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <span className="w-8 h-8 rounded-full bg-accent text-accent-ink text-sm font-bold flex items-center justify-center flex-shrink-0">4</span>
+                <div>
+                  <h3 className="text-ink text-lg font-bold leading-tight">{t('Certification')}</h3>
+                  <p className="text-ink-soft text-sm">{t('Confirm that your statements are true before submitting.')}</p>
+                </div>
+              </div>
+              {certification}
+              {errorBox}
+              <div className="flex gap-2.5 justify-end pt-2">
+                <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')} disabled={submitting}>
+                  {t('Cancel')}
+                </Button>
+                <Button type="submit" icon={MdOutlineSend} disabled={submitting || !certified}>
+                  {submitting ? t('Submitting...') : t('Submit complaint')}
+                </Button>
+              </div>
+            </section>
+          </form>
+        </div>
+        {successDialog}
+      </AppLayout>
+    )
+  }
+
+  return (
+    <AppLayout title="File a Complaint">
+      <div className="max-w-[680px] mx-auto">
+        <div className="mb-5">
+          <div className="flex gap-1.5 mb-3" aria-hidden="true">
+            {STEPS.map((s, i) => (
+              <div key={s.title} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? 'bg-accent' : 'bg-border'}`} />
+            ))}
+          </div>
+          <div className="text-ink-faint text-xs font-semibold uppercase tracking-wide">
+            {t('Step {step} of {total}', { step: step + 1, total: STEPS.length })}
+          </div>
+          <h2 className="text-ink text-xl md:text-2xl font-bold">{t(current.title)}</h2>
+          <p className="text-ink-soft text-sm">{t(current.subtitle)}</p>
+        </div>
+
+        <form ref={formRef} onSubmit={handleSubmit} noValidate={isLast} className="bg-surface border border-border rounded-2xl shadow-token-md">
+          <div className="p-5 md:p-6 flex flex-col gap-4">
+            {step === 0 && complainantFields}
+            {step === 1 && respondentFields}
+            {step === 2 && detailFields}
+
+            {isLast && (
+              <>
+                <ReviewSection title={t('Complainant')} onEdit={() => goTo(0)}>
+                  <ReviewItem label={t('Name')} value={form.complainantName} />
+                  <ReviewItem label={t('Contact')} value={form.complainantContact} />
+                  <ReviewItem label={t('Address')} value={form.complainantAddress} />
+                </ReviewSection>
+                <ReviewSection title={t('Respondent')} onEdit={() => goTo(1)}>
+                  <ReviewItem label={t('Name')} value={form.respondentName} />
+                  <ReviewItem label={t('Address')} value={form.respondentAddress} />
+                </ReviewSection>
+                <ReviewSection title={t('Details of the Complaint')} onEdit={() => goTo(2)}>
+                  <ReviewItem label={t('Nature')} value={t(finalCategory)} />
+                  <ReviewItem
+                    label={t('Date and time')}
+                    value={`${formatDate(form.incidentDate, { month: 'long', day: 'numeric', year: 'numeric' })} · ${formatTime(form.incidentTime)}`}
+                  />
+                  <ReviewItem label={t('Place')} value={form.location} />
+                  <ReviewItem label={t('Statement of facts')} value={form.description} />
+                  <ReviewItem label={t('Relief sought')} value={form.reliefRequested} />
+                  <ReviewItem label={t('Evidence')} value={file ? file.name : t('None')} />
+                </ReviewSection>
+                {certification}
+              </>
+            )}
+
+            {errorBox}
+          </div>
+
+          <div className="px-5 md:px-6 py-4 border-t border-border flex gap-2.5">
+            {step === 0 ? (
+              <Button type="button" variant="secondary" onClick={() => navigate('/dashboard')}>
+                {t('Cancel')}
+              </Button>
+            ) : (
+              <Button type="button" variant="secondary" icon={MdArrowBack} onClick={() => goTo(step - 1)} disabled={submitting}>
+                {t('Back')}
+              </Button>
+            )}
+            {isLast ? (
+              <Button type="submit" icon={MdOutlineSend} className="flex-1" disabled={submitting || !certified}>
+                {submitting ? t('Submitting...') : t('Submit complaint')}
+              </Button>
+            ) : (
+              <Button type="button" className="flex-1" onClick={handleNext}>
+                {t('Next')} <MdArrowForward className="text-lg" aria-hidden="true" />
+              </Button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {successDialog}
     </AppLayout>
   )
 }
