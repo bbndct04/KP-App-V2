@@ -70,7 +70,7 @@ function Certification({ req, c, logs, office }) {
       <div className="kp-bold" style={{ marginTop: 24 }}>TO WHOM IT MAY CONCERN:</div>
       <p className="kp-para" style={{ textIndent: 48 }}>
         This is to certify that, based on the records of the Lupong Tagapamayapa of this Barangay, Barangay Case No.{' '}
-        <b>{c.reference_number}</b>, entitled <b>{c.complainant_name}</b>, Complainant, versus <b>{c.respondent_name}</b>, Respondent, for{' '}
+        <b>{c.reference_number}</b>, entitled <b>{c.complainant_name}</b>, Complainant, against <b>{c.respondent_name}</b>, Respondent, for{' '}
         <b>{c.category}</b>, was {c.status === 'declined' ? 'brought to this office' : `filed on ${longDate(filedAt(c))}`}.
       </p>
       <p className="kp-para" style={{ textIndent: 48 }}>

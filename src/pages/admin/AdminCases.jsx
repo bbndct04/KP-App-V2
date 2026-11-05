@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { MdSearch, MdOutlineAssignment, MdOutlineSearchOff, MdArrowForward } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
@@ -14,6 +14,7 @@ const URGENCY = { danger: 0, warning: 1, neutral: 2 }
 const ACCEPTED = [...ACTIVE_STAGES, ...CLOSED_STAGES]
 
 function AdminCases() {
+  const navigate = useNavigate()
   const [cases, setCases] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('active')
@@ -132,34 +133,41 @@ function AdminCases() {
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Ref. No.</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Resident</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Filed</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Stage</th>
-                    {tab === 'active' && <th className="px-5 py-3 font-semibold whitespace-nowrap">Timeline</th>}
-                    <th className="px-5 py-3"></th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Case</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Resident</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Stage</th>
+                    {tab === 'active' && <th className="px-4 py-3 font-semibold whitespace-nowrap">Timeline</th>}
+                    <th className={`px-4 py-3 sticky right-0 bg-surface shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]`}></th>
                   </tr>
                 </thead>
                 <tbody className="stagger">
                   {list.map((c) => (
-                    <tr key={c.id} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
-                      <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                      <td className="px-5 py-3.5 text-ink text-sm whitespace-nowrap max-w-[200px] truncate">{c.profiles?.full_name || '—'}</td>
-                      <td className="px-5 py-3.5 text-ink-soft text-sm max-w-[220px] truncate">{c.category}</td>
-                      <td className="px-5 py-3.5 text-ink-faint text-sm whitespace-nowrap">
-                        {new Date(c.reviewed_at || c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                    <tr
+                      key={c.id}
+                      onClick={() => navigate(`/admin/cases/${c.id}`)}
+                      className="group border-b border-border last:border-0 hover:bg-surface-hover transition-colors cursor-pointer"
+                    >
+                      <td className="px-5 py-3">
+                        <div className="text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</div>
+                        <div className="text-ink-soft text-xs max-w-[240px] truncate">
+                          {c.category} · {new Date(c.reviewed_at || c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3 text-ink text-sm max-w-[180px]">{c.profiles?.full_name || c.complainant_name || '—'}</td>
+                      <td className="px-4 py-3">
                         <StatusBadge status={c.status} />
                       </td>
                       {tab === 'active' && (
-                        <td className="px-5 py-3.5">
+                        <td className="px-4 py-3 min-w-[150px] [&>span]:whitespace-normal [&>span]:rounded-lg">
                           <DeadlineBadge deadline={deadlineOf(c)} />
                         </td>
                       )}
-                      <td className="px-5 py-3.5">
-                        <Link to={`/admin/cases/${c.id}`} className="text-accent text-sm font-semibold whitespace-nowrap flex items-center gap-1">
+                      <td className="px-4 py-3 sticky right-0 bg-surface group-hover:bg-surface-hover shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]">
+                        <Link
+                          to={`/admin/cases/${c.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 h-9 px-3.5 rounded-lg bg-accent text-accent-ink text-sm font-semibold whitespace-nowrap hover:bg-accent-hover"
+                        >
                           Manage <MdArrowForward aria-hidden="true" />
                         </Link>
                       </td>

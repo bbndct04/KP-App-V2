@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
 import {
@@ -39,7 +39,7 @@ function HearingList({ items, showDay = false }) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-ink text-sm font-semibold truncate">
-                {c.complainant_name || c.profiles?.full_name || '—'} vs. {c.respondent_name || '—'}
+                {c.complainant_name || c.profiles?.full_name || '—'} against {c.respondent_name || '—'}
               </div>
               <div className="text-ink-faint text-xs truncate">
                 <span className="font-mono">{c.reference_number}</span> · {c.category}
@@ -54,6 +54,7 @@ function HearingList({ items, showDay = false }) {
 }
 
 function AdminDashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState({ total: 0, awaiting: 0, inProgress: 0, closed: 0, totalUsers: 0, residents: 0 })
   const [recent, setRecent] = useState([])
   const [categories, setCategories] = useState([])
@@ -253,28 +254,35 @@ function AdminDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Ref. No.</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Resident</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Category</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Filed</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Status</th>
-                    <th className="px-5 py-3"></th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Case</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Resident</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Status</th>
+                    <th className={`px-4 py-3 sticky right-0 bg-surface shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]`}></th>
                   </tr>
                 </thead>
                 <tbody className="stagger">
                   {recent.map((c) => (
-                    <tr key={c.id} className="border-b border-border last:border-0">
-                      <td className="px-5 py-3.5 text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</td>
-                      <td className="px-5 py-3.5 text-ink text-sm whitespace-nowrap max-w-[180px] truncate">{c.profiles?.full_name || '—'}</td>
-                      <td className="px-5 py-3.5 text-ink-soft text-sm max-w-[200px] truncate">{c.category}</td>
-                      <td className="px-5 py-3.5 text-ink-faint text-sm whitespace-nowrap">
-                        {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                    <tr
+                      key={c.id}
+                      onClick={() => navigate(`/admin/complaints/${c.id}`)}
+                      className="group border-b border-border last:border-0 hover:bg-surface-hover transition-colors cursor-pointer"
+                    >
+                      <td className="px-5 py-3">
+                        <div className="text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</div>
+                        <div className="text-ink-soft text-xs max-w-[220px] truncate">
+                          {c.category} · {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3 text-ink text-sm max-w-[180px] truncate">{c.profiles?.full_name || '—'}</td>
+                      <td className="px-4 py-3">
                         <StatusBadge status={c.status} />
                       </td>
-                      <td className="px-5 py-3.5">
-                        <Link to={`/admin/complaints/${c.id}`} className="text-accent text-sm font-semibold whitespace-nowrap flex items-center gap-1">
+                      <td className="px-4 py-3 sticky right-0 bg-surface group-hover:bg-surface-hover shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]">
+                        <Link
+                          to={`/admin/complaints/${c.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 h-9 px-3.5 rounded-lg bg-accent text-accent-ink text-sm font-semibold whitespace-nowrap hover:bg-accent-hover"
+                        >
                           Manage <MdArrowForward aria-hidden="true" />
                         </Link>
                       </td>

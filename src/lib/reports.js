@@ -135,7 +135,7 @@ export function buildMonthlyReport(ym, complaints, allLogs) {
     rows.push({
       id: c.id,
       caseNo: c.reference_number,
-      parties: `${c.complainant_name || '—'} vs. ${c.respondent_name || '—'}`,
+      parties: `${c.complainant_name || '—'} against ${c.respondent_name || '—'}`,
       nature: c.category || '',
       filed: filedAt(c),
       actions,
