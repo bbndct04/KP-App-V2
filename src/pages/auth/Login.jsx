@@ -77,6 +77,9 @@ function Login() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendMsg, setResendMsg] = useState('')
+  const [codeSent, setCodeSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [verifying, setVerifying] = useState(false)
 
   const infoMsg = location.state?.message || ''
   const [linkError] = useState(() => {
@@ -146,7 +149,23 @@ function Login() {
       options: { emailRedirectTo: `${window.location.origin}/dashboard?welcome=1` },
     })
     setResending(false)
-    setResendMsg(error ? error.message : 'Verification email sent. Please check your inbox.')
+    if (error) return setResendMsg(error.message)
+    setCodeSent(true)
+    setCode('')
+    setResendMsg('We sent a verification code to your email. Check your inbox, Spam and Promotions folders.')
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault()
+    setVerifying(true)
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code, type: 'email' })
+    setVerifying(false)
+    if (error) return setResendMsg('The code is wrong or has expired. Check it or send a new code.')
+    setNeedsConfirmation(false)
+    setCodeSent(false)
+    setResendMsg('')
+    setErrorMsg('')
+    handleLogin(e)
   }
 
   const checkCaps = (e) => setCapsLock(e.getModifierState?.('CapsLock') || false)
@@ -218,7 +237,7 @@ function Login() {
                   {linkError === 'otp_expired'
                     ? 'This confirmation link has expired or was already used.'
                     : 'This confirmation link is not valid.'}{' '}
-                  Log in below. If your email is not confirmed yet, you can send a new link.
+                  Log in below. If your email is not confirmed yet, you can get a verification code.
                 </div>
               )}
 
@@ -233,7 +252,7 @@ function Login() {
                         disabled={resending || !email}
                         className="text-danger-strong font-semibold underline disabled:opacity-50"
                       >
-                        {resending ? 'Sending...' : 'Send a new confirmation link'}
+                        {resending ? 'Sending...' : codeSent ? 'Send a new code' : 'Send a verification code'}
                       </button>
                     </div>
                   )}
@@ -242,6 +261,27 @@ function Login() {
 
               {resendMsg && (
                 <div className="bg-info-soft border border-info-strong/20 text-info-strong text-sm rounded-xl px-4 py-3 mb-4">{resendMsg}</div>
+              )}
+
+              {needsConfirmation && codeSent && (
+                <form onSubmit={handleVerify} className="flex gap-2 mb-4">
+                  <input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    aria-label="Verification code"
+                    placeholder="Enter code"
+                    className="flex-1 min-w-0 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-3 text-center text-lg font-bold tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-accent/50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={verifying || code.length < 6}
+                    className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-xl px-5"
+                  >
+                    {verifying ? 'Verifying...' : 'Verify'}
+                  </button>
+                </form>
               )}
 
               <form onSubmit={handleLogin} className="space-y-4">

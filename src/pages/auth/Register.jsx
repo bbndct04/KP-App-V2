@@ -235,15 +235,13 @@ function Register() {
     navigate('/dashboard', { replace: true })
   }
 
-  async function confirmByLink() {
+  async function verifyCode(code) {
     setConfirmError('')
     setVerifying(true)
-    const { data, error } = await supabase.auth.signInWithPassword({ email: form.email.trim().toLowerCase(), password })
+    const { data, error } = await supabase.auth.verifyOtp({ email: form.email.trim().toLowerCase(), token: code, type: 'email' })
     setVerifying(false)
     if (error || !data.session) {
-      return setConfirmError(
-        /confirm/i.test(error?.message || '') ? 'Your email is not confirmed yet. Tap the link in the email first, then try again.' : 'We could not log you in. Please try again.'
-      )
+      return setConfirmError(/expired|invalid/i.test(error?.message || '') ? 'The code is wrong or has expired. Check it or tap Resend code.' : 'We could not verify the code. Please try again.')
     }
     toast.success('Email confirmed! Welcome to the KP App.')
     navigate('/dashboard', { replace: true })
@@ -508,7 +506,7 @@ function Register() {
               error={confirmError}
               uploadWarning={uploadWarning}
               onResend={resendLink}
-              onConfirmed={confirmByLink}
+              onVerify={verifyCode}
               onStartOver={() => go(4)}
             />
           )}

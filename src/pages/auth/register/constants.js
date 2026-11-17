@@ -4,7 +4,7 @@ export const STEP_LABELS = [
   { label: 'Valid ID', sub: 'Primary government ID' },
   { label: 'Your Details', sub: 'Personal information' },
   { label: 'Create Account', sub: 'Set your password' },
-  { label: 'Verify Email', sub: 'Open the link we send' },
+  { label: 'Verify Email', sub: 'Enter the code we send' },
 ]
 
 export const ID_TYPES = [
