@@ -17,8 +17,8 @@ import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { useToast } from '../../context/toastContext'
-import { Card, Input, Select, EmptyState, SkeletonRows, Button, Field } from '../../components/ui'
-import { POSITIONS, isOfficial } from '../../lib/accounts'
+import { Card, Input, EmptyState, SkeletonRows, Button, Field } from '../../components/ui'
+import { isOfficial } from '../../lib/accounts'
 import { Avatar, UserBadges } from '../../components/admin/UserBits'
 import { formatDate } from '../../lib/cases'
 import { useT } from '../../i18n/LanguageContext'
@@ -36,19 +36,18 @@ const TABS = [
 function InviteDialog({ open, onClose, onInvited }) {
   const { t } = useT()
   const toast = useToast()
-  const [form, setForm] = useState({ full_name: '', email: '', title: '' })
+  const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
 
   if (!open) return null
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   async function submit(e) {
     e.preventDefault()
     setError('')
     setSending(true)
     const { data, error: fnError } = await supabase.functions.invoke('invite-official', {
-      body: { ...form, redirect_to: `${window.location.origin}/reset-password?invite=1` },
+      body: { email, redirect_to: `${window.location.origin}/reset-password?invite=1` },
     })
     setSending(false)
     if (fnError || data?.error) {
@@ -57,8 +56,8 @@ function InviteDialog({ open, onClose, onInvited }) {
       setError(message || fnError?.message || t('The invitation could not be sent.'))
       return
     }
-    toast.success(t('Invitation sent to {email}.', { email: form.email }))
-    setForm({ full_name: '', email: '', title: '' })
+    toast.success(t('Invitation sent to {email}.', { email }))
+    setEmail('')
     onInvited()
     onClose()
   }
@@ -75,27 +74,14 @@ function InviteDialog({ open, onClose, onInvited }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-ink text-lg font-bold">{t('Invite a barangay official')}</div>
-            <div className="text-ink-soft text-sm mt-0.5">{t('They will get an email to set their password. Their account will have admin access.')}</div>
+            <div className="text-ink-soft text-sm mt-0.5">{t('They will get an email to set their own name, position and password. Their account will have admin access.')}</div>
           </div>
           <button type="button" onClick={onClose} aria-label={t('Close')} className="text-ink-faint hover:text-ink p-1">
             <MdClose className="text-xl" aria-hidden="true" />
           </button>
         </div>
-        <Field label={t('Full name')} required>
-          <Input value={form.full_name} onChange={set('full_name')} required placeholder={t('e.g. Maria Santos')} />
-        </Field>
-        <Field label={t('Email')} required>
-          <Input type="email" value={form.email} onChange={set('email')} required placeholder={t('official@example.com')} />
-        </Field>
-        <Field label={t('Position')} required>
-          <Select value={form.title} onChange={set('title')} required>
-            <option value="">{t('Choose a position')}</option>
-            {POSITIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </Select>
+        <Field label={t('Email')} required hint={t('Check the email with the official before sending.')}>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus placeholder={t('official@example.com')} />
         </Field>
         {error && (
           <div role="alert" className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-lg px-3.5 py-2.5">

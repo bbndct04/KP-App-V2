@@ -447,7 +447,7 @@ const TL = {
   "Logging in...": "Nag-lo-log in...",
   "Don't have an account?": "Wala ka pang account?",
   "Register here": "Mag-register dito",
-  "Your password is set. You can now log in to your official account.": "Naka-set na ang iyong password. Puwede ka nang mag-log in sa iyong official account.",
+  "Your account is set up. You can now log in to your official account.": "Naka-set up na ang iyong account. Puwede ka nang mag-log in sa iyong official account.",
   "Password updated. Please log in with your new password.": "Na-update na ang password. Mag-log in gamit ang bagong password.",
   "Verifying your link": "Vine-verify ang iyong link",
   "Verifying your link…": "Vine-verify ang iyong link…",
@@ -455,9 +455,9 @@ const TL = {
   "This invitation link is no longer valid. You can set your password with a reset link instead, or ask the barangay admin to send a new invitation.": "Hindi na valid ang invitation link na ito. Puwede kang mag-set ng password gamit ang reset link, o humingi ng bagong invitation sa barangay admin.",
   "This password reset link is no longer valid. Reset links expire after a short time — please request a new one.": "Hindi na valid ang password reset link na ito. Nag-e-expire agad ang mga reset link, kaya humingi ng bago.",
   "Request a new link": "Humingi ng bagong link",
-  "Set your password": "I-set ang iyong password",
+  "Set up your account": "I-set up ang iyong account",
   "Set a new password": "Gumawa ng bagong password",
-  "Welcome! Create a password for your barangay official account.": "Maligayang pagdating! Gumawa ng password para sa iyong barangay official account.",
+  "Welcome! Enter your name and position, then create a password for your barangay official account.": "Maligayang pagdating! Ilagay ang iyong pangalan at position, tapos gumawa ng password para sa iyong barangay official account.",
   "Choose a new password for your account.": "Pumili ng bagong password para sa iyong account.",
   "New Password": "Bagong Password",
   "8+ characters, letters and numbers": "8 o higit pang characters, may letra at numero",
@@ -1055,6 +1055,12 @@ const TL = {
   "waiting 1 day": "1 araw nang naghihintay",
   "waiting {n} days": "{n} araw nang naghihintay",
   "Complainant identity": "ID ng complainant",
+  "They will get an email to set their own name, position and password. Their account will have admin access.": "Makakatanggap sila ng email para i-set ang sarili nilang pangalan, position at password. May admin access ang kanilang account.",
+  "Check the email with the official before sending.": "Siguraduhin muna ang email sa official bago ipadala.",
+  "Enter your full name (first and last name).": "Ilagay ang buong pangalan mo (pangalan at apelyido).",
+  "Choose your position.": "Pumili ng iyong position.",
+  "Choose your position": "Pumili ng iyong position",
+  "Finish setup": "Tapusin ang setup",
 }
 
 export default TL
