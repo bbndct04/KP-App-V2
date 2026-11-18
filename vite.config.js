@@ -35,13 +35,13 @@ export default defineConfig({
         globIgnores: ['**/face-api*.js', 'models/**'],
         runtimeCaching: [
           {
-            // Supabase reads (SELECT via GET) — serve cache instantly, refresh in background.
-            // Safe for stale data; the page still gets fresh data on the next successful fetch.
+            // Supabase reads: always fresh from the network; cached copy only when offline or very slow.
             urlPattern: ({ url, request }) =>
               url.hostname.endsWith('.supabase.co') && url.pathname.includes('/rest/v1/') && request.method === 'GET',
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
-              cacheName: 'supabase-reads',
+              cacheName: 'supabase-reads-v2',
+              networkTimeoutSeconds: 4,
               expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 }, // 1 day
             },
           },
