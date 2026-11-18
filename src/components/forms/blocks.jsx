@@ -52,12 +52,21 @@ function Editable({ value, onCommit, label, placeholder, block = false, classNam
 export function T({ k, label, placeholder, underline = false, bold = false, blank = true, minCh = 10 }) {
   const { fields, set, edit } = useDoc()
   const value = fields[k] ?? ''
-  const cls = [underline && 'kp-u', bold && 'kp-bold'].filter(Boolean).join(' ')
   if (edit) {
     return <Editable value={value} onCommit={(v) => set(k, v)} label={label || k} placeholder={placeholder || label || k} className={underline ? 'kp-ed-u' : ''} />
   }
   if (!value) return blank ? <span className="kp-u" style={{ minWidth: `${minCh}ch` }}>&nbsp;</span> : null
-  return <span className={cls}>{value}</span>
+  return <span className={bold ? 'kp-bold' : undefined}>{value}</span>
+}
+
+function NameLine({ k, label, className = '' }) {
+  const { fields, edit } = useDoc()
+  const filled = !edit && !!fields[k]
+  return (
+    <div className={`kp-name ${filled ? 'kp-filled' : ''} ${className}`}>
+      <T k={k} label={label} blank={false} />
+    </div>
+  )
 }
 
 export function D({ k, label }) {
@@ -69,9 +78,9 @@ export function D({ k, label }) {
   const p = dateParts(iso)
   return (
     <>
-      <span className="kp-u" style={{ minWidth: '4ch' }}>{p ? p.day : '\u00A0'}</span> day of{' '}
-      <span className="kp-u" style={{ minWidth: '11ch' }}>{p ? p.month : '\u00A0'}</span>,{' '}
-      <span className="kp-u" style={{ minWidth: '5ch' }}>{p ? p.year : '\u00A0'}</span>
+      {p ? p.day : <span className="kp-u" style={{ minWidth: '4ch' }}>{'\u00A0'}</span>} day of{' '}
+      {p ? p.month : <span className="kp-u" style={{ minWidth: '11ch' }}>{'\u00A0'}</span>},{' '}
+      {p ? p.year : <span className="kp-u" style={{ minWidth: '5ch' }}>{'\u00A0'}</span>}
     </>
   )
 }
@@ -81,7 +90,7 @@ export function Ruled({ k, label, lines = 3 }) {
   const value = fields[k] ?? ''
   const style = { minHeight: `${lines * 28}px` }
   return (
-    <div className="kp-ruled" style={style}>
+    <div className={`kp-ruled ${!edit && value ? 'kp-filled' : ''}`} style={style}>
       {edit ? <Editable block value={value} onCommit={(v) => set(k, v)} label={label} placeholder={`Type: ${label}`} /> : value}
     </div>
   )
@@ -111,14 +120,10 @@ export function PartyCaption() {
   return (
     <div className="kp-caption">
       <div>
-        <div className="kp-name">
-          <T k="complainant" label="Complainant name" blank={false} />
-        </div>
+        <NameLine k="complainant" label="Complainant name" />
         <div className="kp-label">Complainant/s</div>
         <div className="kp-center kp-against">— against —</div>
-        <div className="kp-name">
-          <T k="respondent" label="Respondent name" blank={false} />
-        </div>
+        <NameLine k="respondent" label="Respondent name" />
         <div className="kp-label">Respondent/s</div>
       </div>
       <div>
@@ -194,9 +199,7 @@ export function ToBlock({ left, right }) {
       <div>TO:</div>
       {[left, right].filter(Boolean).map((side) => (
         <div key={side.label}>
-          <div className="kp-name">
-            <T k={side.k} label={side.fieldLabel || side.label} blank={false} />
-          </div>
+          <NameLine k={side.k} label={side.fieldLabel || side.label} />
           <div className="kp-name" />
           <div className="kp-label">{side.label}</div>
         </div>
@@ -211,7 +214,7 @@ export function SignRow({ labels }) {
       {labels.map((l) => (
         <div key={l.label}>
           <div className="kp-label kp-bold" style={{ textAlign: 'left' }}>{l.label}</div>
-          <div className="kp-name kp-name-sig">{l.nameKey ? <T k={l.nameKey} label={l.label} blank={false} /> : null}</div>
+          {l.nameKey ? <NameLine k={l.nameKey} label={l.label} className="kp-name-sig" /> : <div className="kp-name kp-name-sig" />}
           <div className="kp-name kp-name-sig" />
         </div>
       ))}

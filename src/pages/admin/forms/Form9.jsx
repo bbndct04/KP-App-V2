@@ -12,7 +12,7 @@ function Body() {
       <FormTitle>SUMMONS</FormTitle>
 
       <Para>
-        TO: <T k="respondent" label="Respondent name" underline /> <T k="respondentAddress" label="Respondent address" underline minCh={16} />
+        TO: <T k="respondent" label="Respondent name" underline />, <T k="respondentAddress" label="Respondent address" underline minCh={16} />
         <span className="kp-center kp-label" style={{ display: 'block' }}>Respondents</span>
       </Para>
 
