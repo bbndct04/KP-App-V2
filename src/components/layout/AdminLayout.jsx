@@ -25,6 +25,9 @@ import { useTheme } from '../../context/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 import useIdleLogout, { clearIdle } from '../../lib/useIdleLogout'
+import LanguageSwitch from '../LanguageSwitch'
+import { translateAdminNotification } from '../../i18n/notificationText'
+import { useT } from '../../i18n/LanguageContext'
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: MdOutlineDashboard },
@@ -44,6 +47,7 @@ const TOAST = {
 }
 
 function ThemeToggle() {
+  const { t } = useT()
   const { theme, setLight, setDark } = useTheme()
   const btn = (active) =>
     `flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-sm font-semibold transition-colors ${
@@ -52,16 +56,17 @@ function ThemeToggle() {
   return (
     <div className="flex items-center gap-1 p-1 rounded-lg bg-surface-sunken border border-border mb-2.5">
       <button onClick={setLight} aria-pressed={theme === 'light'} className={btn(theme === 'light')}>
-        <MdOutlineLightMode className="text-lg" aria-hidden="true" /> Light
+        <MdOutlineLightMode className="text-lg" aria-hidden="true" />{t('Light')}
       </button>
       <button onClick={setDark} aria-pressed={theme === 'dark'} className={btn(theme === 'dark')}>
-        <MdOutlineDarkMode className="text-lg" aria-hidden="true" /> Dark
+        <MdOutlineDarkMode className="text-lg" aria-hidden="true" />{t('Dark')}
       </button>
     </div>
   )
 }
 
 function AdminLayout({ title, children }) {
+  const { t , lang } = useT()
   const { profile, user, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -83,7 +88,7 @@ function AdminLayout({ title, children }) {
   useIdleLogout(!!user, idleLogout)
 
   function dismissToast(id) {
-    setToasts((t) => t.filter((x) => x.id !== id))
+    setToasts((list) => list.filter((x) => x.id !== id))
   }
 
   useEffect(() => {
@@ -114,7 +119,7 @@ function AdminLayout({ title, children }) {
           const n = payload.new
           setUnreadCount((c) => c + 1)
           loadAwaiting()
-          setToasts((t) => [...t.slice(-2), n])
+          setToasts((list) => [...list.slice(-2), n])
           setTimeout(() => dismissToast(n.id), 7000)
         }
       )
@@ -133,13 +138,13 @@ function AdminLayout({ title, children }) {
       <div className="px-5 py-4 border-b border-border flex items-center gap-3">
         <img src={logo} alt="KP App logo" className="w-10 h-10 rounded-full" />
         <div>
-          <div className="text-ink text-base font-bold">KP App</div>
-          <div className="text-ink-faint text-xs uppercase tracking-wide">Admin Panel</div>
+          <div className="text-ink text-base font-bold">{t('KP App')}</div>
+          <div className="text-ink-faint text-xs uppercase tracking-wide">{t('Admin Panel')}</div>
         </div>
       </div>
 
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2">Menu</div>
+        <div className="text-ink-faint text-xs font-bold uppercase tracking-wide px-3 pb-2">{t('Menu')}</div>
         {navItems.map((item) => {
           const Icon = item.icon
           const count = item.to === '/admin/notifications' ? badgeCount : item.to === '/admin/complaints' ? awaiting : 0
@@ -156,7 +161,7 @@ function AdminLayout({ title, children }) {
               }
             >
               <Icon className="text-[22px] flex-shrink-0" aria-hidden="true" />
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1">{t(item.label)}</span>
               {showBadge && (
                 <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-danger-strong text-white text-xs font-bold flex items-center justify-center">
                   {count > 9 ? '9+' : count}
@@ -185,7 +190,7 @@ function AdminLayout({ title, children }) {
           }}
           className="w-full flex items-center gap-3 text-ink-soft hover:text-ink hover:bg-surface-hover rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors"
         >
-          <MdLogout className="text-[22px]" aria-hidden="true" /> Log Out
+          <MdLogout className="text-[22px]" aria-hidden="true" />{t('Log Out')}
         </button>
       </div>
     </>
@@ -211,16 +216,17 @@ function AdminLayout({ title, children }) {
         <header className="h-16 bg-surface border-b border-border flex items-center gap-3 px-4 md:px-7 flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
+            aria-label={t('Open menu')}
             className="md:hidden w-10 h-10 rounded-lg hover:bg-surface-hover flex items-center justify-center text-ink"
           >
             <MdMenu className="text-2xl" aria-hidden="true" />
           </button>
           <div className="text-ink text-lg font-bold truncate">{title}</div>
           <div className="flex-1" />
+          <LanguageSwitch className="flex-shrink-0" />
           <NavLink
             to="/admin/notifications"
-            aria-label={badgeCount > 0 ? `Notifications, ${badgeCount} unread` : 'Notifications'}
+            aria-label={badgeCount > 0 ? t('Notifications, {n} unread', { n: badgeCount }) : t('Notifications')}
             className="relative w-10 h-10 rounded-lg hover:bg-surface-hover flex items-center justify-center text-ink-soft transition-colors flex-shrink-0"
           >
             <MdOutlineNotifications className="text-2xl" aria-hidden="true" />
@@ -238,29 +244,29 @@ function AdminLayout({ title, children }) {
       </div>
 
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2.5 w-[calc(100%-2rem)] max-w-[380px]">
-        {toasts.map((t) => {
-          const s = TOAST[t.type] || TOAST.info
+        {toasts.map((toast) => {
+          const s = TOAST[toast.type] || TOAST.info
           const Icon = s.icon
           return (
-            <div key={t.id} role="status" className={`bg-surface border-2 ${s.border} rounded-xl p-4 shadow-token-lg flex gap-3`}>
+            <div key={toast.id} role="status" className={`bg-surface border-2 ${s.border} rounded-xl p-4 shadow-token-lg flex gap-3`}>
               <Icon className={`text-2xl flex-shrink-0 ${s.color}`} aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3 mb-1">
-                  <div className="text-ink text-sm font-bold">{(t.title || '').replace(/^[^\p{L}\p{N}]+/u, '') || 'Notification'}</div>
-                  <button onClick={() => dismissToast(t.id)} aria-label="Dismiss" className="text-ink-faint hover:text-ink">
+                  <div className="text-ink text-sm font-bold">{t((toast.title || '').replace(/^[^\p{L}\p{N}]+/u, '') || 'Notification')}</div>
+                  <button onClick={() => dismissToast(toast.id)} aria-label={t('Dismiss')} className="text-ink-faint hover:text-ink">
                     <MdClose className="text-lg" aria-hidden="true" />
                   </button>
                 </div>
-                <div className="text-ink-soft text-sm leading-relaxed mb-2">{t.message}</div>
-                {t.complaint_id && (
+                <div className="text-ink-soft text-sm leading-relaxed mb-2">{translateAdminNotification(toast.message, lang)}</div>
+                {toast.complaint_id && (
                   <button
                     onClick={() => {
-                      dismissToast(t.id)
-                      navigate(`/admin/complaints/${t.complaint_id}`)
+                      dismissToast(toast.id)
+                      navigate(`/admin/complaints/${toast.complaint_id}`)
                     }}
                     className="text-accent text-sm font-semibold"
                   >
-                    {(t.title || '').includes('New Complaint') ? 'Review complaint' : 'Open case'} →
+                    {(toast.title || '').includes('New Complaint') ? t('Review complaint') : t('Open case')} →
                   </button>
                 )}
               </div>

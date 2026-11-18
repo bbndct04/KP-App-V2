@@ -6,8 +6,10 @@ import { supabase } from '../../lib/supabaseClient'
 import { Card, CardHeader, Button, Field, Input, Select, StatusBadge } from '../ui'
 import { currentMonth, longDate } from '../../lib/reports'
 import { PURPOSES, RELATIONS } from '../../lib/outcomes'
+import { useT } from '../../i18n/LanguageContext'
 
 function RequestDialog({ complaint, onClose }) {
+  const { t } = useT()
   const navigate = useNavigate()
   const [form, setForm] = useState({ document: 'certification', name: complaint?.complainant_name || '', relation: 'Complainant', relationOther: '', purpose: PURPOSES[0], purposeOther: '' })
   const [saving, setSaving] = useState(false)
@@ -48,17 +50,17 @@ function RequestDialog({ complaint, onClose }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-ink text-lg font-bold">Release a case record</div>
+            <div className="text-ink text-lg font-bold">{t('Release a case record')}</div>
             <div className="text-ink-soft text-sm mt-0.5">
-              {complaint.reference_number} · {complaint.complainant_name} against {complaint.respondent_name}
+              {complaint.reference_number} · {t('{a} against {b}', { a: complaint.complainant_name, b: complaint.respondent_name })}
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-ink-faint hover:text-ink p-1">
+          <button type="button" onClick={onClose} aria-label={t('Close')} className="text-ink-faint hover:text-ink p-1">
             <MdClose className="text-xl" aria-hidden="true" />
           </button>
         </div>
 
-        <Field label="Document">
+        <Field label={t('Document')}>
           <div className="grid grid-cols-2 gap-2">
             {[
               ['certification', 'Certification', 'Short, signed status of the case'],
@@ -71,44 +73,43 @@ function RequestDialog({ complaint, onClose }) {
                 aria-pressed={form.document === value}
                 className={`text-left rounded-xl border p-3 transition-colors ${form.document === value ? 'border-accent bg-accent-soft' : 'border-border hover:bg-surface-hover'}`}
               >
-                <div className="text-ink text-sm font-semibold">{label}</div>
-                <div className="text-ink-faint text-xs mt-0.5">{hint}</div>
+                <div className="text-ink text-sm font-semibold">{t(label)}</div>
+                <div className="text-ink-faint text-xs mt-0.5">{t(hint)}</div>
               </button>
             ))}
           </div>
         </Field>
 
-        <Field label="Requested by (relation to the case)" required>
+        <Field label={t('Requested by (relation to the case)')} required>
           <Select value={form.relation} onChange={pickRelation}>
             {RELATIONS.map((r) => (
-              <option key={r}>{r}</option>
+              <option key={r} value={r}>{t(r)}</option>
             ))}
           </Select>
         </Field>
         {form.relation === 'Other' && (
-          <Field label="Specify relation" required>
-            <Input value={form.relationOther} onChange={set('relationOther')} required placeholder="e.g. Spouse of the complainant" />
+          <Field label={t('Specify relation')} required>
+            <Input value={form.relationOther} onChange={set('relationOther')} required placeholder={t('e.g. Spouse of the complainant')} />
           </Field>
         )}
-        <Field label="Requester's full name" required hint="Check a valid ID before releasing.">
+        <Field label={t("Requester's full name")} required hint={t('Check a valid ID before releasing.')}>
           <Input value={form.name} onChange={set('name')} required />
         </Field>
-        <Field label="Purpose" required>
+        <Field label={t('Purpose')} required>
           <Select value={form.purpose} onChange={set('purpose')}>
             {PURPOSES.map((p) => (
-              <option key={p}>{p}</option>
+              <option key={p} value={p}>{t(p)}</option>
             ))}
           </Select>
         </Field>
         {form.purpose === 'Other' && (
-          <Field label="Specify purpose" required>
-            <Input value={form.purposeOther} onChange={set('purposeOther')} required placeholder="e.g. Loan application" />
+          <Field label={t('Specify purpose')} required>
+            <Input value={form.purposeOther} onChange={set('purposeOther')} required placeholder={t('e.g. Loan application')} />
           </Field>
         )}
 
         <div className="bg-surface-sunken rounded-xl px-3.5 py-2.5 text-xs text-ink-soft leading-relaxed">
-          Case records contain personal information. Release them only to the parties, their authorized representative with a signed authorization, or a
-          court or government office. This request is logged.
+          {t('Case records contain personal information. Release them only to the parties, their authorized representative with a signed authorization, or a court or government office. This request is logged.')}
         </div>
 
         {error && (
@@ -118,10 +119,10 @@ function RequestDialog({ complaint, onClose }) {
         )}
         <div className="flex gap-2.5 justify-end">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button type="submit" icon={MdOutlinePrint} disabled={saving}>
-            {saving ? 'Saving...' : 'Log and open'}
+            {saving ? t('Saving...') : t('Log and open')}
           </Button>
         </div>
       </form>
@@ -131,6 +132,7 @@ function RequestDialog({ complaint, onClose }) {
 }
 
 function PrintReports() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [month, setMonth] = useState(currentMonth())
   const [cases, setCases] = useState([])
@@ -165,31 +167,31 @@ function PrintReports() {
   return (
     <div className="grid lg:grid-cols-2 gap-5 mb-5">
       <Card>
-        <CardHeader icon={MdOutlineSummarize} title="Monthly KP report" subtitle="Printable report for submission and documentation" />
+        <CardHeader icon={MdOutlineSummarize} title={t('Monthly KP report')} subtitle={t('Printable report for submission and documentation')} />
         <div className="p-5 flex flex-col gap-4">
           <p className="text-ink-soft text-sm">
-            Lists the cases filed or acted on during the month, with totals for settled, CFA, dismissed and pending cases, ready to sign.
+            {t('Lists the cases filed or acted on during the month, with totals for settled, CFA, dismissed and pending cases, ready to sign.')}
           </p>
           <div className="flex flex-col sm:flex-row gap-2.5">
-            <Input type="month" value={month} max={currentMonth()} onChange={(e) => setMonth(e.target.value)} aria-label="Report month" className="sm:max-w-[220px]" />
+            <Input type="month" value={month} max={currentMonth()} onChange={(e) => setMonth(e.target.value)} aria-label={t('Report month')} className="sm:max-w-[220px]" />
             <Button icon={MdOutlinePrint} disabled={!month} onClick={() => navigate(`/admin/reports/monthly?m=${month}`)}>
-              Open report
+              {t('Open report')}
             </Button>
           </div>
         </div>
       </Card>
 
       <Card className="overflow-visible">
-        <CardHeader icon={MdOutlineFindInPage} title="Case record request" subtitle="Print a certification or full record for a requester" />
+        <CardHeader icon={MdOutlineFindInPage} title={t('Case record request')} subtitle={t('Print a certification or full record for a requester')} />
         <div className="p-5 flex flex-col gap-3">
           <div className="relative">
             <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-ink-faint pointer-events-none" aria-hidden="true" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Case number or name of a party" aria-label="Find a case" className="pl-10" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Case number or name of a party')} aria-label={t('Find a case')} className="pl-10" />
           </div>
           {search.trim() && (
             <ul className="border border-border rounded-xl divide-y divide-border overflow-hidden">
               {matches.length === 0 ? (
-                <li className="px-4 py-3 text-sm text-ink-faint">No matching case.</li>
+                <li className="px-4 py-3 text-sm text-ink-faint">{t('No matching case.')}</li>
               ) : (
                 matches.map((c) => (
                   <li key={c.id}>
@@ -197,7 +199,7 @@ function PrintReports() {
                       <div className="min-w-0 flex-1">
                         <div className="text-ink text-sm font-semibold">{c.reference_number}</div>
                         <div className="text-ink-faint text-xs truncate">
-                          {c.complainant_name} against {c.respondent_name} · {c.category}
+                          {t('{a} against {b}', { a: c.complainant_name, b: c.respondent_name })} · {t(c.category)}
                         </div>
                       </div>
                       <StatusBadge status={c.status} />
@@ -209,10 +211,10 @@ function PrintReports() {
           )}
 
           <div className="flex items-center gap-2 text-ink-soft text-xs font-semibold uppercase tracking-wide mt-2">
-            <MdOutlineHistory className="text-base" aria-hidden="true" /> Recently released
+            <MdOutlineHistory className="text-base" aria-hidden="true" />{t('Recently released')}
           </div>
           {requests.length === 0 ? (
-            <div className="text-ink-faint text-sm">No records released yet.</div>
+            <div className="text-ink-faint text-sm">{t('No records released yet.')}</div>
           ) : (
             <ul className="divide-y divide-border">
               {requests.map((r) => (

@@ -5,12 +5,13 @@ import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, Input, EmptyState, SkeletonRows } from '../../components/ui'
 import { INTAKE_STATUSES } from '../../components/status'
+import { useT } from '../../i18n/LanguageContext'
 
-function waitInfo(createdAt, now) {
+function waitInfo(createdAt, now, t) {
   const days = Math.floor((now - new Date(createdAt).getTime()) / 86400000)
-  if (days < 1) return { label: 'Today', cls: 'bg-surface-sunken text-ink-soft' }
-  if (days === 1) return { label: '1 day', cls: 'bg-warning-soft text-warning-strong' }
-  return { label: `${days} days`, cls: 'bg-danger-soft text-danger-strong' }
+  if (days < 1) return { label: t('Today'), cls: 'bg-surface-sunken text-ink-soft' }
+  if (days === 1) return { label: t('1 day'), cls: 'bg-warning-soft text-warning-strong' }
+  return { label: t('{n} days', { n: days }), cls: 'bg-danger-soft text-danger-strong' }
 }
 
 function shortDate(d) {
@@ -18,6 +19,7 @@ function shortDate(d) {
 }
 
 function AdminComplaints() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,13 +64,13 @@ function AdminComplaints() {
         tab === key ? 'bg-accent border-accent text-accent-ink' : 'bg-surface border-border text-ink-soft hover:bg-surface-hover'
       }`}
     >
-      {label} <span className="ml-1 opacity-80">{count}</span>
+      {t(label)} <span className="ml-1 opacity-80">{count}</span>
     </button>
   )
 
   return (
-    <AdminLayout title="New Complaints">
-      <p className="text-ink-soft text-sm mb-4">Review complaints submitted by residents</p>
+    <AdminLayout title={t('New Complaints')}>
+      <p className="text-ink-soft text-sm mb-4">{t('Review complaints submitted by residents')}</p>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         {tabBtn('submitted', 'Awaiting review', awaiting.length)}
@@ -81,8 +83,8 @@ function AdminComplaints() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or ref. no."
-            aria-label="Search complaints"
+            placeholder={t('Search by name or ref. no.')}
+            aria-label={t('Search complaints')}
             className="pl-10"
           />
         </div>
@@ -93,17 +95,17 @@ function AdminComplaints() {
           <SkeletonRows rows={5} />
         ) : list.length === 0 ? (
           s ? (
-            <EmptyState icon={MdOutlineSearchOff} title="No matching complaints" message="Try a different name or reference number." />
+            <EmptyState icon={MdOutlineSearchOff} title={t('No matching complaints')} message={t('Try a different name or reference number.')} />
           ) : tab === 'submitted' ? (
-            <EmptyState icon={MdOutlineTaskAlt} title="You're all caught up" message="There are no complaints waiting for review." />
+            <EmptyState icon={MdOutlineTaskAlt} title={t("You're all caught up")} message={t('There are no complaints waiting for review.')} />
           ) : (
-            <EmptyState icon={MdOutlineBlock} title="No declined complaints" message="Complaints you decline will be listed here." />
+            <EmptyState icon={MdOutlineBlock} title={t('No declined complaints')} message={t('Complaints you decline will be listed here.')} />
           )
         ) : (
           <>
             <ul className="sm:hidden divide-y divide-border">
               {list.map((c) => {
-                const w = waitInfo(c.created_at, now)
+                const w = waitInfo(c.created_at, now, t)
                 return (
                   <li key={c.id}>
                     <Link to={`/admin/complaints/${c.id}`} className="block px-5 py-4 active:bg-surface-hover transition-colors">
@@ -112,12 +114,12 @@ function AdminComplaints() {
                         {tab === 'submitted' && <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${w.cls}`}>{w.label}</span>}
                       </div>
                       <div className="text-ink text-sm font-medium mb-0.5">{c.profiles?.full_name || c.complainant_name || '—'}</div>
-                      <div className="text-ink-soft text-sm mb-2">{c.category}</div>
+                      <div className="text-ink-soft text-sm mb-2">{t(c.category)}</div>
                       {tab === 'declined' && c.declined_reason && <div className="text-ink-faint text-xs mb-2 line-clamp-2">{c.declined_reason}</div>}
                       <div className="flex items-center justify-between">
                         <span className="text-ink-faint text-xs">{shortDate(tab === 'declined' && c.reviewed_at ? c.reviewed_at : c.created_at)}</span>
                         <span className="text-accent text-sm font-semibold flex items-center gap-1">
-                          {tab === 'submitted' ? 'Review' : 'Open'} <MdArrowForward aria-hidden="true" />
+                          {tab === 'submitted' ? t('Review') : t('Open')} <MdArrowForward aria-hidden="true" />
                         </span>
                       </div>
                     </Link>
@@ -130,19 +132,19 @@ function AdminComplaints() {
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Case</th>
-                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Complainant</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">{t('Case')}</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Complainant')}</th>
                     {tab === 'submitted' ? (
-                      <th className="px-4 py-3 font-semibold whitespace-nowrap">Waiting</th>
+                      <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Waiting')}</th>
                     ) : (
-                      <th className="px-4 py-3 font-semibold whitespace-nowrap">Reason</th>
+                      <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Reason')}</th>
                     )}
                     <th className={`px-4 py-3 sticky right-0 bg-surface shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]`}></th>
                   </tr>
                 </thead>
                 <tbody className="stagger">
                   {list.map((c) => {
-                    const w = waitInfo(c.created_at, now)
+                    const w = waitInfo(c.created_at, now, t)
                     return (
                       <tr
                         key={c.id}
@@ -152,7 +154,7 @@ function AdminComplaints() {
                         <td className="px-5 py-3">
                           <div className="text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</div>
                           <div className="text-ink-soft text-xs max-w-[240px] truncate">
-                            {c.category} · {shortDate(tab === 'submitted' ? c.created_at : c.reviewed_at || c.created_at)}
+                            {t(c.category)} · {shortDate(tab === 'submitted' ? c.created_at : c.reviewed_at || c.created_at)}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-ink text-sm max-w-[200px] truncate">{c.profiles?.full_name || c.complainant_name || '—'}</td>
@@ -169,7 +171,7 @@ function AdminComplaints() {
                             onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center gap-1 h-9 px-3.5 rounded-lg bg-accent text-accent-ink text-sm font-semibold whitespace-nowrap hover:bg-accent-hover"
                           >
-                            {tab === 'submitted' ? 'Review' : 'Open'} <MdArrowForward aria-hidden="true" />
+                            {tab === 'submitted' ? t('Review') : t('Open')} <MdArrowForward aria-hidden="true" />
                           </Link>
                         </td>
                       </tr>

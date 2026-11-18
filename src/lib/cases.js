@@ -69,33 +69,33 @@ export function caseDeadline(c, stageDates = {}) {
   }
   if (c.status === 'filed') {
     const days = elapsedDays(c.reviewed_at || c.created_at)
-    return days > 3 ? { label: 'Summons overdue', tone: 'danger' } : { label: `Day ${days} · issue summons`, tone: 'neutral' }
+    return days > 3 ? { label: 'Summons overdue', tone: 'danger' } : { label: 'Day {n} · issue summons', vars: { n: days }, tone: 'neutral' }
   }
   if (c.status === 'summoned' || c.status === 'mediation') {
     const days = elapsedDays(stageDates.summoned || c.reviewed_at || c.created_at)
-    if (days > 15) return { label: `Mediation overdue · day ${days}`, tone: 'danger' }
-    return { label: `Mediation day ${days} of 15`, tone: days >= 12 ? 'warning' : 'neutral' }
+    if (days > 15) return { label: 'Mediation overdue · day {n}', vars: { n: days }, tone: 'danger' }
+    return { label: 'Mediation day {n} of 15', vars: { n: days }, tone: days >= 12 ? 'warning' : 'neutral' }
   }
   if (c.status === 'pangkat_formed' || c.status === 'pangkat_hearing') {
     const days = elapsedDays(stageDates.pangkat_formed || c.reviewed_at || c.created_at)
-    if (days > 30) return { label: `Pangkat overdue · day ${days}`, tone: 'danger' }
-    if (days > 15) return { label: `Extension day ${days} of 30`, tone: 'warning' }
-    return { label: `Pangkat day ${days} of 15`, tone: days >= 12 ? 'warning' : 'neutral' }
+    if (days > 30) return { label: 'Pangkat overdue · day {n}', vars: { n: days }, tone: 'danger' }
+    if (days > 15) return { label: 'Extension day {n} of 30', vars: { n: days }, tone: 'warning' }
+    return { label: 'Pangkat day {n} of 15', vars: { n: days }, tone: days >= 12 ? 'warning' : 'neutral' }
   }
   if (c.status === 'arbitration') {
     const days = elapsedDays(stageDates.arbitration || c.reviewed_at || c.created_at)
-    return days > 15 ? { label: `Arbitration day ${days} · award due`, tone: 'warning' } : { label: `Arbitration day ${days}`, tone: 'neutral' }
+    return days > 15 ? { label: 'Arbitration day {n} · award due', vars: { n: days }, tone: 'warning' } : { label: 'Arbitration day {n}', vars: { n: days }, tone: 'neutral' }
   }
   if (c.status === 'settled' && c.settled_at) {
     const left = Math.ceil((new Date(c.settled_at).getTime() + 10 * 86400000 - Date.now()) / 86400000)
     return left > 0
-      ? { label: `Repudiation: ${left} day${left === 1 ? '' : 's'} left`, tone: 'neutral' }
+      ? { label: left === 1 ? 'Repudiation: 1 day left' : 'Repudiation: {n} days left', vars: { n: left }, tone: 'neutral' }
       : { label: 'Final · record compliance', tone: 'warning' }
   }
   if (c.status === 'execution' && c.settled_at) {
     const left = Math.ceil((new Date(c.settled_at).getTime() + 182 * 86400000 - Date.now()) / 86400000)
     if (left <= 0) return { label: 'Execution period lapsed', tone: 'danger' }
-    return { label: `Execution: ${left} days left`, tone: left <= 30 ? 'warning' : 'neutral' }
+    return { label: 'Execution: {n} days left', vars: { n: left }, tone: left <= 30 ? 'warning' : 'neutral' }
   }
   return null
 }

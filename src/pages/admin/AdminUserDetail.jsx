@@ -24,6 +24,7 @@ import { Card, CardHeader, Button, Field, Select, StatusBadge, EmptyState, Skele
 import { POSITIONS, isOfficial } from '../../lib/accounts'
 import { formatDate } from '../../lib/cases'
 import { Avatar, UserBadges, StatusDialog } from '../../components/admin/UserBits'
+import { useT } from '../../i18n/LanguageContext'
 
 function formatDateTime(d) {
   return new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -42,6 +43,7 @@ function InfoRow({ icon: Icon, label, value }) {
 }
 
 function AdminUserDetail() {
+  const { t } = useT()
   const { id } = useParams()
   const { user: me } = useAuth()
   const toast = useToast()
@@ -89,7 +91,7 @@ function AdminUserDetail() {
     setSavingRole(false)
     setConfirmRole(false)
     if (error) return toast.error(error.message)
-    toast.success('Role updated.')
+    toast.success(t('Role updated.'))
     load()
   }
 
@@ -99,19 +101,19 @@ function AdminUserDetail() {
     setRestoring(false)
     setConfirmRestore(false)
     if (error) return toast.error(error.message)
-    toast.success(`${u.full_name}'s account has been restored.`)
+    toast.success(t("{name}'s account has been restored.", { name: u.full_name }))
     load()
   }
 
   const back = (
     <Link to="/admin/users" className="inline-flex items-center gap-1.5 text-accent text-sm font-semibold mb-4">
-      <MdArrowBack aria-hidden="true" /> All users
+      <MdArrowBack aria-hidden="true" />{t('All users')}
     </Link>
   )
 
   if (loading) {
     return (
-      <AdminLayout title="User">
+      <AdminLayout title={t('User')}>
         {back}
         <Card>
           <SkeletonRows rows={5} />
@@ -122,10 +124,10 @@ function AdminUserDetail() {
 
   if (!u) {
     return (
-      <AdminLayout title="User">
+      <AdminLayout title={t('User')}>
         {back}
         <Card>
-          <EmptyState icon={MdOutlinePersonSearch} title="User not found" message="This account may have been deleted." />
+          <EmptyState icon={MdOutlinePersonSearch} title={t('User not found')} message={t('This account may have been deleted.')} />
         </Card>
       </AdminLayout>
     )
@@ -134,7 +136,7 @@ function AdminUserDetail() {
   const limited = u.effective_status !== 'active'
 
   return (
-    <AdminLayout title="User">
+    <AdminLayout title={t('User')}>
       {back}
 
       <Card className="p-5 mb-5">
@@ -142,7 +144,7 @@ function AdminUserDetail() {
           <Avatar name={u.full_name} size="w-14 h-14 text-lg" />
           <div className="min-w-0 flex-1">
             <div className="text-ink text-xl font-bold">
-              {u.full_name || '—'} {self && <span className="text-ink-faint text-base font-normal">(You)</span>}
+              {u.full_name || '—'} {self && <span className="text-ink-faint text-base font-normal">{t('(You)')}</span>}
             </div>
             <div className="text-ink-faint text-sm mb-2 break-all">{u.email}</div>
             <UserBadges u={u} />
@@ -151,22 +153,22 @@ function AdminUserDetail() {
         {limited && (
           <div className="mt-4 bg-danger-soft border border-danger-strong/20 rounded-xl px-4 py-3 text-sm text-danger-strong">
             <div className="font-semibold">
-              {u.effective_status === 'blocked' ? 'Blocked' : 'Restricted from filing'}
-              {u.status_until ? ` until ${formatDateTime(u.status_until)}` : ' until removed'}
+              {u.effective_status === 'blocked' ? t('Blocked') : t('Restricted from filing')}
+              {u.status_until ? ` ${t('until {date}', { date: formatDateTime(u.status_until) })}` : ` ${t('until removed')}`}
             </div>
-            {u.status_reason && <div className="mt-0.5">Reason: {u.status_reason}</div>}
+            {u.status_reason && <div className="mt-0.5">{t('Reason:')} {u.status_reason}</div>}
           </div>
         )}
       </Card>
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-5 items-start">
         <div className="flex flex-col gap-5 min-w-0">
-          {!official && <IdentityPanel userId={u.id} title="Identity" onChange={load} />}
+          {!official && <IdentityPanel userId={u.id} title={t('Identity')} onChange={load} />}
 
           <Card className="overflow-hidden">
-            <CardHeader icon={MdOutlineFolderOpen} title="Complaints filed" subtitle={`${complaints.length} total`} />
+            <CardHeader icon={MdOutlineFolderOpen} title={t('Complaints filed')} subtitle={`${complaints.length} total`} />
             {complaints.length === 0 ? (
-              <EmptyState icon={MdOutlineFolderOpen} title="No complaints yet" />
+              <EmptyState icon={MdOutlineFolderOpen} title={t('No complaints yet')} />
             ) : (
               <ul className="divide-y divide-border">
                 {complaints.map((c) => (
@@ -175,8 +177,8 @@ function AdminUserDetail() {
                       <div className="min-w-0 flex-1">
                         <div className="text-ink text-sm font-semibold">{c.reference_number}</div>
                         <div className="text-ink-faint text-xs truncate">
-                          {c.category}
-                          {c.respondent_name ? ` · against ${c.respondent_name}` : ''} · {formatDate(c.created_at)}
+                          {t(c.category)}
+                          {c.respondent_name ? ` · ${t('against {b}', { b: c.respondent_name })}` : ''} · {formatDate(c.created_at)}
                         </div>
                       </div>
                       <StatusBadge status={c.status} />
@@ -189,16 +191,16 @@ function AdminUserDetail() {
           </Card>
 
           <Card className="overflow-hidden">
-            <CardHeader icon={MdOutlineHistory} title="Account history" subtitle="Role changes, verification, restrictions and ID views" />
+            <CardHeader icon={MdOutlineHistory} title={t('Account history')} subtitle={t('Role changes, verification, restrictions and ID views')} />
             {history.length === 0 ? (
-              <EmptyState icon={MdOutlineHistory} title="No activity recorded yet" />
+              <EmptyState icon={MdOutlineHistory} title={t('No activity recorded yet')} />
             ) : (
               <ul className="divide-y divide-border">
                 {history.map((h) => (
                   <li key={h.id} className="px-5 py-3">
                     <div className="text-ink text-sm">{h.details}</div>
                     <div className="text-ink-faint text-xs mt-0.5">
-                      {h.actor_name || 'System'} · {formatDateTime(h.created_at)}
+                      {h.actor_name || t('System')} · {formatDateTime(h.created_at)}
                     </div>
                   </li>
                 ))}
@@ -209,10 +211,10 @@ function AdminUserDetail() {
 
         <div className="flex flex-col gap-5">
           <Card className="px-5 py-2">
-            <InfoRow icon={MdOutlinePhone} label="Contact number" value={u.contact_number} />
-            <InfoRow icon={MdOutlineMail} label="Email" value={`${u.email}${u.email_confirmed ? '' : ' (not confirmed)'}`} />
-            <InfoRow icon={MdOutlineCalendarToday} label="Joined" value={formatDate(u.created_at)} />
-            <InfoRow icon={MdOutlineLogin} label="Last active" value={u.last_sign_in_at ? formatDateTime(u.last_sign_in_at) : 'Never'} />
+            <InfoRow icon={MdOutlinePhone} label={t('Contact number')} value={u.contact_number} />
+            <InfoRow icon={MdOutlineMail} label={t('Email')} value={`${u.email}${u.email_confirmed ? '' : ` (${t('not confirmed')})`}`} />
+            <InfoRow icon={MdOutlineCalendarToday} label={t('Joined')} value={formatDate(u.created_at)} />
+            <InfoRow icon={MdOutlineLogin} label={t('Last active')} value={u.last_sign_in_at ? formatDateTime(u.last_sign_in_at) : t('Never')} />
           </Card>
 
           <Card className="p-5 flex flex-col gap-4">
@@ -220,19 +222,19 @@ function AdminUserDetail() {
               <MdOutlineAdminPanelSettings className="text-xl text-accent" aria-hidden="true" /> Role & position
             </div>
             {self ? (
-              <p className="text-ink-faint text-sm">You can't change your own role. Ask another admin.</p>
+              <p className="text-ink-faint text-sm">{t("You can't change your own role. Ask another admin.")}</p>
             ) : (
               <>
-                <Field label="Role">
+                <Field label={t('Role')}>
                   <Select value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="resident">Resident</option>
-                    <option value="admin">Barangay official (admin)</option>
+                    <option value="resident">{t('Resident')}</option>
+                    <option value="admin">{t('Barangay official (admin)')}</option>
                   </Select>
                 </Field>
                 {role === 'admin' && (
-                  <Field label="Position" hint="Used to fill names on KP forms.">
+                  <Field label={t('Position')} hint={t('Used to fill names on KP forms.')}>
                     <Select value={title} onChange={(e) => setTitle(e.target.value)}>
-                      <option value="">No position</option>
+                      <option value="">{t('No position')}</option>
                       {POSITIONS.map((p) => (
                         <option key={p} value={p}>
                           {p}
@@ -242,7 +244,7 @@ function AdminUserDetail() {
                   </Field>
                 )}
                 <Button disabled={!roleChanged || savingRole} onClick={() => setConfirmRole(true)}>
-                  Save role
+                  {t('Save role')}
                 </Button>
               </>
             )}
@@ -251,26 +253,26 @@ function AdminUserDetail() {
           {!self && !official && (
             <Card className="p-5 flex flex-col gap-3">
               <div className="flex items-center gap-2 text-ink font-semibold">
-                <MdOutlineBlock className="text-xl text-danger-strong" aria-hidden="true" /> Account access
+                <MdOutlineBlock className="text-xl text-danger-strong" aria-hidden="true" />{t('Account access')}
               </div>
               {limited ? (
                 <Button variant="secondary" icon={MdOutlineLockOpen} onClick={() => setConfirmRestore(true)}>
-                  {u.effective_status === 'blocked' ? 'Unblock account' : 'Remove restriction'}
+                  {u.effective_status === 'blocked' ? t('Unblock account') : t('Remove restriction')}
                 </Button>
               ) : (
                 <>
-                  <p className="text-ink-faint text-sm">Use this for spam, fake or abusive complaints.</p>
+                  <p className="text-ink-faint text-sm">{t('Use this for spam, fake or abusive complaints.')}</p>
                   <Button variant="secondary" icon={MdOutlineDoNotDisturbOn} onClick={() => setStatusMode('restricted')}>
-                    Restrict filing
+                    {t('Restrict filing')}
                   </Button>
                   <Button variant="danger" icon={MdOutlineBlock} onClick={() => setStatusMode('blocked')}>
-                    Block account
+                    {t('Block account')}
                   </Button>
                 </>
               )}
               {limited && u.effective_status === 'restricted' && (
                 <Button variant="danger" icon={MdOutlineBlock} onClick={() => setStatusMode('blocked')}>
-                  Block account
+                  {t('Block account')}
                 </Button>
               )}
             </Card>
@@ -282,13 +284,13 @@ function AdminUserDetail() {
       <ConfirmDialog
         open={confirmRole}
         tone="primary"
-        title="Change role?"
+        title={t('Change role?')}
         message={
           role === 'admin'
-            ? `${u.full_name} will get full admin access${title ? ` as ${title}` : ''}, including residents' IDs and all cases.`
-            : `${u.full_name} will lose admin access and become a resident.`
+            ? t(title ? "{name} will get full admin access as {title}, including residents' IDs and all cases." : "{name} will get full admin access, including residents' IDs and all cases.", { name: u.full_name, title })
+            : t('{name} will lose admin access and become a resident.', { name: u.full_name })
         }
-        confirmLabel="Change role"
+        confirmLabel={t('Change role')}
         loading={savingRole}
         onConfirm={saveRole}
         onCancel={() => setConfirmRole(false)}
@@ -296,9 +298,9 @@ function AdminUserDetail() {
       <ConfirmDialog
         open={confirmRestore}
         tone="primary"
-        title={u.effective_status === 'blocked' ? 'Unblock this account?' : 'Remove restriction?'}
-        message={`${u.full_name} will be able to use the app and file complaints again.`}
-        confirmLabel="Restore access"
+        title={u.effective_status === 'blocked' ? t('Unblock this account?') : t('Remove restriction?')}
+        message={t('{name} will be able to use the app and file complaints again.', { name: u.full_name })}
+        confirmLabel={t('Restore access')}
         loading={restoring}
         onConfirm={restore}
         onCancel={() => setConfirmRestore(false)}

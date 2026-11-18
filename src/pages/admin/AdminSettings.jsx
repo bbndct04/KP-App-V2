@@ -5,10 +5,12 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/toastContext'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, CardHeader, Field, Input, Select, Button, Skeleton } from '../../components/ui'
+import { useT } from '../../i18n/LanguageContext'
 
 const EMPTY = { province: '', locality_type: 'City', locality: '', barangay: '', punong_barangay: '', secretary: '' }
 
 function AdminSettings() {
+  const { t } = useT()
   const { user } = useAuth()
   const toast = useToast()
   const [form, setForm] = useState(null)
@@ -46,15 +48,15 @@ function AdminSettings() {
     })
     setSaving(false)
     if (error) {
-      toast.error(`The settings could not be saved. ${error.message}`)
+      toast.error(`${t('The settings could not be saved.')} ${error.message}`)
       return
     }
-    toast.success('Barangay settings saved. New drafts will use them; forms already issued keep their original details.')
+    toast.success(t('Barangay settings saved. New drafts will use them; forms already issued keep their original details.'))
   }
 
   return (
-    <AdminLayout title="Barangay Settings">
-      <p className="text-ink-soft text-sm mb-4">These details fill the header and signature lines of every official form.</p>
+    <AdminLayout title={t('Barangay Settings')}>
+      <p className="text-ink-soft text-sm mb-4">{t('These details fill the header and signature lines of every official form.')}</p>
 
       {!form ? (
         <div className="flex flex-col gap-4 max-w-[720px]">
@@ -64,41 +66,41 @@ function AdminSettings() {
       ) : (
         <form onSubmit={save} className="flex flex-col gap-4 max-w-[720px]">
           <Card>
-            <CardHeader icon={MdOutlineAccountBalance} title="Barangay" subtitle="Printed at the top of each form" />
+            <CardHeader icon={MdOutlineAccountBalance} title={t('Barangay')} subtitle={t('Printed at the top of each form')} />
             <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Province" required>
-                <Input value={form.province} onChange={(e) => update('province', e.target.value)} aria-label="Province" required />
+              <Field label={t('Province')} required>
+                <Input value={form.province} onChange={(e) => update('province', e.target.value)} aria-label={t('Province')} required />
               </Field>
-              <Field label="City or municipality" required>
+              <Field label={t('City or municipality')} required>
                 <div className="flex gap-2">
-                  <Select value={form.locality_type} onChange={(e) => update('locality_type', e.target.value)} aria-label="City or Municipality" className="w-auto">
-                    <option value="City">City</option>
-                    <option value="Municipality">Municipality</option>
+                  <Select value={form.locality_type} onChange={(e) => update('locality_type', e.target.value)} aria-label={t('City or Municipality')} className="w-auto">
+                    <option value="City">{t('City')}</option>
+                    <option value="Municipality">{t('Municipality')}</option>
                   </Select>
-                  <Input value={form.locality} onChange={(e) => update('locality', e.target.value)} aria-label="City or municipality name" required />
+                  <Input value={form.locality} onChange={(e) => update('locality', e.target.value)} aria-label={t('City or municipality name')} required />
                 </div>
               </Field>
-              <Field label="Barangay" required>
-                <Input value={form.barangay} onChange={(e) => update('barangay', e.target.value)} aria-label="Barangay" required />
+              <Field label={t('Barangay')} required>
+                <Input value={form.barangay} onChange={(e) => update('barangay', e.target.value)} aria-label={t('Barangay')} required />
               </Field>
             </div>
           </Card>
 
           <Card>
-            <CardHeader icon={MdOutlineBadge} title="Officials" subtitle="Printed under the signature lines" />
+            <CardHeader icon={MdOutlineBadge} title={t('Officials')} subtitle={t('Printed under the signature lines')} />
             <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Punong Barangay" hint="Printed under Punong Barangay/Lupon Chairman">
-                <Input value={form.punong_barangay} onChange={(e) => update('punong_barangay', e.target.value)} placeholder="Full name" aria-label="Punong Barangay" />
+              <Field label={t('Punong Barangay')} hint={t('Printed under Punong Barangay/Lupon Chairman')}>
+                <Input value={form.punong_barangay} onChange={(e) => update('punong_barangay', e.target.value)} placeholder={t('Full name')} aria-label={t('Punong Barangay')} />
               </Field>
-              <Field label="Barangay Secretary">
-                <Input value={form.secretary} onChange={(e) => update('secretary', e.target.value)} placeholder="Full name" aria-label="Barangay Secretary" />
+              <Field label={t('Barangay Secretary')}>
+                <Input value={form.secretary} onChange={(e) => update('secretary', e.target.value)} placeholder={t('Full name')} aria-label={t('Barangay Secretary')} />
               </Field>
             </div>
           </Card>
 
           <div>
             <Button type="submit" icon={MdOutlineSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save settings'}
+              {saving ? t('Saving...') : t('Save settings')}
             </Button>
           </div>
         </form>

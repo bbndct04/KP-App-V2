@@ -94,11 +94,12 @@ const TONES = {
 }
 
 export function DeadlineBadge({ deadline }) {
+  const { t } = useT()
   if (!deadline) return null
   return (
     <span className={`inline-flex items-center gap-1 rounded-full text-xs font-semibold px-2.5 py-1 whitespace-nowrap ${TONES[deadline.tone]}`}>
       <MdOutlineTimer className="text-[1.15em]" aria-hidden="true" />
-      {deadline.label}
+      {t(deadline.label, deadline.vars)}
     </span>
   )
 }

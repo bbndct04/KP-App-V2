@@ -12,6 +12,7 @@ import {
 } from 'react-icons/md'
 import { Skeleton } from '../../components/ui'
 import PrintReports from '../../components/admin/PrintReports'
+import { useT } from '../../i18n/LanguageContext'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CAT_COLORS = ['#5ba0f5', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#38bdf8', '#2dd4bf']
@@ -20,6 +21,7 @@ const IN_PROGRESS_STAGES = ['summoned', 'mediation', 'pangkat_formed', 'pangkat_
 const SETTLED_STAGES = ['settled', 'execution', 'closed']
 
 function AdminAnalytics() {
+  const { t } = useT()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -76,8 +78,8 @@ function AdminAnalytics() {
   const maxMonth = Math.max(...monthCounts, 1)
 
   return (
-    <AdminLayout title="Reports & Analytics">
-      <p className="text-ink-soft text-sm mb-5">Print monthly reports and case records, and view complaint statistics</p>
+    <AdminLayout title={t('Reports & Analytics')}>
+      <p className="text-ink-soft text-sm mb-5">{t('Print monthly reports and case records, and view complaint statistics')}</p>
 
       <PrintReports />
 
@@ -107,7 +109,7 @@ function AdminAnalytics() {
                     <Icon className="text-xl" aria-hidden="true" />
                   </div>
                   <div className={`text-3xl font-bold mb-0.5 ${s.color}`}>{s.val}</div>
-                  <div className="text-ink-soft text-sm">{s.label}</div>
+                  <div className="text-ink-soft text-sm">{t(s.label)}</div>
                 </div>
               )
             })}
@@ -116,13 +118,13 @@ function AdminAnalytics() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Status Distribution */}
             <div className="bg-surface border border-border rounded-2xl p-5.5 shadow-token-md">
-              <div className="text-ink text-base font-semibold mb-4.5 flex items-center gap-2"><MdOutlineDonutLarge className="text-xl text-accent" aria-hidden="true" /> Status Distribution</div>
+              <div className="text-ink text-base font-semibold mb-4.5 flex items-center gap-2"><MdOutlineDonutLarge className="text-xl text-accent" aria-hidden="true" />{t('Status Distribution')}</div>
               {statusRows.map((s) => {
                 const pct = Math.round((s.val / denom) * 100)
                 return (
                   <div key={s.label} className="mb-3.5">
                     <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-sm text-ink-soft font-medium">{s.label}</span>
+                      <span className="text-sm text-ink-soft font-medium">{t(s.label)}</span>
                       <span className="text-sm font-bold" style={{ color: s.color }}>{s.val} ({pct}%)</span>
                     </div>
                     <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
@@ -134,20 +136,20 @@ function AdminAnalytics() {
               <div className="border-t border-border pt-3.5 mt-4 flex gap-4">
                 <div className="text-center flex-1">
                   <div className="text-2xl font-bold text-success-strong">{resRate}%</div>
-                  <div className="text-xs text-ink-faint">Settlement Rate</div>
+                  <div className="text-xs text-ink-faint">{t('Settlement Rate')}</div>
                 </div>
                 <div className="text-center flex-1">
                   <div className="text-2xl font-bold text-warning-strong">{activeCases}</div>
-                  <div className="text-xs text-ink-faint">Active Cases</div>
+                  <div className="text-xs text-ink-faint">{t('Active Cases')}</div>
                 </div>
               </div>
             </div>
 
             {/* Top Categories */}
             <div className="bg-surface border border-border rounded-2xl p-5.5 shadow-token-md">
-              <div className="text-ink text-base font-semibold mb-4.5 flex items-center gap-2"><MdOutlineBarChart className="text-xl text-accent" aria-hidden="true" /> Top Complaint Categories</div>
+              <div className="text-ink text-base font-semibold mb-4.5 flex items-center gap-2"><MdOutlineBarChart className="text-xl text-accent" aria-hidden="true" />{t('Top Complaint Categories')}</div>
               {categories.length === 0 ? (
-                <div className="text-ink-faint text-sm text-center py-8">No data yet</div>
+                <div className="text-ink-faint text-sm text-center py-8">{t('No data yet')}</div>
               ) : (
                 categories.map((cat, i) => {
                   const pct = Math.round((cat.count / denom) * 100)
@@ -155,7 +157,7 @@ function AdminAnalytics() {
                   return (
                     <div key={cat.category} className="mb-3.5">
                       <div className="flex justify-between mb-1.5">
-                        <span className="text-sm text-ink-soft truncate pr-2">{cat.category}</span>
+                        <span className="text-sm text-ink-soft truncate pr-2">{t(cat.category)}</span>
                         <span className="text-xs font-bold flex-shrink-0" style={{ color }}>{cat.count} ({pct}%)</span>
                       </div>
                       <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
@@ -170,7 +172,7 @@ function AdminAnalytics() {
 
           {/* Monthly Trend */}
           <div className="bg-surface border border-border rounded-2xl p-5.5 shadow-token-md">
-            <div className="text-ink text-base font-semibold mb-5 flex items-center gap-2"><MdOutlineCalendarMonth className="text-xl text-accent" aria-hidden="true" /> Monthly Trend — {currentYear}</div>
+            <div className="text-ink text-base font-semibold mb-5 flex items-center gap-2"><MdOutlineCalendarMonth className="text-xl text-accent" aria-hidden="true" /> {t('Monthly Trend')} — {currentYear}</div>
             <div className="flex items-end justify-between gap-2 h-[180px] overflow-x-auto">
               {monthCounts.map((count, i) => {
                 const heightPct = (count / maxMonth) * 100

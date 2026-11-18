@@ -21,6 +21,7 @@ import { Card, Input, Select, EmptyState, SkeletonRows, Button, Field } from '..
 import { POSITIONS, isOfficial } from '../../lib/accounts'
 import { Avatar, UserBadges } from '../../components/admin/UserBits'
 import { formatDate } from '../../lib/cases'
+import { useT } from '../../i18n/LanguageContext'
 
 const PAGE_SIZE = 20
 
@@ -33,6 +34,7 @@ const TABS = [
 ]
 
 function InviteDialog({ open, onClose, onInvited }) {
+  const { t } = useT()
   const toast = useToast()
   const [form, setForm] = useState({ full_name: '', email: '', title: '' })
   const [sending, setSending] = useState(false)
@@ -52,10 +54,10 @@ function InviteDialog({ open, onClose, onInvited }) {
     if (fnError || data?.error) {
       let message = data?.error
       if (!message && fnError?.context?.json) message = (await fnError.context.json().catch(() => null))?.error
-      setError(message || fnError?.message || 'The invitation could not be sent.')
+      setError(message || fnError?.message || t('The invitation could not be sent.'))
       return
     }
-    toast.success(`Invitation sent to ${form.email}.`)
+    toast.success(t('Invitation sent to {email}.', { email: form.email }))
     setForm({ full_name: '', email: '', title: '' })
     onInvited()
     onClose()
@@ -72,22 +74,22 @@ function InviteDialog({ open, onClose, onInvited }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-ink text-lg font-bold">Invite a barangay official</div>
-            <div className="text-ink-soft text-sm mt-0.5">They will get an email to set their password. Their account will have admin access.</div>
+            <div className="text-ink text-lg font-bold">{t('Invite a barangay official')}</div>
+            <div className="text-ink-soft text-sm mt-0.5">{t('They will get an email to set their password. Their account will have admin access.')}</div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-ink-faint hover:text-ink p-1">
+          <button type="button" onClick={onClose} aria-label={t('Close')} className="text-ink-faint hover:text-ink p-1">
             <MdClose className="text-xl" aria-hidden="true" />
           </button>
         </div>
-        <Field label="Full name" required>
-          <Input value={form.full_name} onChange={set('full_name')} required placeholder="e.g. Maria Santos" />
+        <Field label={t('Full name')} required>
+          <Input value={form.full_name} onChange={set('full_name')} required placeholder={t('e.g. Maria Santos')} />
         </Field>
-        <Field label="Email" required>
-          <Input type="email" value={form.email} onChange={set('email')} required placeholder="official@example.com" />
+        <Field label={t('Email')} required>
+          <Input type="email" value={form.email} onChange={set('email')} required placeholder={t('official@example.com')} />
         </Field>
-        <Field label="Position" required>
+        <Field label={t('Position')} required>
           <Select value={form.title} onChange={set('title')} required>
-            <option value="">Choose a position</option>
+            <option value="">{t('Choose a position')}</option>
             {POSITIONS.map((p) => (
               <option key={p} value={p}>
                 {p}
@@ -102,10 +104,10 @@ function InviteDialog({ open, onClose, onInvited }) {
         )}
         <div className="flex gap-2.5 justify-end">
           <Button type="button" variant="secondary" onClick={onClose} disabled={sending}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button type="submit" icon={MdOutlinePersonAddAlt} disabled={sending}>
-            {sending ? 'Sending...' : 'Send invitation'}
+            {sending ? t('Sending...') : t('Send invitation')}
           </Button>
         </div>
       </form>
@@ -115,6 +117,7 @@ function InviteDialog({ open, onClose, onInvited }) {
 }
 
 function AdminUsers() {
+  const { t } = useT()
   const { user: currentUser } = useAuth()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -147,11 +150,11 @@ function AdminUsers() {
   ]
 
   const filtered = useMemo(() => {
-    const t = TABS.find((x) => x.key === tab)
+    const tabDef = TABS.find((x) => x.key === tab)
     const s = search.trim().toLowerCase()
     return users.filter(
       (u) =>
-        t.test(u) &&
+        tabDef.test(u) &&
         (!s || u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s) || u.contact_number?.replace(/\D/g, '').includes(s.replace(/\D/g, '') || '\u0000'))
     )
   }, [users, tab, search])
@@ -165,11 +168,11 @@ function AdminUsers() {
   }
 
   return (
-    <AdminLayout title="Manage Users">
+    <AdminLayout title={t('Manage Users')}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <p className="text-ink-soft text-sm">Verify residents, manage officials, and restrict accounts that misuse the app.</p>
+        <p className="text-ink-soft text-sm">{t('Verify residents, manage officials, and restrict accounts that misuse the app.')}</p>
         <Button icon={MdOutlinePersonAddAlt} onClick={() => setInviteOpen(true)} className="flex-shrink-0">
-          Invite official
+          {t('Invite official')}
         </Button>
       </div>
 
@@ -187,25 +190,25 @@ function AdminUsers() {
                 <Icon className="text-lg" aria-hidden="true" />
               </div>
               <div className={`text-2xl font-bold ${s.color}`}>{loading ? '–' : s.val}</div>
-              <div className="text-ink-soft text-xs mt-0.5">{s.label}</div>
+              <div className="text-ink-soft text-xs mt-0.5">{t(s.label)}</div>
             </Tag>
           )
         })}
       </div>
 
       <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 mb-3 md:mx-0 md:px-0 md:flex-wrap">
-        {TABS.map((t) => {
-          const count = users.filter(t.test).length
+        {TABS.map((tb) => {
+          const count = users.filter(tb.test).length
           return (
             <button
-              key={t.key}
-              onClick={() => goTab(t.key)}
-              aria-pressed={tab === t.key}
+              key={tb.key}
+              onClick={() => goTab(tb.key)}
+              aria-pressed={tab === tb.key}
               className={`h-10 px-4 rounded-full text-sm font-semibold border transition-colors whitespace-nowrap flex-shrink-0 ${
-                tab === t.key ? 'bg-accent border-accent text-accent-ink' : 'bg-surface border-border text-ink-soft hover:bg-surface-hover'
+                tab === tb.key ? 'bg-accent border-accent text-accent-ink' : 'bg-surface border-border text-ink-soft hover:bg-surface-hover'
               }`}
             >
-              {t.label} {!loading && <span className="ml-1 opacity-80">{count}</span>}
+              {t(tb.label)} {!loading && <span className="ml-1 opacity-80">{count}</span>}
             </button>
           )
         })}
@@ -220,8 +223,8 @@ function AdminUsers() {
               setSearch(e.target.value)
               setPage(1)
             }}
-            placeholder="Search by name, email or contact number"
-            aria-label="Search users"
+            placeholder={t('Search by name, email or contact number')}
+            aria-label={t('Search users')}
             className="pl-10"
           />
         </div>
@@ -233,11 +236,11 @@ function AdminUsers() {
         ) : loadError ? (
           <EmptyState
             icon={MdOutlineSearchOff}
-            title="Users could not be loaded"
-            message={`${loadError}. Make sure the user management SQL update has been run in Supabase.`}
+            title={t('Users could not be loaded')}
+            message={`${loadError}. ${t('Make sure the user management SQL update has been run in Supabase.')}`}
           />
         ) : shown.length === 0 ? (
-          <EmptyState icon={search ? MdOutlineSearchOff : MdOutlineGroups} title={search ? 'No matching users' : 'No users here'} message={search ? 'Try a different name, email or number.' : undefined} />
+          <EmptyState icon={search ? MdOutlineSearchOff : MdOutlineGroups} title={search ? t('No matching users') : t('No users here')} message={search ? t('Try a different name, email or number.') : undefined} />
         ) : (
           <>
             <ul className="md:hidden divide-y divide-border stagger">
@@ -247,7 +250,7 @@ function AdminUsers() {
                     <Avatar name={u.full_name} />
                     <div className="min-w-0 flex-1">
                       <div className="text-ink text-sm font-semibold truncate">
-                        {u.full_name || '—'} {u.id === currentUser?.id && <span className="text-ink-faint font-normal">(You)</span>}
+                        {u.full_name || '—'} {u.id === currentUser?.id && <span className="text-ink-faint font-normal">{t('(You)')}</span>}
                       </div>
                       <div className="text-ink-faint text-xs truncate mb-1.5">{u.email}</div>
                       <UserBadges u={u} />
@@ -262,11 +265,11 @@ function AdminUsers() {
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold">User</th>
-                    <th className="px-5 py-3 font-semibold">Status</th>
-                    <th className="px-5 py-3 font-semibold">Complaints</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Joined</th>
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Last active</th>
+                    <th className="px-5 py-3 font-semibold">{t('User')}</th>
+                    <th className="px-5 py-3 font-semibold">{t('Status')}</th>
+                    <th className="px-5 py-3 font-semibold">{t('Complaints')}</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">{t('Joined')}</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">{t('Last active')}</th>
                     <th className="px-5 py-3"></th>
                   </tr>
                 </thead>
@@ -278,7 +281,7 @@ function AdminUsers() {
                           <Avatar name={u.full_name} />
                           <div className="min-w-0">
                             <div className="text-ink text-sm font-semibold whitespace-nowrap">
-                              {u.full_name || '—'} {u.id === currentUser?.id && <span className="text-ink-faint font-normal">(You)</span>}
+                              {u.full_name || '—'} {u.id === currentUser?.id && <span className="text-ink-faint font-normal">{t('(You)')}</span>}
                             </div>
                             <div className="text-ink-faint text-xs truncate max-w-[240px]">{u.email}</div>
                           </div>
@@ -289,10 +292,10 @@ function AdminUsers() {
                       </td>
                       <td className="px-5 py-3 text-ink text-sm font-semibold">{u.complaint_count}</td>
                       <td className="px-5 py-3 text-ink-faint text-sm whitespace-nowrap">{formatDate(u.created_at)}</td>
-                      <td className="px-5 py-3 text-ink-faint text-sm whitespace-nowrap">{u.last_sign_in_at ? formatDate(u.last_sign_in_at) : 'Never'}</td>
+                      <td className="px-5 py-3 text-ink-faint text-sm whitespace-nowrap">{u.last_sign_in_at ? formatDate(u.last_sign_in_at) : t('Never')}</td>
                       <td className="px-5 py-3">
                         <Link to={`/admin/users/${u.id}`} className="text-accent text-sm font-semibold whitespace-nowrap flex items-center gap-1">
-                          View <MdArrowForward aria-hidden="true" />
+                          {t('View')} <MdArrowForward aria-hidden="true" />
                         </Link>
                       </td>
                     </tr>
@@ -311,10 +314,10 @@ function AdminUsers() {
           </span>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" disabled={current === 1} onClick={() => setPage(current - 1)}>
-              Previous
+              {t('Previous')}
             </Button>
             <Button variant="secondary" size="sm" disabled={current === pages} onClick={() => setPage(current + 1)}>
-              Next
+              {t('Next')}
             </Button>
           </div>
         </div>

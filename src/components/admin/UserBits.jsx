@@ -5,28 +5,30 @@ import { supabase } from '../../lib/supabaseClient'
 import { useToast } from '../../context/toastContext'
 import { Button, Field, Select, Textarea } from '../ui'
 import { isOfficial } from '../../lib/accounts'
+import { useT } from '../../i18n/LanguageContext'
 
 export function UserBadges({ u }) {
+  const { t } = useT()
   return (
     <div className="flex flex-wrap gap-1.5">
       {isOfficial(u.role) ? (
         <span className="inline-flex items-center gap-1 rounded-full text-xs font-semibold px-2.5 py-1 bg-purple-soft text-purple-strong">
           <MdOutlineAdminPanelSettings className="text-[1.15em]" aria-hidden="true" />
-          {u.official_title || 'Admin'}
+          {u.official_title || t('Admin')}
         </span>
       ) : u.verified_at ? (
         <span className="inline-flex items-center gap-1 rounded-full text-xs font-semibold px-2.5 py-1 bg-success-soft text-success-strong">
-          <MdOutlineVerifiedUser className="text-[1.15em]" aria-hidden="true" /> Verified
+          <MdOutlineVerifiedUser className="text-[1.15em]" aria-hidden="true" />{t('Verified')}
         </span>
       ) : (
         <span className="inline-flex items-center gap-1 rounded-full text-xs font-semibold px-2.5 py-1 bg-warning-soft text-warning-strong">
-          <MdOutlinePendingActions className="text-[1.15em]" aria-hidden="true" /> Not verified
+          <MdOutlinePendingActions className="text-[1.15em]" aria-hidden="true" />{t('Not verified')}
         </span>
       )}
       {u.effective_status !== 'active' && (
         <span className="inline-flex items-center gap-1 rounded-full text-xs font-semibold px-2.5 py-1 bg-danger-soft text-danger-strong">
           <MdOutlineBlock className="text-[1.15em]" aria-hidden="true" />
-          {u.effective_status === 'blocked' ? 'Blocked' : 'Restricted'}
+          {u.effective_status === 'blocked' ? t('Blocked') : t('Restricted')}
         </span>
       )}
     </div>
@@ -51,6 +53,7 @@ const DURATIONS = [
 ]
 
 export function StatusDialog({ mode, user, onClose, onDone }) {
+  const { t } = useT()
   const toast = useToast()
   const [reason, setReason] = useState('')
   const [days, setDays] = useState('7')
@@ -72,7 +75,7 @@ export function StatusDialog({ mode, user, onClose, onDone }) {
     })
     setSaving(false)
     if (rpcError) return setError(rpcError.message)
-    toast.success(block ? `${user.full_name} has been blocked.` : `${user.full_name} can no longer file complaints.`)
+    toast.success(t(block ? '{name} has been blocked.' : '{name} can no longer file complaints.', { name: user.full_name }))
     setReason('')
     onDone()
     onClose()
@@ -89,35 +92,35 @@ export function StatusDialog({ mode, user, onClose, onDone }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-ink text-lg font-bold">{block ? 'Block this account' : 'Restrict this account'}</div>
+            <div className="text-ink text-lg font-bold">{block ? t('Block this account') : t('Restrict this account')}</div>
             <div className="text-ink-soft text-sm mt-0.5">
               {block
-                ? `${user.full_name} will not be able to use the app at all until you unblock them.`
-                : `${user.full_name} can still log in and view their cases, but cannot file new complaints.`}
+                ? t('{name} will not be able to use the app at all until you unblock them.', { name: user.full_name })
+                : t('{name} can still log in and view their cases, but cannot file new complaints.', { name: user.full_name })}
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-ink-faint hover:text-ink p-1">
+          <button type="button" onClick={onClose} aria-label={t('Close')} className="text-ink-faint hover:text-ink p-1">
             <MdClose className="text-xl" aria-hidden="true" />
           </button>
         </div>
         {!block && (
-          <Field label="How long">
+          <Field label={t('How long')}>
             <Select value={days} onChange={(e) => setDays(e.target.value)}>
               {DURATIONS.map((d) => (
                 <option key={d.label} value={d.value}>
-                  {d.label}
+                  {t(d.label)}
                 </option>
               ))}
             </Select>
           </Field>
         )}
-        <Field label="Reason" required hint="The user will see this reason.">
+        <Field label={t('Reason')} required hint={t('The user will see this reason.')}>
           <Textarea
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             required
-            placeholder={block ? 'e.g. Repeated fake complaints and abusive messages' : 'e.g. Filed several spam complaints'}
+            placeholder={t(block ? 'e.g. Repeated fake complaints and abusive messages' : 'e.g. Filed several spam complaints')}
           />
         </Field>
         {error && (
@@ -127,10 +130,10 @@ export function StatusDialog({ mode, user, onClose, onDone }) {
         )}
         <div className="flex gap-2.5 justify-end">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button type="submit" variant="danger" disabled={saving || !reason.trim()}>
-            {saving ? 'Saving...' : block ? 'Block account' : 'Restrict account'}
+            {saving ? t('Saving...') : block ? t('Block account') : t('Restrict account')}
           </Button>
         </div>
       </form>

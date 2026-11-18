@@ -16,6 +16,7 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, StatusBadge, EmptyState, Skeleton, Button, LinkButton, ConfirmDialog, Select, Textarea } from '../../components/ui'
 import ComplaintDetails from '../../components/admin/ComplaintDetails'
 import IdentityPanel from '../../components/admin/IdentityPanel'
+import { useT } from '../../i18n/LanguageContext'
 
 const DECLINE_REASONS = [
   'Outside Katarungang Pambarangay jurisdiction',
@@ -27,6 +28,7 @@ const DECLINE_REASONS = [
 ]
 
 function DeclineDialog({ open, busy, onCancel, onSubmit }) {
+  const { t } = useT()
   const [reason, setReason] = useState('')
   const [details, setDetails] = useState('')
   const [restrict, setRestrict] = useState(false)
@@ -54,45 +56,45 @@ function DeclineDialog({ open, busy, onCancel, onSubmit }) {
             <MdOutlineBlock className="text-2xl" aria-hidden="true" />
           </div>
           <div>
-            <div id="decline-title" className="text-ink text-lg font-bold mb-1">Decline this complaint?</div>
-            <div className="text-ink-soft text-sm leading-relaxed">The resident will see the reason you give. This cannot be undone.</div>
+            <div id="decline-title" className="text-ink text-lg font-bold mb-1">{t('Decline this complaint?')}</div>
+            <div className="text-ink-soft text-sm leading-relaxed">{t('The resident will see the reason you give. This cannot be undone.')}</div>
           </div>
         </div>
 
-        <label className="block text-sm font-semibold text-ink-soft mb-1.5">Reason *</label>
+        <label className="block text-sm font-semibold text-ink-soft mb-1.5">{t('Reason *')}</label>
         <Select value={reason} onChange={(e) => setReason(e.target.value)} className="mb-4">
-          <option value="">Choose a reason</option>
+          <option value="">{t('Choose a reason')}</option>
           {DECLINE_REASONS.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {t(r)}
             </option>
           ))}
         </Select>
 
         <label className="block text-sm font-semibold text-ink-soft mb-1.5">
-          Explanation {needsDetails ? '*' : <span className="font-normal text-ink-faint">(optional)</span>}
+          Explanation {needsDetails ? '*' : <span className="font-normal text-ink-faint">{t('(optional)')}</span>}
         </label>
         <Textarea
           value={details}
           onChange={(e) => setDetails(e.target.value)}
           rows={3}
-          placeholder="Add a short explanation the resident will understand"
+          placeholder={t('Add a short explanation the resident will understand')}
           className="mb-4"
         />
 
         <label className="flex items-start gap-2.5 mb-5 cursor-pointer">
           <input type="checkbox" checked={restrict} onChange={(e) => setRestrict(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[var(--color-danger-strong)]" />
           <span className="text-sm text-ink-soft">
-            <span className="font-semibold text-ink">Also restrict this user for 30 days.</span> Use this for spam, fake or abusive complaints. They can still view their cases.
+            <span className="font-semibold text-ink">{t('Also restrict this user for 30 days.')}</span>{t('Use this for spam, fake or abusive complaints. They can still view their cases.')}
           </span>
         </label>
 
         <div className="flex gap-2.5 justify-end">
           <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button variant="danger" onClick={submit} disabled={!valid || busy}>
-            {busy ? 'Please wait...' : 'Decline complaint'}
+            {busy ? t('Please wait...') : t('Decline complaint')}
           </Button>
         </div>
       </div>
@@ -104,10 +106,11 @@ function waiting(createdAt, now) {
   const days = Math.floor((now - new Date(createdAt).getTime()) / 86400000)
   if (days < 1) return { label: 'submitted today', cls: 'text-ink-faint' }
   if (days === 1) return { label: 'waiting 1 day', cls: 'text-warning-strong font-semibold' }
-  return { label: `waiting ${days} days`, cls: 'text-danger-strong font-semibold' }
+  return { label: 'waiting {n} days', n: days, cls: 'text-danger-strong font-semibold' }
 }
 
 function ReviewComplaint() {
+  const { t } = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
@@ -145,11 +148,11 @@ function ReviewComplaint() {
     setAcceptOpen(false)
     setDeclineOpen(false)
     if (error) {
-      toast.error(`The decision could not be saved. ${error.message}`)
+      toast.error(`${t('The decision could not be saved.')} ${error.message}`)
       return
     }
     if (decision === 'accept') {
-      toast.success('Complaint accepted. It is now in Active Cases and the resident has been notified.')
+      toast.success(t('Complaint accepted. It is now in Active Cases and the resident has been notified.'))
       navigate(`/admin/cases/${id}`)
     } else {
       if (restrict) {
@@ -159,10 +162,10 @@ function ReviewComplaint() {
           p_reason: reason,
           p_days: 30,
         })
-        if (rErr) toast.error(`Complaint declined, but the user could not be restricted. ${rErr.message}`)
-        else toast.success('Complaint declined and the user is restricted for 30 days.')
+        if (rErr) toast.error(`${t('Complaint declined, but the user could not be restricted.')} ${rErr.message}`)
+        else toast.success(t('Complaint declined and the user is restricted for 30 days.'))
       } else {
-        toast.success('Complaint declined. The resident has been notified of the reason.')
+        toast.success(t('Complaint declined. The resident has been notified of the reason.'))
       }
       navigate('/admin/complaints')
     }
@@ -170,7 +173,7 @@ function ReviewComplaint() {
 
   if (data.id !== id) {
     return (
-      <AdminLayout title="Review Complaint">
+      <AdminLayout title={t('Review Complaint')}>
         <div className="flex flex-col gap-4">
           <Skeleton className="h-20 w-2/3" />
           <Skeleton className="h-64 rounded-2xl" />
@@ -183,13 +186,13 @@ function ReviewComplaint() {
   const complaint = data.complaint
   if (!complaint) {
     return (
-      <AdminLayout title="Review Complaint">
+      <AdminLayout title={t('Review Complaint')}>
         <Card>
           <EmptyState
             icon={MdOutlineSearchOff}
-            title="Complaint not found"
-            message="This complaint may have been removed, or the link is incorrect."
-            action={<LinkButton to="/admin/complaints">Back to New Complaints</LinkButton>}
+            title={t('Complaint not found')}
+            message={t('This complaint may have been removed, or the link is incorrect.')}
+            action={<LinkButton to="/admin/complaints">{t('Back to New Complaints')}</LinkButton>}
           />
         </Card>
       </AdminLayout>
@@ -198,21 +201,23 @@ function ReviewComplaint() {
 
   const isDeclined = complaint.status === 'declined'
   const wait = waiting(complaint.created_at, now)
-  const residentName = complaint.profiles?.full_name || complaint.complainant_name || 'The resident'
+  const residentName = complaint.profiles?.full_name || complaint.complainant_name || t('The resident')
 
   return (
-    <AdminLayout title="Review Complaint">
+    <AdminLayout title={t('Review Complaint')}>
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-5">
         <div>
           <button onClick={() => navigate('/admin/complaints')} className="text-sm text-accent font-semibold mb-3 flex items-center gap-1">
-            <MdArrowBack aria-hidden="true" /> Back to New Complaints
+            <MdArrowBack aria-hidden="true" />{t('Back to New Complaints')}
           </button>
           <div className="text-ink-faint text-sm font-mono">{complaint.reference_number}</div>
-          <div className="text-ink text-xl font-bold">{complaint.category}</div>
+          <div className="text-ink text-xl font-bold">{t(complaint.category)}</div>
           <div className="text-ink-soft text-sm mt-0.5">
-            Submitted by {residentName} on{' '}
-            {new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            {!isDeclined && <span className={`${wait.cls}`}> · {wait.label}</span>}
+            {t('Submitted by {name} on {date}', {
+              name: residentName,
+              date: new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            })}
+            {!isDeclined && <span className={`${wait.cls}`}> · {t(wait.label, { n: wait.n })}</span>}
           </div>
         </div>
         <StatusBadge status={complaint.status} size="lg" />
@@ -225,7 +230,7 @@ function ReviewComplaint() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="p-4">
               <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5">
-                <MdOutlinePerson className="text-lg text-accent" aria-hidden="true" /> Complainant
+                <MdOutlinePerson className="text-lg text-accent" aria-hidden="true" />{t('Complainant')}
               </div>
               <div className="text-ink text-sm">{complaint.complainant_name}</div>
               {complaint.complainant_contact && <div className="text-ink-soft text-sm mt-0.5">{complaint.complainant_contact}</div>}
@@ -233,7 +238,7 @@ function ReviewComplaint() {
             </Card>
             <Card className="p-4">
               <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5">
-                <MdOutlinePersonOff className="text-lg text-accent" aria-hidden="true" /> Respondent
+                <MdOutlinePersonOff className="text-lg text-accent" aria-hidden="true" />{t('Respondent')}
               </div>
               <div className="text-ink text-sm">{complaint.respondent_name}</div>
               <div className="text-ink-faint text-sm mt-1">{complaint.respondent_address}</div>
@@ -248,37 +253,37 @@ function ReviewComplaint() {
             <Card className="p-5 border-danger-strong/30">
               <div className="flex items-center gap-2 mb-2 text-danger-strong">
                 <MdOutlineBlock className="text-xl" aria-hidden="true" />
-                <div className="text-base font-semibold">Declined</div>
+                <div className="text-base font-semibold">{t('Declined')}</div>
               </div>
-              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Reason shown to the resident</div>
+              <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">{t('Reason shown to the resident')}</div>
               <div className="text-ink text-sm leading-relaxed bg-danger-soft border border-danger-strong/20 rounded-lg p-3 mb-3">
                 {complaint.declined_reason || '—'}
               </div>
               <div className="text-ink-faint text-xs">
-                {data.reviewer ? `Declined by ${data.reviewer}` : 'Declined'}
+                {data.reviewer ? t('Declined by {name}', { name: data.reviewer }) : t('Declined')}
                 {complaint.reviewed_at &&
-                  ` on ${new Date(complaint.reviewed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                  ` · ${new Date(complaint.reviewed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
               </div>
             </Card>
           ) : (
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-1">
                 <MdOutlineFactCheck className="text-xl text-accent" aria-hidden="true" />
-                <div className="text-ink text-base font-semibold">Your decision</div>
+                <div className="text-ink text-base font-semibold">{t('Your decision')}</div>
               </div>
               <div className="text-ink-soft text-sm leading-relaxed mb-4">
-                Check the details and the complainant's identity first. If you accept, this becomes an active case and you can issue the summons.
+                {t("Check the details and the complainant's identity first. If you accept, this becomes an active case and you can issue the summons.")}
               </div>
               <div className="bg-warning-soft border border-warning-strong/20 text-warning-strong text-sm rounded-lg p-3 mb-4 flex gap-2 leading-relaxed">
                 <MdOutlineSchedule className="text-lg flex-shrink-0 mt-0.5" aria-hidden="true" />
-                The respondent should be summoned by the next working day after a complaint is received.
+                {t('The respondent should be summoned by the next working day after a complaint is received.')}
               </div>
               <div className="flex flex-col gap-2.5">
                 <Button size="lg" icon={MdOutlineCheckCircle} onClick={() => setAcceptOpen(true)} disabled={busy}>
-                  Accept complaint
+                  {t('Accept complaint')}
                 </Button>
                 <Button size="lg" variant="dangerOutline" icon={MdOutlineBlock} onClick={() => setDeclineOpen(true)} disabled={busy}>
-                  Decline
+                  {t('Decline')}
                 </Button>
               </div>
             </Card>
@@ -289,9 +294,9 @@ function ReviewComplaint() {
       <ConfirmDialog
         open={acceptOpen}
         tone="primary"
-        title="Accept this complaint?"
-        message={`It will move to Active Cases and ${residentName} will be notified. Make sure you have checked the complainant's identity.`}
-        confirmLabel="Yes, accept"
+        title={t('Accept this complaint?')}
+        message={t("It will move to Active Cases and {name} will be notified. Make sure you have checked the complainant's identity.", { name: residentName })}
+        confirmLabel={t('Yes, accept')}
         loading={busy}
         onConfirm={() => review('accept')}
         onCancel={() => setAcceptOpen(false)}

@@ -12,6 +12,8 @@ import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, EmptyState, Skeleton } from '../../components/ui'
+import { useT } from '../../i18n/LanguageContext'
+import { translateAdminNotification } from '../../i18n/notificationText'
 
 const TYPES = {
   info: { icon: MdOutlineInfo, color: 'text-info-strong', bg: 'bg-info-soft', border: 'border-info-strong/30' },
@@ -20,14 +22,14 @@ const TYPES = {
   success: { icon: MdOutlineCheckCircle, color: 'text-success-strong', bg: 'bg-success-soft', border: 'border-success-strong/30' },
 }
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr, t) {
   const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000)
   const intervals = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]]
   for (const [label, secs] of intervals) {
     const count = Math.floor(seconds / secs)
-    if (count >= 1) return `${count} ${label}${count > 1 ? 's' : ''} ago`
+    if (count >= 1) return t(`{n} ${label}${count > 1 ? 's' : ''} ago`, { n: count })
   }
-  return 'just now'
+  return t('just now')
 }
 
 function stripLeadingEmoji(text) {
@@ -35,6 +37,7 @@ function stripLeadingEmoji(text) {
 }
 
 function AdminNotifications() {
+  const { t, lang } = useT()
   const { user } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,12 +65,12 @@ function AdminNotifications() {
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
   return (
-    <AdminLayout title="Notifications">
+    <AdminLayout title={t('Notifications')}>
       <div className="max-w-[720px] mx-auto">
         <div className="flex items-center justify-between mb-5">
-          <p className="text-ink-soft text-sm">New complaints, today's hearings, and cases needing attention</p>
+          <p className="text-ink-soft text-sm">{t("New complaints, today's hearings, and cases needing attention")}</p>
           {unreadCount > 0 && (
-            <span className="bg-danger-soft text-danger-strong text-sm font-semibold px-3 py-1 rounded-full">{unreadCount} new</span>
+            <span className="bg-danger-soft text-danger-strong text-sm font-semibold px-3 py-1 rounded-full">{t('{n} new', { n: unreadCount })}</span>
           )}
         </div>
 
@@ -81,38 +84,38 @@ function AdminNotifications() {
           <Card>
             <EmptyState
               icon={MdOutlineNotifications}
-              title="No notifications yet"
-              message="You'll be alerted here when residents file complaints or cases need attention."
+              title={t('No notifications yet')}
+              message={t("You'll be alerted here when residents file complaints or cases need attention.")}
             />
           </Card>
         ) : (
           <div className="flex flex-col gap-3">
             {notifications.map((n) => {
-              const t = TYPES[n.type] || TYPES.info
-              const Icon = t.icon
+              const ty = TYPES[n.type] || TYPES.info
+              const Icon = ty.icon
               return (
                 <div
                   key={n.id}
                   className={`rounded-2xl border p-4 flex gap-3.5 items-start shadow-token-sm ${
-                    n.is_read ? 'bg-surface border-border' : `${t.bg} ${t.border}`
+                    n.is_read ? 'bg-surface border-border' : `${ty.bg} ${ty.border}`
                   }`}
                 >
-                  <div className={`w-11 h-11 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 ${t.color}`}>
+                  <div className={`w-11 h-11 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 ${ty.color}`}>
                     <Icon className="text-2xl" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2.5 mb-1">
-                      <div className="text-base font-bold text-ink">{stripLeadingEmoji(n.title) || 'Notification'}</div>
-                      {!n.is_read && <span className="w-2.5 h-2.5 rounded-full bg-danger-strong flex-shrink-0" aria-label="Unread" />}
+                      <div className="text-base font-bold text-ink">{t(stripLeadingEmoji(n.title) || 'Notification')}</div>
+                      {!n.is_read && <span className="w-2.5 h-2.5 rounded-full bg-danger-strong flex-shrink-0" aria-label={t('Unread')} />}
                     </div>
-                    <div className="text-sm text-ink-soft leading-relaxed mb-2">{n.message}</div>
+                    <div className="text-sm text-ink-soft leading-relaxed mb-2">{translateAdminNotification(n.message, lang)}</div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="text-xs text-ink-faint">{timeAgo(n.created_at)}</div>
+                      <div className="text-xs text-ink-faint">{timeAgo(n.created_at, t)}</div>
                       <Link
                         to={n.complaint_id ? `/admin/complaints/${n.complaint_id}` : '/admin/complaints'}
                         className="text-sm font-semibold text-accent flex items-center gap-1"
                       >
-                        {n.complaint_id ? 'Open case' : 'View complaints'} <MdArrowForward aria-hidden="true" />
+                        {n.complaint_id ? t('Open case') : t('View complaints')} <MdArrowForward aria-hidden="true" />
                       </Link>
                     </div>
                   </div>

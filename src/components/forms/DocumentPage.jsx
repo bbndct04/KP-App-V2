@@ -17,6 +17,7 @@ import { PAPER, MARGIN_PX } from '../../lib/formsKit'
 import { Button, Select, Textarea, ConfirmDialog } from '../ui'
 import { FormSkeleton } from '../../pages/admin/forms/FormShell'
 import { FORM_CSS } from './formStyles'
+import { useT } from '../../i18n/LanguageContext'
 
 function useFitScale(paperWidth, ready) {
   const wrap = useRef(null)
@@ -43,6 +44,7 @@ function longDate(ts) {
 }
 
 function VoidDialog({ open, busy, onCancel, onSubmit }) {
+  const { t } = useT()
   const [reason, setReason] = useState('')
   if (!open) return null
   return (
@@ -59,20 +61,20 @@ function VoidDialog({ open, busy, onCancel, onSubmit }) {
             <MdOutlineBlock className="text-2xl" aria-hidden="true" />
           </div>
           <div>
-            <div id="void-title" className="text-ink text-lg font-bold mb-1">Void this form and start a new version?</div>
+            <div id="void-title" className="text-ink text-lg font-bold mb-1">{t('Void this form and start a new version?')}</div>
             <div className="text-ink-soft text-sm leading-relaxed">
-              The issued copy is kept as history, marked void. A new draft opens so you can correct it and issue it again. Collect and cancel the old paper copy.
+              {t('The issued copy is kept as history, marked void. A new draft opens so you can correct it and issue it again. Collect and cancel the old paper copy.')}
             </div>
           </div>
         </div>
-        <label className="block text-sm font-semibold text-ink-soft mb-1.5">Reason *</label>
-        <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="For example: wrong hearing date" className="mb-5" />
+        <label className="block text-sm font-semibold text-ink-soft mb-1.5">{t('Reason *')}</label>
+        <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder={t('For example: wrong hearing date')} className="mb-5" />
         <div className="flex gap-2.5 justify-end">
           <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button variant="danger" onClick={() => onSubmit(reason.trim())} disabled={!reason.trim() || busy}>
-            {busy ? 'Please wait...' : 'Void and start new version'}
+            {busy ? t('Please wait...') : t('Void and start new version')}
           </Button>
         </div>
       </div>
@@ -81,6 +83,7 @@ function VoidDialog({ open, busy, onCancel, onSubmit }) {
 }
 
 function DocumentPage({ formNo, title, makeDefaults, Body }) {
+  const { t } = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const doc = useCaseDocument(formNo, title, makeDefaults)
@@ -102,7 +105,7 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
   }, [reference, formNo])
 
   if (!doc.ready) return <FormSkeleton />
-  if (!doc.complaint) return <div className="p-10 text-center">Complaint not found.</div>
+  if (!doc.complaint) return <div className="p-10 text-center">{t('Complaint not found.')}</div>
 
   const canEdit = doc.status === 'new' || doc.status === 'draft'
   const editing = edit && canEdit
@@ -134,10 +137,10 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
   const chip = isIssued
     ? { text: `Issued ${longDate(doc.active.issued_at)}`, cls: 'bg-success-soft text-success-strong' }
     : doc.status === 'draft'
-    ? { text: 'Draft', cls: 'bg-warning-soft text-warning-strong' }
-    : { text: 'New, not saved yet', cls: 'bg-surface-sunken text-ink-soft' }
+    ? { text: t('Draft'), cls: 'bg-warning-soft text-warning-strong' }
+    : { text: t('New, not saved yet'), cls: 'bg-surface-sunken text-ink-soft' }
 
-  const saveNote = doc.dirty ? 'Unsaved changes' : doc.status === 'draft' ? 'All changes saved' : ''
+  const saveNote = doc.dirty ? t('Unsaved changes') : doc.status === 'draft' ? t('All changes saved') : ''
 
   return (
     <DocContext.Provider value={{ fields: doc.fields, set: doc.set, edit: editing }}>
@@ -146,7 +149,7 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
         <div className="kp-noprint max-w-[1000px] mx-auto mb-4">
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             <Button variant="ghost" size="sm" icon={MdArrowBack} onClick={() => navigate(`/admin/cases/${id}`)}>
-              Back to case
+              {t('Back to case')}
             </Button>
             <div className="text-ink text-base font-bold">
               Form {formNo}: {title}
@@ -157,7 +160,7 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <Select value={paperKey} onChange={(e) => changePaper(e.target.value)} aria-label="Paper size" className="w-auto min-w-[170px] py-2">
+            <Select value={paperKey} onChange={(e) => changePaper(e.target.value)} aria-label={t('Paper size')} className="w-auto min-w-[170px] py-2">
               {Object.entries(PAPER).map(([key, p]) => (
                 <option key={key} value={key}>
                   {p.label}
@@ -168,26 +171,26 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
             {canEdit && (
               <>
                 <Button variant="secondary" icon={MdOutlineEditNote} aria-pressed={editing} onClick={() => setEdit((e) => !e)}>
-                  {editing ? 'Edit mode: on' : 'Edit mode: off'}
+                  {editing ? t('Edit mode: on') : t('Edit mode: off')}
                 </Button>
                 <Button variant="secondary" icon={MdOutlineSave} onClick={doc.saveDraft} disabled={doc.busy || (!doc.dirty && doc.status === 'draft')}>
-                  Save draft
+                  {t('Save draft')}
                 </Button>
                 <Button variant="secondary" icon={MdOutlinePrint} onClick={print}>
-                  Print draft
+                  {t('Print draft')}
                 </Button>
                 <Button icon={MdOutlineVerified} onClick={() => setConfirmIssue(true)} disabled={doc.busy}>
-                  Issue and print
+                  {t('Issue and print')}
                 </Button>
               </>
             )}
             {isIssued && (
               <>
                 <Button variant="dangerOutline" icon={MdOutlineBlock} onClick={() => setVoidOpen(true)} disabled={doc.busy}>
-                  Void and reissue
+                  {t('Void and reissue')}
                 </Button>
                 <Button icon={MdOutlinePrint} onClick={print}>
-                  Print
+                  {t('Print')}
                 </Button>
               </>
             )}
@@ -197,14 +200,14 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
             <div className="mt-3 bg-success-soft border border-success-strong/20 text-success-strong text-sm rounded-xl px-4 py-3 flex gap-2.5 leading-relaxed">
               <MdOutlineLock className="text-xl flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                Issued on {longDate(doc.active.issued_at)} by {doc.active.issued_by_name || 'a barangay admin'}. This copy is locked. If there is a mistake, use Void and reissue.
+                {t('Issued on {date} by {name}. This copy is locked. If there is a mistake, use Void and reissue.', { date: longDate(doc.active.issued_at), name: doc.active.issued_by_name || t('a barangay admin') })}
               </div>
             </div>
           ) : (
             <div className="mt-3 bg-info-soft border border-info-strong/20 text-info-strong text-sm rounded-xl px-4 py-3 flex gap-2.5 leading-relaxed">
               <MdOutlineInfo className="text-xl flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                This is a draft and is not official until you issue it. Turn on Edit mode to change names, dates, and wording. Drafts print with a DRAFT mark.
+                {t('This is a draft and is not official until you issue it. Turn on Edit mode to change names, dates, and wording. Drafts print with a DRAFT mark.')}
               </div>
             </div>
           )}
@@ -222,7 +225,7 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
         {doc.docs.length > 0 && (
           <div className="kp-noprint max-w-[1000px] mx-auto mt-6 bg-surface border border-border rounded-2xl p-5">
             <div className="text-ink text-base font-semibold mb-3 flex items-center gap-2">
-              <MdOutlineHistory className="text-xl text-accent" aria-hidden="true" /> Version history
+              <MdOutlineHistory className="text-xl text-accent" aria-hidden="true" />{t('Version history')}
             </div>
             <ul className="divide-y divide-border">
               {doc.docs.map((d) => (
@@ -246,8 +249,8 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
         open={confirmIssue}
         tone="primary"
         title={`Issue Form ${formNo}?`}
-        message="This locks the form, dates it today, and records it in the case log. Then print it and sign it on paper."
-        confirmLabel="Issue and print"
+        message={t('This locks the form, dates it today, and records it in the case log. Then print it and sign it on paper.')}
+        confirmLabel={t('Issue and print')}
         loading={doc.busy}
         onConfirm={onConfirmIssue}
         onCancel={() => setConfirmIssue(false)}

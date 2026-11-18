@@ -63,3 +63,50 @@ export function translateNotification(message, lang) {
   }
   return stageMessage(message) || message
 }
+
+const ADMIN = [
+  [
+    /^Case (.+?) \((.+?)\) was filed by (.+?)\. The complainant should appear at the barangay hall within 24 hours\.$/s,
+    (ref, cat, who) => `Na-file ni ${who === 'a resident' ? 'isang residente' : who} ang case ${ref} (${TL[cat] ?? cat}). Dapat pumunta ang complainant sa Barangay Hall sa loob ng 24 oras.`,
+  ],
+  [
+    /^You have (\d+) hearings? scheduled today: (.+)\.$/s,
+    (n, refs) => `May ${n} hearing ka ngayong araw: ${refs}.`,
+  ],
+  [
+    /^Complaint (.+?) has been waiting for review for over a day\.(?: The respondent should be summoned by the next working day after a complaint is received\.)?$/s,
+    (ref) => `Mahigit isang araw nang naghihintay ng review ang complaint ${ref}. Dapat ma-summon ang respondent sa susunod na working day.`,
+  ],
+  [/^Case (.+?) has been in "Filed" for over 3 days with no summons issued\.$/s, (ref) => `Mahigit 3 araw nang naka-"Filed" ang case ${ref} at wala pang Summons.`],
+  [/^Case (.+?) has exceeded the 15-day mediation period\. Consider forming a Pangkat\.$/s, (ref) => `Lampas na sa 15-day Mediation period ang case ${ref}. Pag-isipang bumuo ng Pangkat.`],
+  [
+    /^Case (.+?) has reached the 15-day Pangkat period\. An extension of up to 15 days may be granted\.$/s,
+    (ref) => `Umabot na sa 15-day Pangkat period ang case ${ref}. Puwedeng magbigay ng extension hanggang 15 araw.`,
+  ],
+  [/^Case (.+?) has exceeded the maximum 30-day Pangkat period\.$/s, (ref) => `Lampas na sa maximum na 30-day Pangkat period ang case ${ref}.`],
+  [
+    /^Case (.+?) has been in arbitration for over 15 days\. The award should be issued\.$/s,
+    (ref) => `Mahigit 15 araw nang nasa Arbitration ang case ${ref}. Dapat nang i-issue ang award.`,
+  ],
+  [
+    /^The 10-day repudiation period for case (.+?) has ended\. Record whether the settlement was complied with\.$/s,
+    (ref) => `Tapos na ang 10-day repudiation period ng case ${ref}. I-record kung natupad ang settlement.`,
+  ],
+  [
+    /^Case (.+?) must be executed within 6 months of the settlement\. Less than 30 days remain\.$/s,
+    (ref) => `Dapat ma-execute ang case ${ref} sa loob ng 6 na buwan mula sa settlement. Wala nang 30 araw ang natitira.`,
+  ],
+  [
+    /^The 6-month execution period for case (.+?) has passed\. The settlement can now only be enforced in court\.$/s,
+    (ref) => `Lumipas na ang 6-month execution period ng case ${ref}. Sa korte na lang puwedeng ipatupad ang settlement.`,
+  ],
+]
+
+export function translateAdminNotification(message, lang) {
+  if (lang !== 'tl' || !message) return message
+  for (const [re, fn] of ADMIN) {
+    const m = message.match(re)
+    if (m) return fn(...m.slice(1))
+  }
+  return translateNotification(message, lang)
+}
