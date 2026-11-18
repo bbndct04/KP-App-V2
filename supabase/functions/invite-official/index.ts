@@ -37,11 +37,9 @@ Deno.serve(async (req) => {
   }
 
   const email = (body.email ?? "").trim().toLowerCase();
-  const fullName = (body.full_name ?? "").trim();
-  const title = (body.title ?? "").trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Enter a valid email address." }, 400);
-  if (fullName.length < 3) return json({ error: "Enter the official's full name." }, 400);
-  if (!title) return json({ error: "Choose the official's position." }, 400);
+  const fullName = (body.full_name ?? "").trim() || email.split("@")[0];
+  const title = (body.title ?? "").trim() || null;
 
   let redirectTo = body.redirect_to;
   if (allowedOrigin !== "*" && (!redirectTo || !redirectTo.startsWith(allowedOrigin))) redirectTo = `${allowedOrigin}/reset-password?invite=1`;
@@ -67,7 +65,7 @@ Deno.serve(async (req) => {
   await admin.from("user_audit_log").insert({
     user_id: id,
     action: "official_invited",
-    details: `Invited as admin (${title}).`,
+    details: title ? `Invited as admin (${title}).` : "Invited as admin.",
     actor_id: caller.user.id,
     actor_name: callerProfile.full_name ?? "Admin",
   });

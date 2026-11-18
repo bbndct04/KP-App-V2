@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MdOutlineErrorOutline, MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
-import { passwordProblem } from '../../lib/accounts'
+import { POSITIONS, passwordProblem } from '../../lib/accounts'
 import logo from '../../assets/kp-app-logo.png'
 import AuthBackground from '../../components/AuthBackground'
 import LanguageSwitch from '../../components/LanguageSwitch'
@@ -15,6 +15,9 @@ function ResetPassword() {
   const [checkingSession, setCheckingSession] = useState(true)
   const [validLink, setValidLink] = useState(false)
 
+  const [userId, setUserId] = useState(null)
+  const [fullName, setFullName] = useState('')
+  const [position, setPosition] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -27,15 +30,32 @@ function ResetPassword() {
       // on load. If that succeeded, getSession() returns it; if the link was invalid
       // or expired, there's no session and we show an error instead of a broken form.
       const { data } = await supabase.auth.getSession()
-      setValidLink(!!data.session)
+      const session = data.session
+      if (session && invite) {
+        setUserId(session.user.id)
+        const { data: p } = await supabase.from('profiles').select('full_name, official_title').eq('id', session.user.id).maybeSingle()
+        const emailName = (session.user.email || '').split('@')[0]
+        if (p?.full_name && p.full_name !== emailName) setFullName(p.full_name)
+        if (p?.official_title) setPosition(p.official_title)
+      }
+      setValidLink(!!session)
       setCheckingSession(false)
     }
     checkSession()
-  }, [])
+  }, [invite])
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+
+    if (invite && fullName.trim().split(/\s+/).length < 2) {
+      setError(t('Enter your full name (first and last name).'))
+      return
+    }
+    if (invite && !position) {
+      setError(t('Choose your position.'))
+      return
+    }
 
     const pwProblem = passwordProblem(password)
     if (pwProblem) {
@@ -48,6 +68,17 @@ function ResetPassword() {
     }
 
     setSaving(true)
+    if (invite) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim().replace(/\s+/g, ' '), official_title: position })
+        .eq('id', userId)
+      if (profileError) {
+        setSaving(false)
+        setError(profileError.message)
+        return
+      }
+    }
     const { error } = await supabase.auth.updateUser({ password })
     setSaving(false)
 
@@ -57,7 +88,7 @@ function ResetPassword() {
     }
 
     await supabase.auth.signOut()
-    navigate('/login', { state: { message: invite ? 'Your password is set. You can now log in to your official account.' : 'Password updated. Please log in with your new password.' } })
+    navigate('/login', { state: { message: invite ? 'Your account is set up. You can now log in to your official account.' : 'Password updated. Please log in with your new password.' } })
   }
 
   return (
@@ -103,9 +134,9 @@ function ResetPassword() {
             </div>
           ) : (
             <>
-              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">{invite ? t('Set your password') : t('Set a new password')}</h2>
+              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">{invite ? t('Set up your account') : t('Set a new password')}</h2>
               <p className="text-ink-soft text-sm mb-6">
-                {invite ? t('Welcome! Create a password for your barangay official account.') : t('Choose a new password for your account.')}
+                {invite ? t('Welcome! Enter your name and position, then create a password for your barangay official account.') : t('Choose a new password for your account.')}
               </p>
 
               {error && (
@@ -115,6 +146,38 @@ function ResetPassword() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {invite && (
+                  <>
+                    <div>
+                      <label className="block text-ink-soft font-sans text-sm mb-1.5">{t('Full name')}</label>
+                      <input
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        required
+                        autoFocus
+                        autoComplete="name"
+                        className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
+                        placeholder={t('e.g. Maria Santos')}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-ink-soft font-sans text-sm mb-1.5">{t('Position')}</label>
+                      <select
+                        value={position}
+                        onChange={(e) => setPosition(e.target.value)}
+                        required
+                        className="w-full bg-surface-sunken border border-border text-ink rounded-xl px-4 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
+                      >
+                        <option value="">{t('Choose your position')}</option>
+                        {POSITIONS.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-ink-soft font-sans text-sm mb-1.5">{t('New Password')}</label>
                   <div className="relative">
@@ -123,7 +186,7 @@ function ResetPassword() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      autoFocus
+                      autoFocus={!invite}
                       autoComplete="new-password"
                       minLength={8}
                       className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-2.5 pr-11 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
@@ -158,7 +221,7 @@ function ResetPassword() {
                   disabled={saving}
                   className="w-full bg-accent hover:bg-accent-hover transition-all text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 mt-2 disabled:opacity-50 shadow-token-md"
                 >
-                  {saving ? t('Saving...') : invite ? t('Set Password') : t('Update Password')}
+                  {saving ? t('Saving...') : invite ? t('Finish setup') : t('Update Password')}
                 </button>
               </form>
             </>
