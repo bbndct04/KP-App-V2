@@ -125,7 +125,7 @@ function AdminLayout({ title, children }) {
     }
   }, [user])
 
-  const firstInitial = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase()
+  const firstInitial = (profile?.full_name || user?.email || '?').trim().split(/\s+/).filter(Boolean).map((w, i, a) => (i === 0 || i === a.length - 1 ? w[0] : '')).join('').slice(0, 2).toUpperCase()
   const close = () => setMobileOpen(false)
 
   const SidebarContent = (

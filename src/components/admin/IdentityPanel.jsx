@@ -161,8 +161,8 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
                   <div className="flex-1 text-sm text-success-strong">
                     <div className="font-semibold">Identity verified</div>
                     <div>
-                      by {verification.verified_by_name || 'a barangay admin'} on{' '}
-                      {new Date(verification.verified_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      by {verification.verified_by_name || 'a barangay admin'}
+                      {verification.verified_at && ` on ${new Date(verification.verified_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
                     </div>
                     <button onClick={undoVerified} disabled={saving} className="underline font-semibold mt-1 disabled:opacity-50">
                       Undo

@@ -140,13 +140,13 @@ function AdminDashboard() {
           className="mb-5 flex items-center gap-3 bg-warning-soft border border-warning-strong/30 rounded-2xl px-5 py-4 text-warning-strong hover:opacity-90 transition-opacity"
         >
           <MdOutlineMoveToInbox className="text-3xl flex-shrink-0" aria-hidden="true" />
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="text-base font-bold">
               {stats.awaiting} complaint{stats.awaiting === 1 ? ' is' : 's are'} waiting for your review
             </div>
             <div className="text-sm">Residents are waiting to hear back. Review them as soon as you can.</div>
           </div>
-          <span className="text-sm font-semibold flex items-center gap-1 flex-shrink-0">
+          <span className="hidden sm:flex text-sm font-semibold items-center gap-1 flex-shrink-0">
             Review now <MdArrowForward aria-hidden="true" />
           </span>
         </Link>
@@ -200,11 +200,11 @@ function AdminDashboard() {
                 <li key={c.id}>
                   <Link
                     to={`/admin/${c.status === 'submitted' ? 'complaints' : 'cases'}/${c.id}`}
-                    className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-surface-hover transition-colors"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 px-5 py-3.5 hover:bg-surface-hover transition-colors"
                   >
                     <div className="min-w-0">
                       <div className="text-ink text-sm font-semibold truncate">{c.category}</div>
-                      <div className="text-ink-faint text-xs font-mono">{c.reference_number}</div>
+                      <div className="text-ink-faint text-xs font-mono whitespace-nowrap">{c.reference_number}</div>
                     </div>
                     <DeadlineBadge deadline={c.deadline} />
                   </Link>
