@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdSearch, MdOutlineTaskAlt, MdOutlineSearchOff, MdOutlineBlock, MdArrowForward } from 'react-icons/md'
+import { MdSearch, MdOutlineTaskAlt, MdOutlineSearchOff, MdOutlineBlock, MdArrowForward, MdOutlineAddCircleOutline } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
-import { Card, Input, EmptyState, SkeletonRows } from '../../components/ui'
+import { Card, Input, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
 import { INTAKE_STATUSES } from '../../components/status'
 import { useT } from '../../i18n/LanguageContext'
 
@@ -70,7 +70,12 @@ function AdminComplaints() {
 
   return (
     <AdminLayout title={t('New Complaints')}>
-      <p className="text-ink-soft text-sm mb-4">{t('Review complaints submitted by residents')}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p className="text-ink-soft text-sm">{t('Review complaints submitted by residents')}</p>
+        <LinkButton to="/admin/walk-in" icon={MdOutlineAddCircleOutline}>
+          {t('Walk-in complaint')}
+        </LinkButton>
+      </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         {tabBtn('submitted', 'Awaiting review', awaiting.length)}

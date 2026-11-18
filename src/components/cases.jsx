@@ -93,6 +93,16 @@ const TONES = {
   danger: 'bg-danger-soft text-danger-strong',
 }
 
+export function WalkInBadge({ complaint, className = '' }) {
+  const { t } = useT()
+  if (complaint?.source !== 'walk_in') return null
+  return (
+    <span className={`inline-flex items-center rounded-full text-xs font-semibold px-2 py-0.5 bg-purple-soft text-purple-strong whitespace-nowrap ${className}`}>
+      {t('Walk-in')}
+    </span>
+  )
+}
+
 export function DeadlineBadge({ deadline }) {
   const { t } = useT()
   if (!deadline) return null

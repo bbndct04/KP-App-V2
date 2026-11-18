@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdSearch, MdOutlineAssignment, MdOutlineSearchOff, MdArrowForward } from 'react-icons/md'
+import { MdSearch, MdOutlineAssignment, MdOutlineSearchOff, MdArrowForward, MdOutlineAddCircleOutline } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
-import { Card, Input, Select, StatusBadge, EmptyState, SkeletonRows } from '../../components/ui'
+import { Card, Input, Select, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
 import ComplaintCards from '../../components/ComplaintCards'
 import { STATUS, ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
-import { DeadlineBadge } from '../../components/cases'
+import { DeadlineBadge, WalkInBadge } from '../../components/cases'
 import { caseDeadline, loadStageDates } from '../../lib/cases'
 import { useT } from '../../i18n/LanguageContext'
 
@@ -81,7 +81,12 @@ function AdminCases() {
 
   return (
     <AdminLayout title={t('Active Cases')}>
-      <p className="text-ink-soft text-sm mb-4">{t('Complaints you accepted and are handling')}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p className="text-ink-soft text-sm">{t('Complaints you accepted and are handling')}</p>
+        <LinkButton to="/admin/walk-in" variant="secondary" icon={MdOutlineAddCircleOutline}>
+          {t('Walk-in complaint')}
+        </LinkButton>
+      </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         {tabBtn('active', 'Active', activeCount)}
@@ -150,7 +155,10 @@ function AdminCases() {
                       className="group border-b border-border last:border-0 hover:bg-surface-hover transition-colors cursor-pointer"
                     >
                       <td className="px-5 py-3">
-                        <div className="text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</div>
+                        <div className="text-accent font-mono text-sm whitespace-nowrap flex items-center gap-1.5">
+                          {c.reference_number}
+                          <WalkInBadge complaint={c} />
+                        </div>
                         <div className="text-ink-soft text-xs max-w-[240px] truncate">
                           {t(c.category)} · {new Date(c.reviewed_at || c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>

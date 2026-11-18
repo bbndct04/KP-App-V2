@@ -7,6 +7,7 @@ import { useT } from '../../i18n/LanguageContext'
 import { Button, Field, Input, Select, Textarea } from '../../components/ui'
 import { formatDate, formatTime } from '../../lib/cases'
 import { accountState } from '../../lib/accounts'
+import { CATEGORIES } from '../../lib/categories'
 import {
   MdOutlineCheckCircle,
   MdOutlineSend,
@@ -21,23 +22,6 @@ import {
   MdOutlineEdit,
   MdOutlineDoNotDisturbOn,
 } from 'react-icons/md'
-
-const CATEGORIES = [
-  'Physical Injury',
-  'Oral Defamation / Slander',
-  'Threat / Intimidation',
-  'Unjust Vexation',
-  'Property Dispute / Boundary Conflict',
-  'Estafa / Fraud',
-  'Unpaid Debt / Collection',
-  'Theft / Robbery',
-  'Trespassing',
-  'Vandalism / Malicious Mischief',
-  'Domestic Dispute / Family Conflict',
-  'Noise Disturbance / Public Nuisance',
-  'Light Offenses',
-  'Other',
-]
 
 const STEPS = [
   { title: 'Complainant Information', subtitle: 'Your details as the person filing the complaint.' },
