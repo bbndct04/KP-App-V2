@@ -15,6 +15,8 @@ import { passwordProblem } from '../../lib/accounts'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
 import AuthBackground from '../../components/AuthBackground'
+import LanguageSwitch from '../../components/LanguageSwitch'
+import { useT } from '../../i18n/LanguageContext'
 import TermsStep from './register/TermsStep'
 import IdStep from './register/IdStep'
 import FaceStep from './register/FaceStep'
@@ -58,18 +60,20 @@ function fieldError(field, value) {
 }
 
 function Field({ label, error, hint, children, required }) {
+  const { t } = useT()
   return (
     <div>
       <label className="block text-sm font-semibold text-ink-soft mb-1.5">
-        {label} {required && <span className="text-danger-strong">*</span>}
+        {t(label)} {required && <span className="text-danger-strong">*</span>}
       </label>
       {children}
-      {error ? <div className="text-xs text-danger-strong mt-1">{error}</div> : hint ? <div className="text-xs text-ink-faint mt-1">{hint}</div> : null}
+      {error ? <div className="text-xs text-danger-strong mt-1">{t(error)}</div> : hint ? <div className="text-xs text-ink-faint mt-1">{t(hint)}</div> : null}
     </div>
   )
 }
 
 function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus }) {
+  const { t } = useT()
   return (
     <div className="relative">
       <input
@@ -79,12 +83,12 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         autoFocus={autoFocus}
         autoComplete="new-password"
         className={`${inputCls} border-border pr-11`}
-        placeholder={placeholder}
+        placeholder={t(placeholder)}
       />
       <button
         type="button"
         onClick={onToggle}
-        aria-label={show ? 'Hide password' : 'Show password'}
+        aria-label={show ? t('Hide password') : t('Show password')}
         className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
       >
         {show ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
@@ -105,6 +109,7 @@ function Rule({ ok, children }) {
 function Register() {
   const navigate = useNavigate()
   const toast = useToast()
+  const { t, lang } = useT()
   const [step, setStep] = useState(1)
 
   const [idType, setIdType] = useState('')
@@ -179,8 +184,8 @@ function Register() {
   async function handleSubmit() {
     setSubmitError('')
     const problem = passwordProblem(password)
-    if (problem) return setSubmitError(problem)
-    if (password !== confirm) return setSubmitError('Passwords do not match.')
+    if (problem) return setSubmitError(t(problem))
+    if (password !== confirm) return setSubmitError(t('Passwords do not match.'))
 
     setSubmitting(true)
     const email = form.email.trim().toLowerCase()
@@ -197,6 +202,7 @@ function Register() {
           contact_number: form.contact,
           address: form.address.trim(),
           id_type: idType,
+          language: lang,
         },
       },
     })
@@ -213,7 +219,7 @@ function Register() {
     const { data: up, error: upError } = await supabase.functions.invoke('register-upload', {
       body: { user_id: data.user.id, email, id_front: idFront, id_back: idBack, face: faceImage },
     })
-    setUploadWarning(upError || !up?.ok ? 'Your account was created, but your ID photos could not be saved. Please bring your ID to the Barangay Hall.' : '')
+    setUploadWarning(upError || !up?.ok ? t('Your account was created, but your ID photos could not be saved. Please bring your ID to the Barangay Hall.') : '')
     setSubmitting(false)
     go(6)
   }
@@ -229,9 +235,13 @@ function Register() {
     return results.every(Boolean)
   }
 
+  async function saveLanguage(userId) {
+    await supabase.from('profiles').update({ language: lang }).eq('id', userId)
+  }
+
   async function finish(userId) {
-    const ok = await uploadPhotos(userId)
-    if (!ok) toast.error('Your account is ready, but your ID photos could not be saved. Please bring your ID to the Barangay Hall.')
+    const [ok] = await Promise.all([uploadPhotos(userId), saveLanguage(userId)])
+    if (!ok) toast.error(t('Your account is ready, but your ID photos could not be saved. Please bring your ID to the Barangay Hall.'))
     navigate('/dashboard', { replace: true })
   }
 
@@ -241,9 +251,10 @@ function Register() {
     const { data, error } = await supabase.auth.verifyOtp({ email: form.email.trim().toLowerCase(), token: code, type: 'email' })
     setVerifying(false)
     if (error || !data.session) {
-      return setConfirmError(/expired|invalid/i.test(error?.message || '') ? 'The code is wrong or has expired. Check it or tap Resend code.' : 'We could not verify the code. Please try again.')
+      return setConfirmError(/expired|invalid/i.test(error?.message || '') ? t('The code is wrong or has expired. Check it or tap Resend code.') : t('We could not verify the code. Please try again.'))
     }
-    toast.success('Email confirmed! Welcome to the KP App.')
+    await saveLanguage(data.user.id)
+    toast.success(t('Email confirmed! Welcome to the KP App.'))
     navigate('/dashboard', { replace: true })
   }
 
@@ -262,6 +273,7 @@ function Register() {
   return (
     <div className="min-h-screen relative flex overflow-hidden">
       <AuthBackground />
+      <LanguageSwitch className="on-dark absolute top-5 right-5 z-20" />
 
       <div className="on-dark hidden md:flex w-[400px] flex-col items-center justify-center px-8 py-10 relative z-10 fade-up">
         <div className="flex items-center gap-4 mb-6">
@@ -293,8 +305,8 @@ function Register() {
                     {isDone ? <MdCheck className="text-base" aria-hidden="true" /> : num}
                   </div>
                   <div>
-                    <div className="text-ink text-sm font-semibold">{s.label}</div>
-                    <div className="text-ink-faint text-xs">{s.sub}</div>
+                    <div className="text-ink text-sm font-semibold">{t(s.label)}</div>
+                    <div className="text-ink-faint text-xs">{t(s.sub)}</div>
                   </div>
                 </div>
                 {num < STEP_LABELS.length && <div className="w-0.5 h-7 bg-border my-1 ml-4" />}
@@ -308,7 +320,7 @@ function Register() {
         {step < 6 && (
           <div className="on-dark w-full max-w-[580px] mb-3">
             <Link to="/login" className="text-accent hover:text-accent-hover text-sm font-medium inline-flex items-center gap-1">
-              <MdArrowBack aria-hidden="true" /> Back to Login
+              <MdArrowBack aria-hidden="true" /> {t('Back to Login')}
             </Link>
           </div>
         )}
@@ -319,7 +331,7 @@ function Register() {
             ))}
           </div>
           <div className="text-ink-soft text-xs font-semibold">
-            Step {step} of {STEP_LABELS.length} · {STEP_LABELS[step - 1].label}
+            {t('Step {step} of {total}', { step, total: STEP_LABELS.length })} · {t(STEP_LABELS[step - 1].label)}
           </div>
         </div>
 
@@ -345,8 +357,8 @@ function Register() {
           {step === 4 && (
             <>
               <div className="mb-5">
-                <h2 className="text-ink text-2xl font-bold mb-1">Your Details</h2>
-                <p className="text-ink-soft text-sm">Check the details read from your ID and complete the rest. They must match your ID.</p>
+                <h2 className="text-ink text-2xl font-bold mb-1">{t('Your Details')}</h2>
+                <p className="text-ink-soft text-sm">{t('Check the details read from your ID and complete the rest. They must match your ID.')}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -373,9 +385,9 @@ function Register() {
                 </Field>
                 <Field label="Sex" required error={errors.sex}>
                   <select value={form.sex} onChange={set('sex')} onBlur={blur('sex')} className={`${inputCls} ${errBorder('sex')}`}>
-                    <option value="">Select</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value="">{t('Select')}</option>
+                    <option value="Male">{t('Male')}</option>
+                    <option value="Female">{t('Female')}</option>
                   </select>
                 </Field>
                 <Field label="Mobile number" required error={errors.contact}>
@@ -415,19 +427,19 @@ function Register() {
                   </Field>
                   {errors.email === 'taken' ? (
                     <div role="alert" className="mt-2 bg-danger-soft border border-danger-strong/25 text-danger-strong text-sm rounded-lg px-3.5 py-2.5">
-                      This email already has an account. Each person can have only one account.{' '}
+                      {t('This email already has an account. Each person can have only one account.')}{' '}
                       <Link to="/login" className="font-semibold underline">
-                        Log in
+                        {t('Log in')}
                       </Link>{' '}
-                      or{' '}
+                      {t('or')}{' '}
                       <Link to="/forgot-password" className="font-semibold underline">
-                        reset your password
+                        {t('reset your password')}
                       </Link>
                       .
                     </div>
                   ) : (
                     <div className="text-xs text-ink-faint mt-1 flex items-center gap-1">
-                      <MdOutlineMail aria-hidden="true" /> {checkingEmail ? 'Checking email...' : "We'll send a verification email here."}
+                      <MdOutlineMail aria-hidden="true" /> {checkingEmail ? t('Checking email...') : t("We'll send a verification code here.")}
                     </div>
                   )}
                 </div>
@@ -435,14 +447,14 @@ function Register() {
 
               <div className="flex justify-between mt-6">
                 <button type="button" onClick={() => go(3)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5">
-                  <MdArrowBack aria-hidden="true" /> Back
+                  <MdArrowBack aria-hidden="true" /> {t('Back')}
                 </button>
                 <button
                   type="button"
                   onClick={submitDetails}
                   className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2"
                 >
-                  Next <MdArrowForward aria-hidden="true" />
+                  {t('Next')} <MdArrowForward aria-hidden="true" />
                 </button>
               </div>
             </>
@@ -451,16 +463,16 @@ function Register() {
           {step === 5 && (
             <>
               <div className="mb-5">
-                <h2 className="text-ink text-2xl font-bold mb-1">Create Account</h2>
-                <p className="text-ink-soft text-sm">Set a password for {form.email.trim().toLowerCase()}.</p>
+                <h2 className="text-ink text-2xl font-bold mb-1">{t('Create Account')}</h2>
+                <p className="text-ink-soft text-sm">{t('Set a password for {email}.', { email: form.email.trim().toLowerCase() })}</p>
               </div>
 
               <div className="bg-surface-sunken border border-border rounded-xl p-4 mb-5 text-sm grid grid-cols-[110px_1fr] gap-y-1.5">
-                <span className="text-ink-faint">Name</span>
+                <span className="text-ink-faint">{t('Name')}</span>
                 <span className="text-ink font-medium">{[form.firstName, form.middleName, form.lastName].filter(Boolean).join(' ')}</span>
                 <span className="text-ink-faint">ID</span>
                 <span className="text-ink font-medium">{ID_TYPES.find((t) => t.value === idType)?.label}</span>
-                <span className="text-ink-faint">Mobile</span>
+                <span className="text-ink-faint">{t('Mobile')}</span>
                 <span className="text-ink font-medium">{form.contact}</span>
               </div>
 
@@ -474,8 +486,8 @@ function Register() {
                 <Field label="Password" required>
                   <PasswordInput value={password} onChange={setPassword} show={showPw} onToggle={() => setShowPw((v) => !v)} placeholder="Create a password" autoFocus />
                   <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                    <Rule ok={pwRules.length}>At least 8 characters</Rule>
-                    <Rule ok={pwRules.mix}>Letters and numbers</Rule>
+                    <Rule ok={pwRules.length}>{t('At least 8 characters')}</Rule>
+                    <Rule ok={pwRules.mix}>{t('Letters and numbers')}</Rule>
                   </ul>
                 </Field>
                 <Field label="Confirm password" required error={confirm && confirm !== password ? 'Passwords do not match.' : ''}>
@@ -485,7 +497,7 @@ function Register() {
 
               <div className="flex justify-between">
                 <button type="button" onClick={() => go(4)} className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5">
-                  <MdArrowBack aria-hidden="true" /> Back
+                  <MdArrowBack aria-hidden="true" /> {t('Back')}
                 </button>
                 <button
                   type="button"
@@ -493,7 +505,7 @@ function Register() {
                   onClick={handleSubmit}
                   className="bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2"
                 >
-                  {submitting ? 'Creating your account...' : 'Create account'}
+                  {submitting ? t('Creating your account...') : t('Create account')}
                 </button>
               </div>
             </>

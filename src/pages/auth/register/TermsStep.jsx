@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MdArrowDownward, MdCheckCircle, MdOutlineDescription } from 'react-icons/md'
+import { useT } from '../../../i18n/LanguageContext'
 
 const TERMS = [
   [
@@ -67,14 +68,15 @@ const PRIVACY = [
 ]
 
 function Section({ items, start = 1 }) {
+  const { t } = useT()
   return (
     <ol className="flex flex-col gap-3.5">
       {items.map(([title, text], i) => (
         <li key={title}>
           <div className="text-ink font-semibold text-[13.5px] mb-0.5">
-            {start + i}. {title}
+            {start + i}. {t(title)}
           </div>
-          <p className="text-ink-soft text-[13.5px] leading-relaxed sm:text-justify">{text}</p>
+          <p className="text-ink-soft text-[13.5px] leading-relaxed sm:text-justify">{t(text)}</p>
         </li>
       ))}
     </ol>
@@ -83,6 +85,7 @@ function Section({ items, start = 1 }) {
 
 function TermsStep({ onNext }) {
   const navigate = useNavigate()
+  const { t } = useT()
   const boxRef = useRef(null)
   const [progress, setProgress] = useState(0)
   const [agree, setAgree] = useState({ terms: false, privacy: false })
@@ -105,7 +108,7 @@ function TermsStep({ onNext }) {
         onChange={(e) => setAgree((a) => ({ ...a, [key]: e.target.checked }))}
         className="mt-0.5 w-5 h-5 accent-[var(--accent)] flex-shrink-0"
       />
-      <span className="text-sm text-ink leading-relaxed">{text}</span>
+      <span className="text-sm text-ink leading-relaxed">{t(text)}</span>
     </label>
   )
 
@@ -116,8 +119,8 @@ function TermsStep({ onNext }) {
           <MdOutlineDescription className="text-2xl" aria-hidden="true" />
         </div>
         <div>
-          <h2 className="text-ink text-xl sm:text-2xl font-bold leading-tight">Terms and Conditions</h2>
-          <p className="text-ink-soft text-sm">Please read the entire document before you continue.</p>
+          <h2 className="text-ink text-xl sm:text-2xl font-bold leading-tight">{t('Terms and Conditions')}</h2>
+          <p className="text-ink-soft text-sm">{t('Please read the entire document before you continue.')}</p>
         </div>
       </div>
 
@@ -129,28 +132,27 @@ function TermsStep({ onNext }) {
           ref={boxRef}
           onScroll={onScroll}
           tabIndex={0}
-          aria-label="Terms and Conditions and Data Privacy Notice"
+          aria-label={t('Terms and Conditions and Data Privacy Notice')}
           className="max-h-[48vh] min-h-[280px] overflow-y-auto px-5 py-5 bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
         >
           <div className="text-center mb-5">
             <div className="text-ink-faint text-[11px] font-semibold uppercase tracking-[0.14em]">Barangay New Kababae · Olongapo City</div>
             <div className="text-ink font-bold text-[15px] mt-1">KATARUNGANG PAMBARANGAY APP</div>
-            <div className="text-ink-faint text-xs">Effective November 2026</div>
+            <div className="text-ink-faint text-xs">{t('Effective November 2026')}</div>
           </div>
 
-          <div className="text-ink font-bold text-sm uppercase tracking-wide mb-3 pb-2 border-b border-border">Part I · Terms and Conditions of Use</div>
+          <div className="text-ink font-bold text-sm uppercase tracking-wide mb-3 pb-2 border-b border-border">{t('Part I · Terms and Conditions of Use')}</div>
           <Section items={TERMS} />
 
           <div className="text-ink font-bold text-sm uppercase tracking-wide mt-7 mb-3 pb-2 border-b border-border">
-            Part II · Data Privacy Notice (Republic Act No. 10173)
+            {t('Part II · Data Privacy Notice (Republic Act No. 10173)')}
           </div>
           <Section items={PRIVACY} />
 
           <div className="mt-7 rounded-xl bg-surface-sunken border border-border p-4">
-            <div className="text-ink font-bold text-sm mb-1">Consent</div>
+            <div className="text-ink font-bold text-sm mb-1">{t('Consent')}</div>
             <p className="text-ink-soft text-[13.5px] leading-relaxed sm:text-justify">
-              I have read and understood these Terms and Conditions and the Data Privacy Notice. I voluntarily give my consent to Barangay New Kababae to collect,
-              use, store and process my personal information for the purposes stated above, in accordance with the Data Privacy Act of 2012.
+              {t('I have read and understood these Terms and Conditions and the Data Privacy Notice. I voluntarily give my consent to Barangay New Kababae to collect, use, store and process my personal information for the purposes stated above, in accordance with the Data Privacy Act of 2012.')}
             </p>
           </div>
         </div>
@@ -161,11 +163,11 @@ function TermsStep({ onNext }) {
         >
           {read ? (
             <span className="flex items-center gap-1.5">
-              <MdCheckCircle className="text-base" aria-hidden="true" /> You have read the entire document
+              <MdCheckCircle className="text-base" aria-hidden="true" /> {t('You have read the entire document')}
             </span>
           ) : (
             <span className="flex items-center gap-1.5">
-              <MdArrowDownward className="text-base animate-bounce" aria-hidden="true" /> Scroll to the end to continue
+              <MdArrowDownward className="text-base animate-bounce" aria-hidden="true" /> {t('Scroll to the end to continue')}
             </span>
           )}
           <span className="tabular-nums">{progress}%</span>
@@ -183,7 +185,7 @@ function TermsStep({ onNext }) {
           onClick={() => navigate('/login')}
           className="border border-border rounded-xl py-3 text-sm font-semibold text-ink-soft hover:bg-surface-hover"
         >
-          I Disagree
+          {t('I Disagree')}
         </button>
         <button
           type="button"
@@ -191,7 +193,7 @@ function TermsStep({ onNext }) {
           onClick={onNext}
           className="bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl py-3 shadow-token-md"
         >
-          I Agree
+          {t('I Agree')}
         </button>
       </div>
     </>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MdClose, MdOutlineNoPhotography } from 'react-icons/md'
+import { useT } from '../../../i18n/LanguageContext'
 
 const CARD = 1.586
 const GUIDE_W = 0.86
@@ -12,6 +13,7 @@ function guideSize(w, h) {
 }
 
 function IdCamera({ side, onCapture, onClose }) {
+  const { t } = useT()
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const [error, setError] = useState('')
@@ -74,10 +76,10 @@ function IdCamera({ side, onCapture, onClose }) {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[70] bg-black flex flex-col" role="dialog" aria-modal="true" aria-label={`Take a photo of the ${side} of your ID`}>
+    <div className="fixed inset-0 z-[70] bg-black flex flex-col" role="dialog" aria-modal="true" aria-label={side === 'back' ? t('Back of your ID') : t('Front of your ID')}>
       <div className="flex items-center justify-between px-4 py-3 text-white">
-        <div className="text-base font-semibold">{side === 'back' ? 'Back of your ID' : 'Front of your ID'}</div>
-        <button type="button" onClick={onClose} aria-label="Close camera" className="p-2 -mr-2">
+        <div className="text-base font-semibold">{side === 'back' ? t('Back of your ID') : t('Front of your ID')}</div>
+        <button type="button" onClick={onClose} aria-label={t('Close camera')} className="p-2 -mr-2">
           <MdClose className="text-2xl" aria-hidden="true" />
         </button>
       </div>
@@ -86,7 +88,7 @@ function IdCamera({ side, onCapture, onClose }) {
         {error ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white/90 px-8">
             <MdOutlineNoPhotography className="text-5xl mb-3" aria-hidden="true" />
-            <p className="text-sm max-w-[320px]">{error}</p>
+            <p className="text-sm max-w-[320px]">{t(error)}</p>
           </div>
         ) : (
           <>
@@ -104,10 +106,10 @@ function IdCamera({ side, onCapture, onClose }) {
             </div>
             <div className="absolute top-4 inset-x-4 text-center">
               <span className="inline-block bg-white/95 text-slate-900 text-sm font-semibold px-3.5 py-1.5 rounded-full">
-                Fit the {side === 'back' ? 'back' : 'front'} of your ID inside the frame
+                {side === 'back' ? t('Fit the back of your ID inside the frame') : t('Fit the front of your ID inside the frame')}
               </span>
             </div>
-            <div className="absolute bottom-4 inset-x-4 text-center text-white/85 text-xs">Flat surface · Good light · No glare or fingers on the card</div>
+            <div className="absolute bottom-4 inset-x-4 text-center text-white/85 text-xs">{t('Flat surface · Good light · No glare or fingers on the card')}</div>
           </>
         )}
       </div>
@@ -117,7 +119,7 @@ function IdCamera({ side, onCapture, onClose }) {
           type="button"
           onClick={shoot}
           disabled={!live || !!error}
-          aria-label="Take photo"
+          aria-label={t('Take photo')}
           className="w-[72px] h-[72px] rounded-full bg-white ring-4 ring-white/30 disabled:opacity-40 active:scale-95 transition-transform"
         />
       </div>

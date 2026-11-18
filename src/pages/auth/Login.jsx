@@ -17,6 +17,8 @@ import { clearIdle } from '../../lib/useIdleLogout'
 import logo from '../../assets/kp-app-logo.png'
 import barangayLogo from '../../assets/barangay-newkababae-logo.jpg'
 import AuthBackground from '../../components/AuthBackground'
+import LanguageSwitch from '../../components/LanguageSwitch'
+import { useT } from '../../i18n/LanguageContext'
 
 const POINTS = [
   { icon: MdOutlineNoteAdd, text: 'File complaints online, no waiting in line' },
@@ -47,12 +49,13 @@ function Logos({ size = 'w-20 h-20' }) {
 }
 
 function LoginLoader() {
+  const { t } = useT()
   return (
     <div className="login-loader" role="status" aria-live="polite">
       <div className="loader-ring">
         <img src={logo} alt="" className="w-[84px] h-[84px] rounded-full" />
       </div>
-      <div className="mt-7 text-white text-lg font-semibold">Logging you in</div>
+      <div className="mt-7 text-white text-lg font-semibold">{t('Logging you in')}</div>
       <div className="loader-dots mt-3" aria-hidden="true">
         <span />
         <span />
@@ -65,6 +68,7 @@ function LoginLoader() {
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useT()
   const cardRef = useRef(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -114,10 +118,10 @@ function Login() {
       setLoading(false)
       if (error.message.toLowerCase().includes('email not confirmed')) {
         setNeedsConfirmation(true)
-        setErrorMsg('Please confirm your email address before logging in.')
+        setErrorMsg(t('Please confirm your email address before logging in.'))
       } else {
         setFieldError(error.message.toLowerCase().includes('invalid login credentials'))
-        setErrorMsg(friendlyError(error.message))
+        setErrorMsg(t(friendlyError(error.message)))
       }
       shake()
       return
@@ -152,7 +156,7 @@ function Login() {
     if (error) return setResendMsg(error.message)
     setCodeSent(true)
     setCode('')
-    setResendMsg('We sent a verification code to your email. Check your inbox, Spam and Promotions folders.')
+    setResendMsg(t('We sent a verification code to your email. Check your inbox, Spam and Promotions folders.'))
   }
 
   async function handleVerify(e) {
@@ -160,7 +164,7 @@ function Login() {
     setVerifying(true)
     const { error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code, type: 'email' })
     setVerifying(false)
-    if (error) return setResendMsg('The code is wrong or has expired. Check it or send a new code.')
+    if (error) return setResendMsg(t('The code is wrong or has expired. Check it or send a new code.'))
     setNeedsConfirmation(false)
     setCodeSent(false)
     setResendMsg('')
@@ -185,19 +189,20 @@ function Login() {
         to="/"
         className="on-dark absolute top-5 left-5 z-20 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-hover transition-colors"
       >
-        <MdArrowBack aria-hidden="true" /> Back to home
+        <MdArrowBack aria-hidden="true" /> {t('Back to home')}
       </Link>
+      <LanguageSwitch className="on-dark absolute top-5 right-5 z-20" />
 
       <div className="relative z-10 w-full max-w-5xl grid items-center gap-12 lg:grid-cols-[1fr_440px]">
         <div className="on-dark hidden lg:block fade-up">
           <Logos />
           <h1 className="mt-8 text-5xl font-bold leading-[1.1] tracking-tight text-ink">
-            Welcome back to
+            {t('Welcome back to')}
             <br />
             KP App
           </h1>
           <p className="mt-4 max-w-md text-lg text-ink-soft">
-            The Katarungang Pambarangay portal of Barangay New Kababae.
+            {t('The Katarungang Pambarangay portal of Barangay New Kababae.')}
           </p>
           <ul className="mt-8 space-y-4">
             {POINTS.map((p) => {
@@ -207,7 +212,7 @@ function Login() {
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface">
                     <Icon className="text-xl" aria-hidden="true" />
                   </span>
-                  {p.text}
+                  {t(p.text)}
                 </li>
               )
             })}
@@ -223,21 +228,21 @@ function Login() {
 
           <div className="fade-up delay-2">
             <div ref={cardRef} className="bg-surface rounded-3xl shadow-token-lg p-7 sm:p-8 border border-border">
-              <h2 className="text-ink text-2xl font-bold">Log in</h2>
-              <p className="text-ink-soft text-sm mt-1 mb-6">Use the email and password you registered with.</p>
+              <h2 className="text-ink text-2xl font-bold">{t('Log in')}</h2>
+              <p className="text-ink-soft text-sm mt-1 mb-6">{t('Use the email and password you registered with.')}</p>
 
               {infoMsg && (
                 <div className="bg-success-soft border border-success-strong/20 text-success-strong text-sm rounded-xl px-4 py-3 mb-4">
-                  {infoMsg}
+                  {t(infoMsg)}
                 </div>
               )}
 
               {linkError && !errorMsg && (
                 <div role="alert" className="bg-warning-soft border border-warning-strong/25 text-warning-strong text-sm rounded-xl px-4 py-3 mb-4">
                   {linkError === 'otp_expired'
-                    ? 'This confirmation link has expired or was already used.'
-                    : 'This confirmation link is not valid.'}{' '}
-                  Log in below. If your email is not confirmed yet, you can get a verification code.
+                    ? t('This confirmation link has expired or was already used.')
+                    : t('This confirmation link is not valid.')}{' '}
+                  {t('Log in below. If your email is not confirmed yet, you can get a verification code.')}
                 </div>
               )}
 
@@ -252,7 +257,7 @@ function Login() {
                         disabled={resending || !email}
                         className="text-danger-strong font-semibold underline disabled:opacity-50"
                       >
-                        {resending ? 'Sending...' : codeSent ? 'Send a new code' : 'Send a verification code'}
+                        {resending ? t('Sending...') : codeSent ? t('Send a new code') : t('Send a verification code')}
                       </button>
                     </div>
                   )}
@@ -270,8 +275,8 @@ function Login() {
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    aria-label="Verification code"
-                    placeholder="Enter code"
+                    aria-label={t('Verification code')}
+                    placeholder={t('Enter code')}
                     className="flex-1 min-w-0 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-3 text-center text-lg font-bold tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-accent/50"
                   />
                   <button
@@ -279,7 +284,7 @@ function Login() {
                     disabled={verifying || code.length < 6}
                     className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-xl px-5"
                   >
-                    {verifying ? 'Verifying...' : 'Verify'}
+                    {verifying ? t('Verifying...') : t('Verify')}
                   </button>
                 </form>
               )}
@@ -315,7 +320,7 @@ function Login() {
                       Password
                     </label>
                     <Link to="/forgot-password" className="text-accent hover:text-accent-hover font-sans text-sm font-medium">
-                      Forgot password?
+                      {t('Forgot password?')}
                     </Link>
                   </div>
                   <div className="relative">
@@ -340,7 +345,7 @@ function Login() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? t('Hide password') : t('Show password')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
                     >
                       {showPassword ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
@@ -348,7 +353,7 @@ function Login() {
                   </div>
                   {capsLock && (
                     <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-warning-strong" role="status">
-                      <MdOutlineKeyboardCapslock className="text-base" aria-hidden="true" /> Caps Lock is on
+                      <MdOutlineKeyboardCapslock className="text-base" aria-hidden="true" /> {t('Caps Lock is on')}
                     </div>
                   )}
                 </div>
@@ -360,18 +365,18 @@ function Login() {
                 >
                   {loading ? (
                     <>
-                      <span className="spinner" aria-hidden="true" /> Logging in...
+                      <span className="spinner" aria-hidden="true" /> {t('Logging in...')}
                     </>
                   ) : (
-                    'Log in'
+                    t('Log in')
                   )}
                 </button>
               </form>
 
               <p className="text-ink-soft font-sans text-sm text-center mt-6">
-                Don't have an account?{' '}
+                {t("Don't have an account?")}{' '}
                 <Link to="/register" className="text-accent hover:text-accent-hover font-semibold">
-                  Register here
+                  {t('Register here')}
                 </Link>
               </p>
             </div>
