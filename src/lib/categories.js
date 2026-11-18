@@ -1,0 +1,16 @@
+export const CATEGORIES = [
+  'Physical Injury',
+  'Oral Defamation / Slander',
+  'Threat / Intimidation',
+  'Unjust Vexation',
+  'Property Dispute / Boundary Conflict',
+  'Estafa / Fraud',
+  'Unpaid Debt / Collection',
+  'Theft / Robbery',
+  'Trespassing',
+  'Vandalism / Malicious Mischief',
+  'Domestic Dispute / Family Conflict',
+  'Noise Disturbance / Public Nuisance',
+  'Light Offenses',
+  'Other',
+]

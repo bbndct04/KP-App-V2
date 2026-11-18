@@ -24,7 +24,7 @@ import { Card, StatusBadge, EmptyState, Skeleton, LinkButton, ConfirmDialog } fr
 import { STATUS } from '../../components/status'
 import ComplaintDetails from '../../components/admin/ComplaintDetails'
 import IdentityPanel from '../../components/admin/IdentityPanel'
-import { DeadlineBadge } from '../../components/cases'
+import { DeadlineBadge, WalkInBadge } from '../../components/cases'
 import { caseDeadline } from '../../lib/cases'
 import { useT } from '../../i18n/LanguageContext'
 
@@ -340,11 +340,19 @@ function CaseDetail() {
           <button onClick={() => navigate('/admin/cases')} className="text-sm text-accent font-semibold mb-3 flex items-center gap-1">
             <MdArrowBack aria-hidden="true" />{t('Back to Active Cases')}
           </button>
-          <div className="text-ink-faint text-sm font-mono">{complaint.reference_number}</div>
+          <div className="text-ink-faint text-sm font-mono flex items-center gap-2">
+            {complaint.reference_number}
+            <WalkInBadge complaint={complaint} />
+          </div>
           <div className="text-ink text-xl font-bold">{t(complaint.category)}</div>
           <div className="text-ink-soft text-sm mt-0.5">
-            {t('Filed by {a} against {b}', { a: complaint.profiles?.full_name || '—', b: complaint.respondent_name || '—' })}
+            {t('Filed by {a} against {b}', { a: complaint.profiles?.full_name || complaint.complainant_name || '—', b: complaint.respondent_name || '—' })}
           </div>
+          {complaint.source === 'walk_in' && (
+            <div className="text-ink-faint text-xs mt-0.5">
+              {t('Walk-in at the barangay hall · encoded by {name}', { name: complaint.encoded_by_name || t('a barangay admin') })}
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-start sm:items-end gap-2 flex-shrink-0">
           <StatusBadge status={complaint.status} size="lg" />
@@ -450,7 +458,14 @@ function CaseDetail() {
       </div>
 
       <ComplaintDetails complaint={complaint} className="mb-4" />
-      <IdentityPanel userId={complaint.user_id} collapsible defaultOpen={false} className="mb-4" />
+      {complaint.user_id ? (
+        <IdentityPanel userId={complaint.user_id} collapsible defaultOpen={false} className="mb-4" />
+      ) : (
+        <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md mb-4 text-sm text-ink-soft">
+          {t('No resident account. Contact the complainant by phone or in person about hearings.')}
+          {complaint.complainant_contact ? ` ${t('Contact number')}: ${complaint.complainant_contact}` : ''}
+        </div>
+      )}
 
       {/* Pangkat Members */}
       {(members.length > 0 || complaint.status === 'pangkat_formed' || complaint.status === 'pangkat_hearing') && (

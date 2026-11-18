@@ -27,7 +27,7 @@ function AdminAnalytics() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('complaints').select('status, category, created_at')
+      const { data } = await supabase.from('complaints').select('status, category, created_at, source')
       setComplaints(data || [])
       setLoading(false)
     }
@@ -45,6 +45,7 @@ function AdminAnalytics() {
     cfaIssued: complaints.filter((c) => c.status === 'cfa_issued').length,
     dismissed: complaints.filter((c) => c.status === 'dismissed').length,
   }
+  const walkIns = complaints.filter((c) => c.source === 'walk_in').length
   const accepted = total - stats.submitted - stats.declined
   const resRate = accepted > 0 ? Math.round((stats.settled / accepted) * 100) : 0
   const activeCases = stats.filed + stats.inProgress
@@ -97,7 +98,7 @@ function AdminAnalytics() {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
             {[
-              { label: 'Total Complaints', val: stats.total, color: 'text-accent', bg: 'bg-accent-soft', icon: MdOutlineFolderCopy },
+              { label: 'Total Complaints', val: stats.total, color: 'text-accent', bg: 'bg-accent-soft', icon: MdOutlineFolderCopy, note: t('{a} online · {b} walk-in', { a: total - walkIns, b: walkIns }) },
               { label: 'Settled', val: stats.settled, color: 'text-success-strong', bg: 'bg-success-soft', icon: MdOutlineCheckCircle },
               { label: 'Active Cases', val: activeCases, color: 'text-warning-strong', bg: 'bg-warning-soft', icon: MdOutlineHourglassTop },
               { label: 'Settlement Rate', val: `${resRate}%`, color: 'text-purple-strong', bg: 'bg-purple-soft', icon: MdOutlineTrendingUp },
@@ -110,6 +111,7 @@ function AdminAnalytics() {
                   </div>
                   <div className={`text-3xl font-bold mb-0.5 ${s.color}`}>{s.val}</div>
                   <div className="text-ink-soft text-sm">{t(s.label)}</div>
+                  {s.note && <div className="text-ink-faint text-xs mt-1">{s.note}</div>}
                 </div>
               )
             })}

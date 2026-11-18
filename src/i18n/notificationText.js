@@ -40,6 +40,10 @@ const PATTERNS = [
     (until, reason) =>
       `Hindi ka muna makakapag-file ng bagong complaint${until ? ` hanggang ${until}` : ''}. Dahilan: ${reason}. Makikita mo pa rin ang iyong mga kaso. Pumunta sa Barangay Hall kung may tanong ka.`,
   ],
+  [
+    /^Your complaint \(Ref: (.+?)\) was filed at the barangay hall\. You will be notified when a summons is issued\.$/s,
+    (ref) => `Na-file sa Barangay Hall ang iyong complaint (Ref: ${ref}). Aabisuhan ka kapag naipadala na ang Summons.`,
+  ],
   [/^Your account has been restored\. You can file complaints again\.$/, () => 'Naibalik na ang iyong account. Puwede ka nang mag-file ulit ng complaint.'],
 ]
 
