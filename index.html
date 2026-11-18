@@ -13,6 +13,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      setTimeout(function () {
+        if (window.__kpBooted || !navigator.onLine) return
+        try {
+          if (sessionStorage.getItem('kp-recovered')) return
+          sessionStorage.setItem('kp-recovered', '1')
+        } catch (e) {}
+        var jobs = []
+        if ('serviceWorker' in navigator) {
+          jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister() })) }))
+        }
+        if (window.caches) {
+          jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k) })) }))
+        }
+        Promise.all(jobs).finally(function () { location.reload() })
+      }, 6000)
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

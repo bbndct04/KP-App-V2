@@ -27,6 +27,9 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         // Precache the built app shell (JS/CSS/HTML/fonts/icons) for offline load
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         globIgnores: ['**/face-api*.js', 'models/**'],
