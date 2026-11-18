@@ -398,7 +398,7 @@ function Profile() {
                   onChange={setLanguage}
                   options={[
                     { value: 'en', label: 'English' },
-                    { value: 'tl', label: 'Tagalog' },
+                    { value: 'tl', label: 'Filipino' },
                   ]}
                 />
               </Row>

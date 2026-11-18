@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { MdOutlineMarkEmailUnread, MdOutlineWarningAmber, MdOutlineCheckCircle } from 'react-icons/md'
+import { useT } from '../../../i18n/LanguageContext'
 
 const COOLDOWN = 60
 
 function CheckEmailStep({ email, busy, error, uploadWarning, onResend, onVerify, onStartOver }) {
+  const { t } = useT()
   const [code, setCode] = useState('')
   const [wait, setWait] = useState(COOLDOWN)
   const [note, setNote] = useState('')
@@ -23,7 +25,7 @@ function CheckEmailStep({ email, busy, error, uploadWarning, onResend, onVerify,
     setNote('')
     setCode('')
     const msg = await onResend()
-    setNote(msg || 'We sent a new code. Check your inbox, Spam and Promotions folders.')
+    setNote(msg || t('We sent a new code. Check your inbox, Spam and Promotions folders.'))
     setWait(COOLDOWN)
     inputRef.current?.focus()
   }
@@ -38,12 +40,12 @@ function CheckEmailStep({ email, busy, error, uploadWarning, onResend, onVerify,
       <div className="w-[76px] h-[76px] bg-accent-soft rounded-full flex items-center justify-center mx-auto mb-4">
         <MdOutlineMarkEmailUnread className="text-4xl text-accent" aria-hidden="true" />
       </div>
-      <h2 className="text-ink text-2xl font-bold mb-1.5">Enter the code</h2>
+      <h2 className="text-ink text-2xl font-bold mb-1.5">{t('Enter the code')}</h2>
       <p className="text-ink-soft text-sm leading-relaxed max-w-[380px] mx-auto">
-        We sent a verification code to
+        {t('We sent a verification code to')}
         <span className="block text-ink font-semibold break-all">{email}</span>
       </p>
-      <p className="text-ink-faint text-xs mt-1">Check your Spam or Promotions folder if you can't find it.</p>
+      <p className="text-ink-faint text-xs mt-1">{t("Check your Spam or Promotions folder if you can't find it.")}</p>
 
       <input
         ref={inputRef}
@@ -51,7 +53,7 @@ function CheckEmailStep({ email, busy, error, uploadWarning, onResend, onVerify,
         onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
         inputMode="numeric"
         autoComplete="one-time-code"
-        aria-label="Verification code"
+        aria-label={t('Verification code')}
         placeholder="000000"
         className="block w-full max-w-[260px] mx-auto mt-5 mb-5 bg-surface-sunken border border-border text-ink placeholder-ink-faint/50 rounded-xl py-3.5 text-center text-2xl font-bold tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50"
       />
@@ -63,7 +65,7 @@ function CheckEmailStep({ email, busy, error, uploadWarning, onResend, onVerify,
         </div>
       ) : (
         <div className="text-success-strong text-sm font-medium mb-4 flex items-center justify-center gap-1.5">
-          <MdOutlineCheckCircle aria-hidden="true" /> Your ID and face photo were received
+          <MdOutlineCheckCircle aria-hidden="true" /> {t('Your ID and face photo were received')}
         </div>
       )}
 
@@ -79,23 +81,23 @@ function CheckEmailStep({ email, busy, error, uploadWarning, onResend, onVerify,
         disabled={busy || code.length < 6}
         className="w-full max-w-[320px] bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-xl py-3 shadow-token-md"
       >
-        {busy ? 'Verifying...' : 'Verify and continue'}
+        {busy ? t('Verifying...') : t('Verify and continue')}
       </button>
 
       <div className="mt-5 text-sm text-ink-soft">
-        Didn't get the code?{' '}
+        {t("Didn't get the code?")}{' '}
         {wait > 0 ? (
-          <span className="text-ink-faint">Resend in {wait}s</span>
+          <span className="text-ink-faint">{t('Resend in {s}s', { s: wait })}</span>
         ) : (
           <button type="button" onClick={resend} className="text-accent font-semibold">
-            Resend code
+            {t('Resend code')}
           </button>
         )}
       </div>
       <div className="mt-2 text-sm text-ink-soft">
-        Wrong email?{' '}
+        {t('Wrong email?')}{' '}
         <button type="button" onClick={onStartOver} className="text-accent font-semibold">
-          Change it
+          {t('Change it')}
         </button>
       </div>
     </form>

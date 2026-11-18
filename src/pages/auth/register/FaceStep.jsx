@@ -12,6 +12,7 @@ import {
   MdOutlinePersonOutline,
   MdRefresh,
 } from 'react-icons/md'
+import { useT } from '../../../i18n/LanguageContext'
 
 const ASPECT = 3 / 4
 const OVAL = { cx: 0.5, cy: 0.46, rx: 0.34, ry: 0.3 }
@@ -84,6 +85,7 @@ function evaluate(faces, video, probe) {
 }
 
 function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
+  const { t } = useT()
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const probeRef = useRef(null)
@@ -196,8 +198,8 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
   return (
     <>
       <div className="mb-5">
-        <h2 className="text-ink text-2xl font-bold mb-1">Face Photo</h2>
-        <p className="text-ink-soft text-sm">We take a live photo so the barangay can match your face with your ID.</p>
+        <h2 className="text-ink text-2xl font-bold mb-1">{t('Face Photo')}</h2>
+        <p className="text-ink-soft text-sm">{t('We take a live photo so the barangay can match your face with your ID.')}</p>
       </div>
 
       {phase === 'tips' && (
@@ -207,14 +209,14 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
               <MdOutlineFace className="text-5xl" aria-hidden="true" />
             </div>
           </div>
-          <div className="text-ink font-semibold text-center">Before you start</div>
+          <div className="text-ink font-semibold text-center">{t('Before you start')}</div>
           <ul className="flex flex-col gap-2.5">
-            {TIPS.map((t) => {
-              const Icon = t.icon
+            {TIPS.map((tip) => {
+              const Icon = tip.icon
               return (
-                <li key={t.text} className="flex items-center gap-3 bg-surface-sunken border border-border rounded-xl px-4 py-3 text-sm text-ink">
+                <li key={tip.text} className="flex items-center gap-3 bg-surface-sunken border border-border rounded-xl px-4 py-3 text-sm text-ink">
                   <Icon className="text-xl text-accent flex-shrink-0" aria-hidden="true" />
-                  {t.text}
+                  {t(tip.text)}
                 </li>
               )
             })}
@@ -224,7 +226,7 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
             onClick={openCamera}
             className="bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-xl py-3 shadow-token-md inline-flex items-center justify-center gap-2"
           >
-            <MdOutlinePhotoCamera className="text-xl" aria-hidden="true" /> I'm ready, open the camera
+            <MdOutlinePhotoCamera className="text-xl" aria-hidden="true" /> {t("I'm ready, open the camera")}
           </button>
         </div>
       )}
@@ -234,10 +236,10 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
           {cameraError ? (
             <div className="w-full rounded-2xl bg-surface-sunken border border-border p-8 text-center">
               <MdOutlineNoPhotography className="text-5xl text-ink-faint mx-auto mb-3" aria-hidden="true" />
-              <div className="text-[15px] font-bold text-ink mb-1.5">Camera unavailable</div>
-              <div className="text-sm text-ink-soft max-w-[340px] mx-auto mb-4">{cameraError}</div>
+              <div className="text-[15px] font-bold text-ink mb-1.5">{t('Camera unavailable')}</div>
+              <div className="text-sm text-ink-soft max-w-[340px] mx-auto mb-4">{t(cameraError)}</div>
               <button type="button" onClick={openCamera} className="border border-border rounded-lg px-4 py-2 text-sm font-semibold text-ink inline-flex items-center gap-1.5">
-                <MdRefresh aria-hidden="true" /> Try again
+                <MdRefresh aria-hidden="true" /> {t('Try again')}
               </button>
             </div>
           ) : (
@@ -270,10 +272,10 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
                     aria-live="polite"
                     className={`px-3.5 py-1.5 rounded-full text-sm font-semibold shadow-token-md ${ready ? 'bg-success-strong text-white' : 'bg-white/95 text-slate-900'}`}
                   >
-                    {hint}
+                    {t(hint)}
                   </span>
                 </div>
-                <div className="absolute bottom-3 inset-x-3 text-center text-white/90 text-xs font-medium">No glasses · Face the camera · Good lighting</div>
+                <div className="absolute bottom-3 inset-x-3 text-center text-white/90 text-xs font-medium">{t('No glasses · Face the camera · Good lighting')}</div>
               </div>
               <canvas ref={probeRef} className="hidden" />
               {detector === 'off' ? (
@@ -282,10 +284,10 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
                   onClick={capture}
                   className="bg-accent hover:bg-accent-hover text-accent-ink font-semibold text-sm rounded-xl px-8 py-3 shadow-token-md inline-flex items-center gap-2"
                 >
-                  <MdOutlinePhotoCamera className="text-xl" aria-hidden="true" /> Take photo
+                  <MdOutlinePhotoCamera className="text-xl" aria-hidden="true" /> {t('Take photo')}
                 </button>
               ) : (
-                <p className="text-xs text-ink-faint text-center max-w-[340px]">The photo is taken automatically when your face is centered and close enough.</p>
+                <p className="text-xs text-ink-faint text-center max-w-[340px]">{t('The photo is taken automatically when your face is centered and close enough.')}</p>
               )}
             </>
           )}
@@ -294,16 +296,16 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
 
       {phase === 'done' && preview && (
         <div className="flex flex-col items-center gap-4">
-          <img src={preview} alt="Your face photo" className="w-full max-w-[260px] aspect-[3/4] object-cover rounded-3xl scale-x-[-1] border border-border" />
+          <img src={preview} alt={t('Your face photo')} className="w-full max-w-[260px] aspect-[3/4] object-cover rounded-3xl scale-x-[-1] border border-border" />
           <div className="text-success-strong text-sm font-semibold flex items-center gap-1.5">
-            <MdOutlineCheckCircle className="text-lg" aria-hidden="true" /> Photo taken
+            <MdOutlineCheckCircle className="text-lg" aria-hidden="true" /> {t('Photo taken')}
           </div>
           <label className="flex items-start gap-2.5 bg-surface-sunken border border-border rounded-xl p-3.5 cursor-pointer w-full">
             <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 w-5 h-5 accent-[var(--accent)] flex-shrink-0" />
-            <span className="text-sm text-ink leading-relaxed">My whole face is clear, and I am not wearing glasses, a hat or a face mask.</span>
+            <span className="text-sm text-ink leading-relaxed">{t('My whole face is clear, and I am not wearing glasses, a hat or a face mask.')}</span>
           </label>
           <button type="button" onClick={retake} className="border border-border rounded-lg px-4 py-2 text-sm font-semibold text-ink-soft inline-flex items-center gap-1.5">
-            <MdRefresh aria-hidden="true" /> Retake photo
+            <MdRefresh aria-hidden="true" /> {t('Retake photo')}
           </button>
         </div>
       )}
@@ -317,7 +319,7 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
           }}
           className="border border-border rounded-lg px-5 py-2.5 text-sm text-ink-soft inline-flex items-center gap-1.5"
         >
-          <MdArrowBack aria-hidden="true" /> Back
+          <MdArrowBack aria-hidden="true" /> {t('Back')}
         </button>
         <button
           type="button"
@@ -325,7 +327,7 @@ function FaceStep({ preview, onCapture, onRetake, onBack, onNext }) {
           onClick={onNext}
           className="bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-ink font-semibold text-sm rounded-xl px-7 py-2.5 shadow-token-md inline-flex items-center gap-2"
         >
-          Next <MdArrowForward aria-hidden="true" />
+          {t('Next')} <MdArrowForward aria-hidden="true" />
         </button>
       </div>
     </>

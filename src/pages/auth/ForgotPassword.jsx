@@ -4,8 +4,11 @@ import { MdArrowBack, MdOutlineMarkEmailUnread } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import logo from '../../assets/kp-app-logo.png'
 import AuthBackground from '../../components/AuthBackground'
+import LanguageSwitch from '../../components/LanguageSwitch'
+import { useT } from '../../i18n/LanguageContext'
 
 function ForgotPassword() {
+  const { t } = useT()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -31,6 +34,7 @@ function ForgotPassword() {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 overflow-hidden">
       <AuthBackground />
+      <LanguageSwitch className="on-dark absolute top-5 right-5 z-20" />
 
       <div className="w-full max-w-md relative z-10">
         <div className="on-dark flex flex-col items-center mb-8 fade-up">
@@ -44,9 +48,9 @@ function ForgotPassword() {
         <div className="bg-surface rounded-3xl shadow-token-lg p-7 sm:p-8 border border-border fade-up delay-2">
           {!sent ? (
             <>
-              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">Forgot Password</h2>
+              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">{t('Forgot Password')}</h2>
               <p className="text-ink-soft text-sm mb-6 leading-relaxed">
-                Enter the email address on your account and we'll send you a link to reset your password.
+                {t("Enter the email address on your account and we'll send you a link to reset your password.")}
               </p>
 
               {error && (
@@ -75,7 +79,7 @@ function ForgotPassword() {
                   disabled={loading}
                   className="w-full bg-accent hover:bg-accent-hover transition-all text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 mt-2 disabled:opacity-50 shadow-token-md"
                 >
-                  {loading ? 'Sending...' : 'Send Reset Link'}
+                  {loading ? t('Sending...') : t('Send Reset Link')}
                 </button>
               </form>
             </>
@@ -84,18 +88,18 @@ function ForgotPassword() {
               <div className="w-[64px] h-[64px] bg-success-soft border border-success-strong/30 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <MdOutlineMarkEmailUnread className="text-3xl text-success-strong" aria-hidden="true" />
               </div>
-              <h2 className="text-ink font-sans text-xl font-semibold mb-2">Check your email</h2>
-              <p className="text-ink-soft text-sm leading-relaxed mb-1">We sent a reset link to</p>
+              <h2 className="text-ink font-sans text-xl font-semibold mb-2">{t('Check your email')}</h2>
+              <p className="text-ink-soft text-sm leading-relaxed mb-1">{t('We sent a reset link to')}</p>
               <p className="text-ink font-semibold text-sm mb-4">{email}</p>
               <p className="text-ink-faint text-sm leading-relaxed">
-                Click the link in that email to set a new password. It may take a minute to arrive.
+                {t('Click the link in that email to set a new password. It may take a minute to arrive.')}
               </p>
             </div>
           )}
 
           <p className="text-ink-soft font-sans text-sm text-center mt-6">
             <Link to="/login" className="text-accent hover:text-accent-hover font-medium inline-flex items-center gap-1">
-              <MdArrowBack aria-hidden="true" /> Back to Log in
+              <MdArrowBack aria-hidden="true" /> {t('Back to Log in')}
             </Link>
           </p>
         </div>

@@ -5,9 +5,12 @@ import { supabase } from '../../lib/supabaseClient'
 import { passwordProblem } from '../../lib/accounts'
 import logo from '../../assets/kp-app-logo.png'
 import AuthBackground from '../../components/AuthBackground'
+import LanguageSwitch from '../../components/LanguageSwitch'
+import { useT } from '../../i18n/LanguageContext'
 
 function ResetPassword() {
   const navigate = useNavigate()
+  const { t } = useT()
   const invite = useSearchParams()[0].get('invite') === '1'
   const [checkingSession, setCheckingSession] = useState(true)
   const [validLink, setValidLink] = useState(false)
@@ -36,11 +39,11 @@ function ResetPassword() {
 
     const pwProblem = passwordProblem(password)
     if (pwProblem) {
-      setError(pwProblem)
+      setError(t(pwProblem))
       return
     }
     if (password !== passwordConfirm) {
-      setError('Passwords do not match.')
+      setError(t('Passwords do not match.'))
       return
     }
 
@@ -60,6 +63,7 @@ function ResetPassword() {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 overflow-hidden">
       <AuthBackground />
+      <LanguageSwitch className="on-dark absolute top-5 right-5 z-20" />
 
       <div className="w-full max-w-md relative z-10">
         <div className="on-dark flex flex-col items-center mb-8 fade-up">
@@ -72,36 +76,36 @@ function ResetPassword() {
 
         <div className="bg-surface rounded-3xl shadow-token-lg p-7 sm:p-8 border border-border fade-up delay-2">
           {checkingSession ? (
-            <div role="status" aria-label="Verifying your link" className="flex flex-col gap-3 py-2">
+            <div role="status" aria-label={t('Verifying your link')} className="flex flex-col gap-3 py-2">
               <div className="h-6 w-2/3 mx-auto animate-pulse rounded-lg bg-surface-sunken" />
               <div className="h-4 w-full animate-pulse rounded-lg bg-surface-sunken" />
               <div className="h-11 w-full animate-pulse rounded-lg bg-surface-sunken" />
               <div className="h-11 w-full animate-pulse rounded-lg bg-surface-sunken" />
-              <span className="sr-only">Verifying your link…</span>
+              <span className="sr-only">{t('Verifying your link…')}</span>
             </div>
           ) : !validLink ? (
             <div className="text-center py-2">
               <div className="w-[64px] h-[64px] bg-danger-soft border border-danger-strong/30 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <MdOutlineErrorOutline className="text-3xl text-danger-strong" aria-hidden="true" />
               </div>
-              <h2 className="text-ink font-sans text-xl font-semibold mb-2">Link expired or invalid</h2>
+              <h2 className="text-ink font-sans text-xl font-semibold mb-2">{t('Link expired or invalid')}</h2>
               <p className="text-ink-soft text-sm leading-relaxed mb-5">
                 {invite
-                  ? 'This invitation link is no longer valid. You can set your password with a reset link instead, or ask the barangay admin to send a new invitation.'
-                  : 'This password reset link is no longer valid. Reset links expire after a short time — please request a new one.'}
+                  ? t('This invitation link is no longer valid. You can set your password with a reset link instead, or ask the barangay admin to send a new invitation.')
+                  : t('This password reset link is no longer valid. Reset links expire after a short time — please request a new one.')}
               </p>
               <button
                 onClick={() => navigate('/forgot-password')}
                 className="w-full bg-accent hover:bg-accent-hover text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 shadow-token-md"
               >
-                Request a new link
+                {t('Request a new link')}
               </button>
             </div>
           ) : (
             <>
-              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">{invite ? 'Set your password' : 'Set a new password'}</h2>
+              <h2 className="text-ink font-sans text-xl font-semibold mb-1.5">{invite ? t('Set your password') : t('Set a new password')}</h2>
               <p className="text-ink-soft text-sm mb-6">
-                {invite ? 'Welcome! Create a password for your barangay official account.' : 'Choose a new password for your account.'}
+                {invite ? t('Welcome! Create a password for your barangay official account.') : t('Choose a new password for your account.')}
               </p>
 
               {error && (
@@ -112,7 +116,7 @@ function ResetPassword() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-ink-soft font-sans text-sm mb-1.5">New Password</label>
+                  <label className="block text-ink-soft font-sans text-sm mb-1.5">{t('New Password')}</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -123,12 +127,12 @@ function ResetPassword() {
                       autoComplete="new-password"
                       minLength={8}
                       className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-2.5 pr-11 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
-                      placeholder="8+ characters, letters and numbers"
+                      placeholder={t('8+ characters, letters and numbers')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? t('Hide password') : t('Show password')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink-soft flex items-center"
                     >
                       {showPassword ? <MdOutlineVisibilityOff className="text-xl" aria-hidden="true" /> : <MdOutlineVisibility className="text-xl" aria-hidden="true" />}
@@ -137,7 +141,7 @@ function ResetPassword() {
                 </div>
 
                 <div>
-                  <label className="block text-ink-soft font-sans text-sm mb-1.5">Confirm New Password</label>
+                  <label className="block text-ink-soft font-sans text-sm mb-1.5">{t('Confirm New Password')}</label>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={passwordConfirm}
@@ -145,7 +149,7 @@ function ResetPassword() {
                     required
                     autoComplete="new-password"
                     className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-xl px-4 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
-                    placeholder="Re-enter new password"
+                    placeholder={t('Re-enter new password')}
                   />
                 </div>
 
@@ -154,7 +158,7 @@ function ResetPassword() {
                   disabled={saving}
                   className="w-full bg-accent hover:bg-accent-hover transition-all text-accent-ink font-sans font-semibold text-sm rounded-xl py-3 mt-2 disabled:opacity-50 shadow-token-md"
                 >
-                  {saving ? 'Saving...' : invite ? 'Set Password' : 'Update Password'}
+                  {saving ? t('Saving...') : invite ? t('Set Password') : t('Update Password')}
                 </button>
               </form>
             </>

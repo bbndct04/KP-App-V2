@@ -19,6 +19,8 @@ import {
 } from 'react-icons/md'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import { useT } from '../i18n/LanguageContext'
+import LanguageSwitch from '../components/LanguageSwitch'
 import AuthBackground from '../components/AuthBackground'
 import useReveal from '../hooks/useReveal'
 import logo from '../assets/kp-app-logo.png'
@@ -106,14 +108,15 @@ function FaqItem({ q, a, open, onToggle, id }) {
 }
 
 function ThemeToggle() {
+  const { t } = useT()
   const { theme, setLight, setDark } = useTheme()
   const dark = theme === 'dark'
   return (
     <button
       type="button"
       onClick={dark ? setLight : setDark}
-      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={dark ? 'Light mode' : 'Dark mode'}
+      aria-label={dark ? t('Switch to light mode') : t('Switch to dark mode')}
+      title={dark ? t('Light mode') : t('Dark mode')}
       className={`relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border text-ink transition-colors hover:bg-surface-hover ${focus}`}
     >
       <MdOutlineLightMode
@@ -129,19 +132,20 @@ function ThemeToggle() {
 }
 
 function FooterCol({ title, links }) {
+  const { t } = useT()
   return (
     <div>
-      <h3 className="text-lg font-bold text-ink">{title}</h3>
+      <h3 className="text-lg font-bold text-ink">{t(title)}</h3>
       <ul className="mt-4 space-y-3">
         {links.map(([label, to]) => (
           <li key={label}>
             {to.startsWith('#') ? (
               <a href={to} className={`rounded text-ink-soft transition-colors hover:text-ink ${focus}`}>
-                {label}
+                {t(label)}
               </a>
             ) : (
               <Link to={to} className={`rounded text-ink-soft transition-colors hover:text-ink ${focus}`}>
-                {label}
+                {t(label)}
               </Link>
             )}
           </li>
@@ -177,6 +181,7 @@ function TiltCard({ children }) {
 
 export default function LandingPage() {
   const { user } = useAuth()
+  const { t } = useT()
   const canvasRef = useRef(null)
   const pageRef = useRef(null)
   const [scrolled, setScrolled] = useState(false)
@@ -212,7 +217,7 @@ export default function LandingPage() {
             <img src={logo} alt="KP App logo" className="h-10 w-10 rounded-full" />
             <div className="leading-tight">
               <div className="text-base font-bold text-ink">KP App</div>
-              <div className="text-xs text-ink-faint">Brgy. New Kababae</div>
+              <div className="hidden sm:block text-xs text-ink-faint whitespace-nowrap">Brgy. New Kababae</div>
             </div>
           </div>
           <nav aria-label="Page sections" className="hidden md:block">
@@ -220,19 +225,22 @@ export default function LandingPage() {
               {NAV.map((n) => (
                 <li key={n.href}>
                   <a href={n.href} className={`rounded text-sm font-medium text-ink-soft transition-colors hover:text-ink ${focus}`}>
-                    {n.label}
+                    {t(n.label)}
                   </a>
                 </li>
               ))}
             </ul>
           </nav>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
+            <LanguageSwitch />
+            <span className="hidden sm:block">
+              <ThemeToggle />
+            </span>
             <Link to="/register" className={`hidden sm:inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-ink-soft hover:text-ink ${focus}`}>
-              Register
+              {t('Register')}
             </Link>
-            <Link to="/login" className={`rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-accent-hover ${focus}`}>
-              Log in
+            <Link to="/login" className={`whitespace-nowrap rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-accent-hover ${focus}`}>
+              {t('Log in')}
             </Link>
           </div>
         </div>
@@ -245,27 +253,26 @@ export default function LandingPage() {
             <div>
               <div className="fade-up inline-flex items-center gap-2 rounded-full border border-border bg-surface-hover px-3 py-1.5 text-xs font-semibold text-ink-soft">
                 <img src={barangayLogo} alt="" className="h-5 w-5 rounded-full bg-white" />
-                Official portal of Barangay New Kababae
+                {t('Official portal of Barangay New Kababae')}
               </div>
               <h1 className="fade-up delay-1 mt-5 text-4xl font-bold leading-[1.08] tracking-tight text-ink sm:text-6xl">
-                File your barangay complaint from your phone.
+                {t('File your barangay complaint from your phone.')}
               </h1>
               <p className="fade-up delay-2 mt-6 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
-                KP App connects residents with the Katarungang Pambarangay. File a complaint, follow its progress, and get
-                notified when the barangay acts on it.
+                {t('KP App connects residents with the Katarungang Pambarangay. File a complaint, follow its progress, and get notified when the barangay acts on it.')}
               </p>
               <div className="fade-up delay-3 mt-8 flex flex-wrap gap-3">
                 <Link
                   to="/register"
                   className={`inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-[#0b1f4d] transition-transform hover:-translate-y-0.5 active:scale-[0.97] ${focus}`}
                 >
-                  Create an account <MdArrowForward aria-hidden="true" />
+                  {t('Create an account')} <MdArrowForward aria-hidden="true" />
                 </Link>
                 <Link
                   to="/login"
                   className={`rounded-xl border border-border px-6 py-3 font-semibold text-ink transition-colors hover:bg-surface-hover ${focus}`}
                 >
-                  Log in
+                  {t('Log in')}
                 </Link>
               </div>
             </div>
@@ -275,7 +282,7 @@ export default function LandingPage() {
                 <div className="overflow-hidden rounded-3xl bg-white text-[#16213e] shadow-token-lg">
                   <div className="px-6 pb-5 pt-6">
                     <div className="mb-3 h-1.5 w-12 rounded-full bg-[#1a5fd4]" />
-                    <p className="text-xl font-bold leading-tight">Open KP App on your phone</p>
+                    <p className="text-xl font-bold leading-tight">{t('Open KP App on your phone')}</p>
                   </div>
                   <div className="relative h-0 border-t-2 border-dashed border-[#dde3ee]">
                     <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-[#0b1f4d]" />
@@ -290,17 +297,17 @@ export default function LandingPage() {
                       level="M"
                       fgColor="#000000"
                       bgColor="#ffffff"
-                      title="QR code that opens KP App"
+                      title={t('QR code that opens KP App')}
                     />
                     <p className="mt-4 text-center text-sm leading-relaxed text-[#55607a]">
-                      Scan with your camera, then choose <strong>Add to Home Screen</strong> to keep the app on your phone.
+                      {t('Scan with your camera, then choose')} <strong>{t('Add to Home Screen')}</strong> {t('to keep the app on your phone.')}
                     </p>
                     <button
                       type="button"
                       onClick={downloadQr}
                       className={`mt-4 inline-flex items-center gap-1.5 rounded-lg border border-[#dde3ee] px-4 py-2 text-sm font-semibold hover:bg-[#f5f8fc] ${focus}`}
                     >
-                      <MdOutlineFileDownload className="text-lg" aria-hidden="true" /> Download QR code
+                      <MdOutlineFileDownload className="text-lg" aria-hidden="true" /> {t('Download QR code')}
                     </button>
                   </div>
                 </div>
@@ -311,8 +318,8 @@ export default function LandingPage() {
 
         <section id="how-it-works" className="scroll-mt-20 mx-auto max-w-6xl px-6 py-20">
           <div className="reveal max-w-2xl">
-            <div className="text-sm font-bold uppercase tracking-wide text-accent">How it works</div>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">From complaint to settlement</h2>
+            <div className="text-sm font-bold uppercase tracking-wide text-accent">{t('How it works')}</div>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{t('From complaint to settlement')}</h2>
           </div>
           <ol className="mt-12 grid gap-6 md:grid-cols-4">
             {STEPS.map((s, i) => {
@@ -325,9 +332,9 @@ export default function LandingPage() {
                   <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-ink">
                     <Icon className="text-2xl" aria-hidden="true" />
                   </div>
-                  <div className="mt-4 text-xs font-bold text-ink-faint">STEP {i + 1}</div>
-                  <h3 className="mt-1 text-lg font-bold">{s.title}</h3>
-                  <p className="mt-1.5 leading-relaxed text-ink-soft">{s.text}</p>
+                  <div className="mt-4 text-xs font-bold text-ink-faint">{t('STEP {n}', { n: i + 1 })}</div>
+                  <h3 className="mt-1 text-lg font-bold">{t(s.title)}</h3>
+                  <p className="mt-1.5 leading-relaxed text-ink-soft">{t(s.text)}</p>
                 </li>
               )
             })}
@@ -337,8 +344,8 @@ export default function LandingPage() {
         <section id="features" className="scroll-mt-20 border-y border-border bg-surface">
           <div className="mx-auto max-w-6xl px-6 py-20">
             <div className="reveal max-w-2xl">
-              <div className="text-sm font-bold uppercase tracking-wide text-accent">Features</div>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">What you can do in the app</h2>
+              <div className="text-sm font-bold uppercase tracking-wide text-accent">{t('Features')}</div>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{t('What you can do in the app')}</h2>
             </div>
             <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {FEATURES.map((f, i) => {
@@ -348,14 +355,14 @@ export default function LandingPage() {
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-soft text-accent">
                       <Icon className="text-2xl" aria-hidden="true" />
                     </div>
-                    <h3 className="mt-4 text-lg font-bold">{f.title}</h3>
-                    <p className="mt-1.5 leading-relaxed text-ink-soft">{f.text}</p>
+                    <h3 className="mt-4 text-lg font-bold">{t(f.title)}</h3>
+                    <p className="mt-1.5 leading-relaxed text-ink-soft">{t(f.text)}</p>
                   </li>
                 )
               })}
             </ul>
             <p className="reveal mt-12 max-w-2xl border-l-4 border-accent pl-4 text-ink-soft">
-              Barangay officials use the same app to review complaints, manage cases, and prepare the Katarungang Pambarangay forms.
+              {t('Barangay officials use the same app to review complaints, manage cases, and prepare the Katarungang Pambarangay forms.')}
             </p>
           </div>
         </section>
@@ -363,26 +370,26 @@ export default function LandingPage() {
         <section id="faq" className="scroll-mt-20 mx-auto max-w-4xl px-6 pt-20">
           <div className="reveal text-center">
             <div className="text-sm font-bold uppercase tracking-wide text-accent">FAQ</div>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Common questions</h2>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{t('Common questions')}</h2>
           </div>
           <div className="reveal mt-10 overflow-hidden rounded-3xl border border-border bg-surface" style={{ '--d': '0.1s' }}>
             {FAQS.map((f, i) => (
-              <FaqItem key={f.q} id={`faq-${i}`} q={f.q} a={f.a} open={openFaq === i} onToggle={() => setOpenFaq(openFaq === i ? -1 : i)} />
+              <FaqItem key={f.q} id={`faq-${i}`} q={t(f.q)} a={t(f.a)} open={openFaq === i} onToggle={() => setOpenFaq(openFaq === i ? -1 : i)} />
             ))}
           </div>
         </section>
 
         <section className="mx-auto max-w-6xl px-6 py-20">
           <div className="reveal on-dark relative overflow-hidden rounded-3xl px-8 py-12 text-center sm:px-12" style={{ background: 'linear-gradient(120deg, #0b1f4d, #1a5fd4)' }}>
-            <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Have a dispute with a neighbor?</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{t('Have a dispute with a neighbor?')}</h2>
             <p className="mx-auto mt-3 max-w-xl text-ink-soft">
-              Start with the barangay. Most cases are settled through mediation, without going to court.
+              {t('Start with the barangay. Most cases are settled through mediation, without going to court.')}
             </p>
             <Link
               to="/register"
               className={`mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-[#0b1f4d] transition-transform hover:-translate-y-0.5 active:scale-[0.97] ${focus}`}
             >
-              Get started <MdArrowForward aria-hidden="true" />
+              {t('Get started')} <MdArrowForward aria-hidden="true" />
             </Link>
           </div>
         </section>
@@ -396,7 +403,7 @@ export default function LandingPage() {
               <div className="text-lg font-bold text-ink">KP App</div>
             </div>
             <p className="mt-4 leading-relaxed text-ink-soft">
-              The Katarungang Pambarangay portal of Barangay New Kababae, Olongapo City.
+              {t('The Katarungang Pambarangay portal of Barangay New Kababae, Olongapo City.')}
             </p>
           </div>
           <FooterCol
@@ -421,13 +428,13 @@ export default function LandingPage() {
             <ul className="mt-4 space-y-3 text-ink-soft">
               <li>Barangay New Kababae, Olongapo City</li>
               <li>8:00 AM – 5:00 PM</li>
-              <li>Monday to Friday</li>
+              <li>{t('Monday to Friday')}</li>
             </ul>
           </div>
         </div>
         <div className="border-t border-border">
           <p className="mx-auto max-w-6xl px-6 py-6 text-center text-sm text-ink-faint">
-            © {new Date().getFullYear()} KP App · Barangay New Kababae. All rights reserved.
+            © {new Date().getFullYear()} KP App · Barangay New Kababae. {t('All rights reserved.')}
           </p>
         </div>
       </footer>
