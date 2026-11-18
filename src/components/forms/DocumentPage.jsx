@@ -91,10 +91,21 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
   const [paperKey, setPaperKey] = useState(() => localStorage.getItem('kp-paper') || 'legal')
   const [confirmIssue, setConfirmIssue] = useState(false)
   const [voidOpen, setVoidOpen] = useState(false)
+  const [issuing, setIssuing] = useState(false)
   const paper = PAPER[paperKey] || PAPER.legal
   const [wrapRef, innerRef, scale, paperHeight] = useFitScale(paper.w, doc.ready && !!doc.complaint)
 
   const reference = doc.complaint?.reference_number
+  const issuedNow = doc.status === 'issued'
+  useEffect(() => {
+    if (!issuing || !issuedNow) return
+    const timer = setTimeout(() => {
+      window.print()
+      setIssuing(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [issuing, issuedNow])
+
   useEffect(() => {
     if (!reference) return
     const previous = document.title
@@ -122,10 +133,11 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
   }
 
   async function onConfirmIssue() {
+    setIssuing(true)
+    setEdit(false)
     const ok = await doc.issue()
     setConfirmIssue(false)
-    setEdit(false)
-    if (ok) setTimeout(() => window.print(), 400)
+    if (!ok) setIssuing(false)
   }
 
   async function onVoid(reason) {
@@ -216,7 +228,7 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
         <div ref={wrapRef} className="kp-fit-wrap max-w-[1000px] mx-auto" style={{ height: paperHeight ? paperHeight * scale : undefined }}>
           <div ref={innerRef} className="kp-fit" style={{ width: paper.w, transform: `scale(${scale})`, transformOrigin: 'top left', margin: scale < 1 ? 0 : '0 auto' }}>
             <div className="kp-paper border border-black/20" style={{ padding: MARGIN_PX, minHeight: paper.h }}>
-              {!isIssued && <div className="kp-watermark" aria-hidden="true">DRAFT</div>}
+              {!isIssued && !issuing && <div className="kp-watermark" aria-hidden="true">DRAFT</div>}
               <Body />
             </div>
           </div>

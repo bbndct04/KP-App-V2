@@ -27,6 +27,8 @@ export const FORM_CSS = `
 .kp-list li{margin:6px 0;text-align:justify}
 .kp-foot{font-size:10pt;font-style:italic;margin-top:28px;text-align:justify}
 .kp-right{text-align:right}
+.kp-name.kp-filled{border-bottom:none}
+.kp-ruled.kp-filled{background-image:none;min-height:0 !important}
 .kp-watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;font-size:140px;font-weight:700;letter-spacing:.08em;color:rgba(0,0,0,.06);transform:rotate(-28deg)}
 .kp-ed{display:inline-block;min-width:3ch;outline:1px dashed #185FA5;background:rgba(230,241,251,.85);border-radius:2px;cursor:text}
 .kp-ed:focus{outline:2px solid #185FA5}
