@@ -8,12 +8,14 @@ import ComplaintCards from '../../components/ComplaintCards'
 import { STATUS, ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
 import { DeadlineBadge } from '../../components/cases'
 import { caseDeadline, loadStageDates } from '../../lib/cases'
+import { useT } from '../../i18n/LanguageContext'
 
 const URGENCY = { danger: 0, warning: 1, neutral: 2 }
 
 const ACCEPTED = [...ACTIVE_STAGES, ...CLOSED_STAGES]
 
 function AdminCases() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [cases, setCases] = useState([])
   const [loading, setLoading] = useState(true)
@@ -73,13 +75,13 @@ function AdminCases() {
         tab === key ? 'bg-accent border-accent text-accent-ink' : 'bg-surface border-border text-ink-soft hover:bg-surface-hover'
       }`}
     >
-      {label} <span className="ml-1 opacity-80">{count}</span>
+      {t(label)} <span className="ml-1 opacity-80">{count}</span>
     </button>
   )
 
   return (
-    <AdminLayout title="Active Cases">
-      <p className="text-ink-soft text-sm mb-4">Complaints you accepted and are handling</p>
+    <AdminLayout title={t('Active Cases')}>
+      <p className="text-ink-soft text-sm mb-4">{t('Complaints you accepted and are handling')}</p>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         {tabBtn('active', 'Active', activeCount)}
@@ -92,16 +94,16 @@ function AdminCases() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or ref. no."
-            aria-label="Search cases"
+            placeholder={t('Search by name or ref. no.')}
+            aria-label={t('Search cases')}
             className="pl-10"
           />
         </div>
-        <Select value={stage} onChange={(e) => setStage(e.target.value)} aria-label="Filter by stage" className="w-auto min-w-[180px]">
-          <option value="all">All stages</option>
+        <Select value={stage} onChange={(e) => setStage(e.target.value)} aria-label={t('Filter by stage')} className="w-auto min-w-[180px]">
+          <option value="all">{t('All stages')}</option>
           {stages.map((key) => (
             <option key={key} value={key}>
-              {STATUS[key].label}
+              {t(STATUS[key].label)}
             </option>
           ))}
         </Select>
@@ -112,12 +114,12 @@ function AdminCases() {
           <SkeletonRows rows={6} />
         ) : list.length === 0 ? (
           s || stage !== 'all' ? (
-            <EmptyState icon={MdOutlineSearchOff} title="No matching cases" message="Try a different search or stage." />
+            <EmptyState icon={MdOutlineSearchOff} title={t('No matching cases')} message={t('Try a different search or stage.')} />
           ) : (
             <EmptyState
               icon={MdOutlineAssignment}
-              title={tab === 'active' ? 'No active cases' : 'No closed cases yet'}
-              message={tab === 'active' ? 'Complaints you accept from New Complaints will appear here.' : 'Settled, dismissed, and CFA cases will appear here.'}
+              title={tab === 'active' ? t('No active cases') : t('No closed cases yet')}
+              message={tab === 'active' ? t('Complaints you accept from New Complaints will appear here.') : t('Settled, dismissed, and CFA cases will appear here.')}
             />
           )
         ) : (
@@ -125,7 +127,7 @@ function AdminCases() {
             <ComplaintCards
               complaints={list}
               linkFor={(c) => `/admin/cases/${c.id}`}
-              linkLabel="Manage"
+              linkLabel={t('Manage')}
               showResident
               renderExtra={(c) => <DeadlineBadge deadline={deadlineOf(c)} />}
             />
@@ -133,10 +135,10 @@ function AdminCases() {
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Case</th>
-                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Resident</th>
-                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Stage</th>
-                    {tab === 'active' && <th className="px-4 py-3 font-semibold whitespace-nowrap">Timeline</th>}
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">{t('Case')}</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Resident')}</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Stage')}</th>
+                    {tab === 'active' && <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Timeline')}</th>}
                     <th className={`px-4 py-3 sticky right-0 bg-surface shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]`}></th>
                   </tr>
                 </thead>
@@ -150,7 +152,7 @@ function AdminCases() {
                       <td className="px-5 py-3">
                         <div className="text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</div>
                         <div className="text-ink-soft text-xs max-w-[240px] truncate">
-                          {c.category} · {new Date(c.reviewed_at || c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {t(c.category)} · {new Date(c.reviewed_at || c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-ink text-sm max-w-[180px]">{c.profiles?.full_name || c.complainant_name || '—'}</td>
@@ -181,7 +183,7 @@ function AdminCases() {
       </Card>
       {!loading && list.length > 0 && (
         <div className="text-ink-faint text-sm mt-3">
-          Showing {list.length} of {inTab.length} {tab} case{inTab.length === 1 ? '' : 's'}
+          {t(tab === 'closed' ? 'Showing {n} of {total} closed cases' : 'Showing {n} of {total} active cases', { n: list.length, total: inTab.length })}
         </div>
       )}
     </AdminLayout>

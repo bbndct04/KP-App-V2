@@ -26,23 +26,29 @@ const URGENCY = { danger: 0, warning: 1 }
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
 import { ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
 import ComplaintCards from '../../components/ComplaintCards'
+import { useT } from '../../i18n/LanguageContext'
 
 function HearingList({ items, showDay = false }) {
+  const { t } = useT()
+  const day = (d) => {
+    const n = daysFromToday(d)
+    return n === 0 ? t('Today') : n === 1 ? t('Tomorrow') : n > 1 && n < 7 ? t('In {n} days', { n }) : relativeDay(d)
+  }
   return (
     <ul className="divide-y divide-border">
       {items.map((c) => (
         <li key={c.id}>
           <Link to={`/admin/cases/${c.id}`} className="flex items-center gap-4 px-5 py-3 hover:bg-surface-hover transition-colors">
             <div className="w-[84px] flex-shrink-0">
-              {showDay && <div className="text-ink-faint text-xs font-semibold">{relativeDay(c.hearing_date)}</div>}
-              <div className="text-accent font-bold text-sm">{c.hearing_time ? formatTime(c.hearing_time) : 'TBA'}</div>
+              {showDay && <div className="text-ink-faint text-xs font-semibold">{day(c.hearing_date)}</div>}
+              <div className="text-accent font-bold text-sm">{c.hearing_time ? formatTime(c.hearing_time) : t('TBA')}</div>
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-ink text-sm font-semibold truncate">
-                {c.complainant_name || c.profiles?.full_name || '—'} against {c.respondent_name || '—'}
+                {t('{a} against {b}', { a: c.complainant_name || c.profiles?.full_name || '—', b: c.respondent_name || '—' })}
               </div>
               <div className="text-ink-faint text-xs truncate">
-                <span className="font-mono">{c.reference_number}</span> · {c.category}
+                <span className="font-mono">{c.reference_number}</span> · {t(c.category)}
               </div>
             </div>
             <StatusBadge status={c.status} />
@@ -54,6 +60,7 @@ function HearingList({ items, showDay = false }) {
 }
 
 function AdminDashboard() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [stats, setStats] = useState({ total: 0, awaiting: 0, inProgress: 0, closed: 0, totalUsers: 0, residents: 0 })
   const [recent, setRecent] = useState([])
@@ -119,17 +126,17 @@ function AdminDashboard() {
   ]
 
   return (
-    <AdminLayout title="Admin Dashboard">
+    <AdminLayout title={t('Admin Dashboard')}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <p className="text-ink-soft text-sm">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
         <div className="flex gap-2.5 flex-wrap">
           <LinkButton to="/admin/complaints" icon={MdOutlineMoveToInbox}>
-            New Complaints
+            {t('New Complaints')}
           </LinkButton>
           <LinkButton to="/admin/cases" variant="secondary" icon={MdOutlineAssignment}>
-            Active Cases
+            {t('Active Cases')}
           </LinkButton>
         </div>
       </div>
@@ -142,12 +149,12 @@ function AdminDashboard() {
           <MdOutlineMoveToInbox className="text-3xl flex-shrink-0" aria-hidden="true" />
           <div className="flex-1 min-w-0">
             <div className="text-base font-bold">
-              {stats.awaiting} complaint{stats.awaiting === 1 ? ' is' : 's are'} waiting for your review
+              {t(stats.awaiting === 1 ? '{n} complaint is waiting for your review' : '{n} complaints are waiting for your review', { n: stats.awaiting })}
             </div>
-            <div className="text-sm">Residents are waiting to hear back. Review them as soon as you can.</div>
+            <div className="text-sm">{t('Residents are waiting to hear back. Review them as soon as you can.')}</div>
           </div>
           <span className="hidden sm:flex text-sm font-semibold items-center gap-1 flex-shrink-0">
-            Review now <MdArrowForward aria-hidden="true" />
+            {t('Review now')} <MdArrowForward aria-hidden="true" />
           </span>
         </Link>
       )}
@@ -156,25 +163,25 @@ function AdminDashboard() {
         <Card className="overflow-hidden flex flex-col">
           <CardHeader
             icon={MdOutlineEvent}
-            title="Hearings"
+            title={t('Hearings')}
             subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           />
           {loading ? (
             <SkeletonRows rows={3} />
           ) : (
             <div className="flex-1 flex flex-col">
-              <div className="px-5 pt-3 pb-1 text-ink-faint text-xs font-semibold uppercase tracking-wide">Today</div>
+              <div className="px-5 pt-3 pb-1 text-ink-faint text-xs font-semibold uppercase tracking-wide">{t('Today')}</div>
               {hearings.today.length === 0 ? (
                 <div className="px-5 pb-3 flex items-center gap-2.5 text-sm text-ink-soft">
                   <MdOutlineEventAvailable className="text-xl text-ink-faint flex-shrink-0" aria-hidden="true" />
-                  No hearings today
+                  {t('No hearings today')}
                 </div>
               ) : (
                 <HearingList items={hearings.today} />
               )}
-              <div className="px-5 pt-3 pb-1 text-ink-faint text-xs font-semibold uppercase tracking-wide border-t border-border">Next 7 days</div>
+              <div className="px-5 pt-3 pb-1 text-ink-faint text-xs font-semibold uppercase tracking-wide border-t border-border">{t('Next 7 days')}</div>
               {hearings.week.length === 0 ? (
-                <div className="px-5 pb-4 text-sm text-ink-soft">No hearings scheduled this week.</div>
+                <div className="px-5 pb-4 text-sm text-ink-soft">{t('No hearings scheduled this week.')}</div>
               ) : (
                 <HearingList items={hearings.week} showDay />
               )}
@@ -183,15 +190,15 @@ function AdminDashboard() {
         </Card>
 
         <Card className="overflow-hidden flex flex-col">
-          <CardHeader icon={MdOutlinePriorityHigh} title="Needs attention" subtitle="Cases near or past their KP deadlines" />
+          <CardHeader icon={MdOutlinePriorityHigh} title={t('Needs attention')} subtitle={t('Cases near or past their KP deadlines')} />
           {loading ? (
             <SkeletonRows rows={2} />
           ) : attention.length === 0 ? (
             <div className="px-5 py-6 flex items-center gap-3">
               <MdOutlineTaskAlt className="text-3xl text-success-strong flex-shrink-0" aria-hidden="true" />
               <div className="text-sm">
-                <div className="text-ink font-semibold">All cases are on schedule</div>
-                <div className="text-ink-faint">Nothing is close to a deadline.</div>
+                <div className="text-ink font-semibold">{t('All cases are on schedule')}</div>
+                <div className="text-ink-faint">{t('Nothing is close to a deadline.')}</div>
               </div>
             </div>
           ) : (
@@ -203,7 +210,7 @@ function AdminDashboard() {
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 px-5 py-3.5 hover:bg-surface-hover transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-ink text-sm font-semibold truncate">{c.category}</div>
+                      <div className="text-ink text-sm font-semibold truncate">{t(c.category)}</div>
                       <div className="text-ink-faint text-xs font-mono whitespace-nowrap">{c.reference_number}</div>
                     </div>
                     <DeadlineBadge deadline={c.deadline} />
@@ -224,7 +231,7 @@ function AdminDashboard() {
                 <Icon className="text-xl" aria-hidden="true" />
               </div>
               <div className={`text-3xl font-bold mb-0.5 ${s.color}`}>{loading ? '–' : s.val}</div>
-              <div className="text-ink-soft text-sm">{s.label}</div>
+              <div className="text-ink-soft text-sm">{t(s.label)}</div>
             </Card>
           )
         })}
@@ -234,11 +241,11 @@ function AdminDashboard() {
         <Card className="overflow-hidden">
           <CardHeader
             icon={MdOutlineHistory}
-            title="Recent Complaints"
-            subtitle="Latest submissions requiring action"
+            title={t('Recent Complaints')}
+            subtitle={t('Latest submissions requiring action')}
             action={
               <Link to="/admin/complaints" className="text-accent text-sm font-semibold flex items-center gap-1 flex-shrink-0">
-                View all <MdArrowForward aria-hidden="true" />
+                {t('View all')} <MdArrowForward aria-hidden="true" />
               </Link>
             }
           />
@@ -246,17 +253,17 @@ function AdminDashboard() {
           {loading ? (
             <SkeletonRows rows={5} />
           ) : recent.length === 0 ? (
-            <EmptyState icon={MdOutlineInbox} title="No complaints yet" message="New complaints from residents will appear here." />
+            <EmptyState icon={MdOutlineInbox} title={t('No complaints yet')} message={t('New complaints from residents will appear here.')} />
           ) : (
             <>
-              <ComplaintCards complaints={recent} linkFor={(c) => `/admin/complaints/${c.id}`} linkLabel="Manage" showResident />
+              <ComplaintCards complaints={recent} linkFor={(c) => `/admin/complaints/${c.id}`} linkLabel={t('Manage')} showResident />
               <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-ink-faint text-xs uppercase tracking-wide border-b border-border">
-                    <th className="px-5 py-3 font-semibold whitespace-nowrap">Case</th>
-                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Resident</th>
-                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Status</th>
+                    <th className="px-5 py-3 font-semibold whitespace-nowrap">{t('Case')}</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Resident')}</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Status')}</th>
                     <th className={`px-4 py-3 sticky right-0 bg-surface shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]`}></th>
                   </tr>
                 </thead>
@@ -270,7 +277,7 @@ function AdminDashboard() {
                       <td className="px-5 py-3">
                         <div className="text-accent font-mono text-sm whitespace-nowrap">{c.reference_number}</div>
                         <div className="text-ink-soft text-xs max-w-[220px] truncate">
-                          {c.category} · {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {t(c.category)} · {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-ink text-sm max-w-[180px] truncate">{c.profiles?.full_name || '—'}</td>
@@ -299,36 +306,36 @@ function AdminDashboard() {
           <Card className="p-5">
             <div className="flex items-center gap-2.5 mb-4">
               <MdOutlineGroups className="text-xl text-accent" aria-hidden="true" />
-              <div className="text-ink text-base font-semibold">System Users</div>
+              <div className="text-ink text-base font-semibold">{t('System Users')}</div>
             </div>
             {[
               { label: 'Total Users', val: stats.totalUsers, color: 'text-accent' },
               { label: 'Residents', val: stats.residents, color: 'text-success-strong' },
             ].map((s) => (
               <div key={s.label} className="flex justify-between items-center px-3.5 py-2.5 rounded-lg mb-2 bg-surface-sunken">
-                <span className="text-sm text-ink-soft font-medium">{s.label}</span>
+                <span className="text-sm text-ink-soft font-medium">{t(s.label)}</span>
                 <span className={`text-lg font-bold ${s.color}`}>{loading ? '–' : s.val}</span>
               </div>
             ))}
             <LinkButton to="/admin/users" icon={MdOutlineManageAccounts} className="w-full mt-2">
-              Manage Users
+              {t('Manage Users')}
             </LinkButton>
           </Card>
 
           <Card className="p-5">
             <div className="flex items-center gap-2.5 mb-4">
               <MdOutlineBarChart className="text-xl text-accent" aria-hidden="true" />
-              <div className="text-ink text-base font-semibold">Top Categories</div>
+              <div className="text-ink text-base font-semibold">{t('Top Categories')}</div>
             </div>
             {categories.length === 0 ? (
-              <div className="text-ink-faint text-sm text-center py-3">No data yet</div>
+              <div className="text-ink-faint text-sm text-center py-3">{t('No data yet')}</div>
             ) : (
               categories.map((cat) => {
                 const pct = stats.total > 0 ? Math.round((cat.count / stats.total) * 100) : 0
                 return (
                   <div key={cat.category} className="mb-3.5 last:mb-0">
                     <div className="flex justify-between mb-1.5">
-                      <span className="text-sm text-ink-soft truncate pr-2">{cat.category}</span>
+                      <span className="text-sm text-ink-soft truncate pr-2">{t(cat.category)}</span>
                       <span className="text-sm font-bold text-accent flex-shrink-0">{cat.count}</span>
                     </div>
                     <div className="h-2 bg-surface-sunken rounded-full overflow-hidden">

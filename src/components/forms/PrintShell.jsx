@@ -5,6 +5,7 @@ import { DocContext } from '../../context/docContext'
 import { PAPER, MARGIN_PX } from '../../lib/formsKit'
 import { Button, Select } from '../ui'
 import { FORM_CSS } from './formStyles'
+import { useT } from '../../i18n/LanguageContext'
 
 function readPaper() {
   try {
@@ -15,6 +16,7 @@ function readPaper() {
 }
 
 function PrintShell({ title, docTitle, backTo, backLabel = 'Back', fields, notice, actions, children }) {
+  const { t } = useT()
   const navigate = useNavigate()
   const [paperKey, setPaperKey] = useState(readPaper)
   const paper = PAPER[paperKey] || PAPER.legal
@@ -58,12 +60,12 @@ function PrintShell({ title, docTitle, backTo, backLabel = 'Back', fields, notic
         <div className="kp-noprint max-w-[1000px] mx-auto mb-4">
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             <Button variant="ghost" size="sm" icon={MdArrowBack} onClick={() => navigate(backTo)}>
-              {backLabel}
+              {t(backLabel)}
             </Button>
             <div className="text-ink text-base font-bold">{title}</div>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <Select value={paperKey} onChange={(e) => changePaper(e.target.value)} aria-label="Paper size" className="w-auto min-w-[170px] py-2">
+            <Select value={paperKey} onChange={(e) => changePaper(e.target.value)} aria-label={t('Paper size')} className="w-auto min-w-[170px] py-2">
               {Object.entries(PAPER).map(([key, p]) => (
                 <option key={key} value={key}>
                   {p.label}
@@ -73,7 +75,7 @@ function PrintShell({ title, docTitle, backTo, backLabel = 'Back', fields, notic
             {actions}
             <div className="flex-1" />
             <Button icon={MdOutlinePrint} onClick={() => window.print()}>
-              Print
+              {t('Print')}
             </Button>
           </div>
           {notice}

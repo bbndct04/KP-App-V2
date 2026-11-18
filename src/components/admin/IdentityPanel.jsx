@@ -13,15 +13,17 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/toastContext'
 import { Card, CardHeader, Button, Skeleton } from '../ui'
 import Lightbox from './Lightbox'
+import { useT } from '../../i18n/LanguageContext'
 
 function Tile({ label, url, onZoom }) {
+  const { t } = useT()
   return (
     <div>
-      <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">{label}</div>
+      <div className="text-xs text-ink-faint uppercase tracking-wide mb-1.5">{t(label)}</div>
       {url ? (
         <button
           onClick={() => onZoom({ url, label })}
-          aria-label={`View ${label} full size`}
+          aria-label={t('View {label} full size', { label: t(label) })}
           className="relative block w-full aspect-[4/3] rounded-xl overflow-hidden border border-border bg-surface-sunken"
         >
           <img src={url} alt={label} className="w-full h-full object-contain" />
@@ -32,7 +34,7 @@ function Tile({ label, url, onZoom }) {
       ) : (
         <div className="w-full aspect-[4/3] rounded-xl border border-dashed border-border bg-surface-sunken flex flex-col items-center justify-center text-ink-faint text-sm gap-1">
           <MdOutlineImageNotSupported className="text-3xl" aria-hidden="true" />
-          Not uploaded
+          {t('Not uploaded')}
         </div>
       )}
     </div>
@@ -50,6 +52,7 @@ function Row({ label, value }) {
 }
 
 function IdentityPanel({ userId, collapsible = false, defaultOpen = true, className = '', title = 'Complainant identity', onChange }) {
+  const { t } = useT()
   const { user, profile: adminProfile } = useAuth()
   const toast = useToast()
   const [open, setOpen] = useState(defaultOpen)
@@ -86,11 +89,11 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
     const { data: saved, error } = await supabase.from('identity_verifications').insert(row).select().maybeSingle()
     setSaving(false)
     if (error) {
-      toast.error(`Could not save the verification. ${error.message}`)
+      toast.error(`${t('Could not save the verification.')} ${error.message}`)
       return
     }
     setData((d) => ({ ...d, verification: saved || { ...row, verified_at: new Date().toISOString() } }))
-    toast.success('Identity marked as verified.')
+    toast.success(t('Identity marked as verified.'))
     onChange?.()
   }
 
@@ -99,11 +102,11 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
     const { error } = await supabase.from('identity_verifications').delete().eq('user_id', userId)
     setSaving(false)
     if (error) {
-      toast.error(`Could not remove the verification. ${error.message}`)
+      toast.error(`${t('Could not remove the verification.')} ${error.message}`)
       return
     }
     setData((d) => ({ ...d, verification: null }))
-    toast.success('Verification removed.')
+    toast.success(t('Verification removed.'))
     onChange?.()
   }
 
@@ -111,8 +114,8 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
     <Card className={className}>
       <CardHeader
         icon={MdOutlineLockPerson}
-        title={title}
-        subtitle="Confidential — for identity verification only"
+        title={t(title)}
+        subtitle={t('Confidential — for identity verification only')}
         action={
           collapsible ? (
             <button
@@ -120,7 +123,7 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
               aria-expanded={open}
               className="text-accent text-sm font-semibold flex items-center gap-1 flex-shrink-0"
             >
-              {open ? 'Hide' : 'Show'} {open ? <MdExpandLess aria-hidden="true" /> : <MdExpandMore aria-hidden="true" />}
+              {open ? t('Hide') : t('Show')} {open ? <MdExpandLess aria-hidden="true" /> : <MdExpandMore aria-hidden="true" />}
             </button>
           ) : null
         }
@@ -135,47 +138,47 @@ function IdentityPanel({ userId, collapsible = false, defaultOpen = true, classN
           ) : (
             <>
               <div className={`grid gap-3 mb-5 ${data.idBack ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
-                <Tile label="Selfie" url={data.selfie} onZoom={setZoom} />
-                <Tile label={data.idBack ? 'ID front' : 'Government ID'} url={data.id} onZoom={setZoom} />
-                {data.idBack && <Tile label="ID back" url={data.idBack} onZoom={setZoom} />}
+                <Tile label={t('Selfie')} url={data.selfie} onZoom={setZoom} />
+                <Tile label={data.idBack ? t('ID front') : t('Government ID')} url={data.id} onZoom={setZoom} />
+                {data.idBack && <Tile label={t('ID back')} url={data.idBack} onZoom={setZoom} />}
               </div>
 
               {!data.selfie && !data.id && (
                 <div className="bg-warning-soft border border-warning-strong/20 text-warning-strong text-sm rounded-lg p-3 mb-4 leading-relaxed">
-                  This resident has no ID or selfie on file. Ask them to bring a valid ID when they appear at the barangay hall.
+                  {t('This resident has no ID or selfie on file. Ask them to bring a valid ID when they appear at the barangay hall.')}
                 </div>
               )}
 
               <div className="mb-5">
-                <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">Registered account</div>
-                <Row label="Name" value={profile?.full_name} />
-                <Row label="Date of birth" value={profile?.date_of_birth && new Date(`${profile.date_of_birth}T00:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} />
-                <Row label="Sex" value={profile?.sex} />
-                <Row label="Contact" value={profile?.contact_number} />
-                <Row label="Address" value={profile?.address} />
+                <div className="text-xs text-ink-faint uppercase tracking-wide mb-1">{t('Registered account')}</div>
+                <Row label={t('Name')} value={profile?.full_name} />
+                <Row label={t('Date of birth')} value={profile?.date_of_birth && new Date(`${profile.date_of_birth}T00:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} />
+                <Row label={t('Sex')} value={profile?.sex} />
+                <Row label={t('Contact')} value={profile?.contact_number} />
+                <Row label={t('Address')} value={profile?.address} />
               </div>
 
               {verification ? (
                 <div className="bg-success-soft border border-success-strong/20 rounded-lg p-3.5 flex items-start gap-2.5">
                   <MdOutlineVerifiedUser className="text-2xl text-success-strong flex-shrink-0" aria-hidden="true" />
                   <div className="flex-1 text-sm text-success-strong">
-                    <div className="font-semibold">Identity verified</div>
+                    <div className="font-semibold">{t('Identity verified')}</div>
                     <div>
-                      by {verification.verified_by_name || 'a barangay admin'}
-                      {verification.verified_at && ` on ${new Date(verification.verified_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                      {t('by {name}', { name: verification.verified_by_name || t('a barangay admin') })}
+                      {verification.verified_at && ` · ${new Date(verification.verified_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
                     </div>
                     <button onClick={undoVerified} disabled={saving} className="underline font-semibold mt-1 disabled:opacity-50">
-                      Undo
+                      {t('Undo')}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div>
                   <Button onClick={markVerified} disabled={saving} variant="secondary" icon={MdOutlineVerifiedUser} className="w-full">
-                    {saving ? 'Saving...' : 'Mark identity as verified'}
+                    {saving ? t('Saving...') : t('Mark identity as verified')}
                   </Button>
                   <div className="text-ink-faint text-xs mt-2 leading-relaxed">
-                    Compare the selfie with the photo on the ID, and check that the name matches the registered account.
+                    {t('Compare the selfie with the photo on the ID, and check that the name matches the registered account.')}
                   </div>
                 </div>
               )}

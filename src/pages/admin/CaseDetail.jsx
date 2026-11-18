@@ -26,6 +26,7 @@ import ComplaintDetails from '../../components/admin/ComplaintDetails'
 import IdentityPanel from '../../components/admin/IdentityPanel'
 import { DeadlineBadge } from '../../components/cases'
 import { caseDeadline } from '../../lib/cases'
+import { useT } from '../../i18n/LanguageContext'
 
 function stageDatesFromLogs(logs) {
   const dates = {}
@@ -150,6 +151,7 @@ function currentTrackerIndex(status, hasPangkat) {
 }
 
 function CaseDetail() {
+  const { t } = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const { profile } = useAuth()
@@ -213,7 +215,7 @@ function CaseDetail() {
 
   if (loading)
     return (
-      <AdminLayout title="Case Detail">
+      <AdminLayout title={t('Case Detail')}>
         <div className="flex flex-col gap-4">
           <Skeleton className="h-20 w-2/3" />
           <Skeleton className="h-28 rounded-2xl" />
@@ -224,13 +226,13 @@ function CaseDetail() {
     )
   if (!complaint)
     return (
-      <AdminLayout title="Case Detail">
+      <AdminLayout title={t('Case Detail')}>
         <Card>
           <EmptyState
             icon={MdOutlineSearchOff}
-            title="Case not found"
-            message="This case may have been removed, or the link is incorrect."
-            action={<LinkButton to="/admin/cases">Back to Active Cases</LinkButton>}
+            title={t('Case not found')}
+            message={t('This case may have been removed, or the link is incorrect.')}
+            action={<LinkButton to="/admin/cases">{t('Back to Active Cases')}</LinkButton>}
           />
         </Card>
       </AdminLayout>
@@ -275,12 +277,12 @@ function CaseDetail() {
 
     setSaving(false)
     if (error) {
-      toast.error(`The case could not be updated. ${error.message}`)
+      toast.error(`${t('The case could not be updated.')} ${error.message}`)
       return
     }
 
     setShowAdvanceModal(false)
-    toast.success(`Case moved to ${STAGE_LABELS[selectedNextStage]}. The resident has been notified.`)
+    toast.success(t('Case moved to {stage}. The resident has been notified.', { stage: t(STAGE_LABELS[selectedNextStage]) }))
     loadAll()
   }
 
@@ -295,11 +297,11 @@ function CaseDetail() {
     })
     setSavingNote(false)
     if (error) {
-      toast.error(`The note could not be saved. ${error.message}`)
+      toast.error(`${t('The note could not be saved.')} ${error.message}`)
       return
     }
     setNoteText('')
-    toast.success('Note added to the activity log.')
+    toast.success(t('Note added to the activity log.'))
     loadAll()
   }
 
@@ -311,37 +313,37 @@ function CaseDetail() {
       role: newMemberRole,
     })
     if (error) {
-      toast.error(`The member could not be added. ${error.message}`)
+      toast.error(`${t('The member could not be added.')} ${error.message}`)
       return
     }
     setNewMemberName('')
     setNewMemberRole('member')
-    toast.success('Pangkat member added.')
+    toast.success(t('Pangkat member added.'))
     loadAll()
   }
 
   async function removeMember(memberId) {
     const { error } = await supabase.from('pangkat_members').delete().eq('id', memberId)
     if (error) {
-      toast.error(`The member could not be removed. ${error.message}`)
+      toast.error(`${t('The member could not be removed.')} ${error.message}`)
       return
     }
-    toast.success('Pangkat member removed.')
+    toast.success(t('Pangkat member removed.'))
     loadAll()
   }
 
   return (
-    <AdminLayout title="Case Detail">
+    <AdminLayout title={t('Case Detail')}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-5">
         <div>
           <button onClick={() => navigate('/admin/cases')} className="text-sm text-accent font-semibold mb-3 flex items-center gap-1">
-            <MdArrowBack aria-hidden="true" /> Back to Active Cases
+            <MdArrowBack aria-hidden="true" />{t('Back to Active Cases')}
           </button>
           <div className="text-ink-faint text-sm font-mono">{complaint.reference_number}</div>
-          <div className="text-ink text-xl font-bold">{complaint.category}</div>
+          <div className="text-ink text-xl font-bold">{t(complaint.category)}</div>
           <div className="text-ink-soft text-sm mt-0.5">
-            Filed by {complaint.profiles?.full_name || '—'} against {complaint.respondent_name || '—'}
+            {t('Filed by {a} against {b}', { a: complaint.profiles?.full_name || '—', b: complaint.respondent_name || '—' })}
           </div>
         </div>
         <div className="flex flex-col items-start sm:items-end gap-2 flex-shrink-0">
@@ -352,7 +354,7 @@ function CaseDetail() {
 
       {/* Stage Tracker */}
       <div className="bg-surface border border-border rounded-2xl p-5 mb-4 shadow-token-md overflow-x-auto">
-        <div className="text-ink-soft text-sm font-semibold mb-4">Case stage</div>
+        <div className="text-ink-soft text-sm font-semibold mb-4">{t('Case stage')}</div>
         <div className="flex items-start min-w-[600px]">
           {STAGES.map((s, i) => {
             const isOutcome = s.key === 'outcome'
@@ -368,7 +370,7 @@ function CaseDetail() {
                   >
                     <Icon className="text-xl" aria-hidden="true" />
                   </div>
-                  <div className={`text-xs mt-2 text-center leading-tight ${reached ? 'text-ink font-semibold' : 'text-ink-faint'}`}>{s.label}</div>
+                  <div className={`text-xs mt-2 text-center leading-tight ${reached ? 'text-ink font-semibold' : 'text-ink-faint'}`}>{t(s.label)}</div>
                 </div>
                 {i < STAGES.length - 1 && <div className={`flex-1 h-0.5 mt-5 ${i < trackerIdx ? 'bg-accent' : 'bg-border'}`} />}
               </div>
@@ -379,48 +381,46 @@ function CaseDetail() {
 
       {/* Next Action */}
       <div className="bg-accent-soft border border-accent/25 rounded-2xl p-5 mb-4">
-        <div className="text-accent text-sm font-semibold mb-1.5 flex items-center gap-1.5"><MdOutlineTipsAndUpdates className="text-lg" aria-hidden="true" /> Next action</div>
+        <div className="text-accent text-sm font-semibold mb-1.5 flex items-center gap-1.5"><MdOutlineTipsAndUpdates className="text-lg" aria-hidden="true" />{t('Next action')}</div>
         {complaint.status === 'settled' && win ? (
           win.isFinal ? (
             <>
               <div className="text-ink text-sm mb-3.5">
-                The settlement became final on <strong>{longDate(win.finalAt)}</strong>. Has the obliged party complied with it? If not, it must be executed by{' '}
-                <strong>{longDate(win.executionDeadline)}</strong> (6 months from the settlement).
+                {t('The settlement became final on {final}. Has the obliged party complied with it? If not, it must be executed by {deadline} (6 months from the settlement).', { final: longDate(win.finalAt), deadline: longDate(win.executionDeadline) })}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => openAdvanceModal('closed')} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg h-11 px-5 shadow-token-sm inline-flex items-center gap-2">
-                  <MdOutlineCheckCircle aria-hidden="true" /> Complied, close case
+                  <MdOutlineCheckCircle aria-hidden="true" />{t('Complied, close case')}
                 </button>
                 <button onClick={() => openAdvanceModal('execution')} className="border border-border bg-surface text-ink text-sm font-semibold rounded-lg h-11 px-5 inline-flex items-center gap-2 hover:bg-surface-hover">
-                  Not complied, start execution
+                  {t('Not complied, start execution')}
                 </button>
               </div>
             </>
           ) : (
             <>
               <div className="text-ink text-sm mb-3.5">
-                Repudiation period: <strong>{win.daysLeft} day{win.daysLeft === 1 ? '' : 's'} left</strong>. The settlement becomes final on <strong>{longDate(win.finalAt)}</strong>. If a party
-                repudiates it in a sworn statement (Form 17) on the ground of fraud, violence or intimidation, record it to issue a Certificate to File Action (Form 20).
+                {t('Repudiation period: {n} days left. The settlement becomes final on {date}. If a party repudiates it in a sworn statement (Form 17) on the ground of fraud, violence or intimidation, record it to issue a Certificate to File Action (Form 20).', { n: win.daysLeft, date: longDate(win.finalAt) })}
               </div>
               <button onClick={() => openAdvanceModal('cfa_issued')} className="border border-border bg-surface text-ink text-sm font-semibold rounded-lg h-11 px-5 inline-flex items-center gap-2 hover:bg-surface-hover">
-                Record repudiation
+                {t('Record repudiation')}
               </button>
             </>
           )
         ) : (
           <>
             <div className="text-ink text-sm mb-3.5">
-              {meta.action}
+              {t(meta.action)}
               {complaint.status === 'execution' && win && (
                 <>
                   {' '}
-                  Execution deadline: <strong>{longDate(win.executionDeadline)}</strong>.
+                  {t('Execution deadline:')} <strong>{longDate(win.executionDeadline)}</strong>.
                 </>
               )}
             </div>
             {nextStages.length > 0 && (
               <button onClick={openAdvanceModal} className="bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-lg h-11 px-5 shadow-token-sm inline-flex items-center gap-2">
-                {complaint.status === 'execution' ? 'Mark as complied' : 'Advance stage'} <MdArrowForward aria-hidden="true" />
+                {complaint.status === 'execution' ? t('Mark as complied') : t('Advance stage')} <MdArrowForward aria-hidden="true" />
               </button>
             )}
           </>
@@ -431,19 +431,19 @@ function CaseDetail() {
             target="_blank"
             className="ml-2 mt-2 sm:mt-0 border border-border bg-surface text-ink text-sm font-semibold rounded-lg h-11 px-5 inline-flex items-center gap-2 hover:bg-surface-hover"
           >
-            <MdOutlinePrint aria-hidden="true" /> Prepare summons
+            <MdOutlinePrint aria-hidden="true" />{t('Prepare summons')}
           </Link>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md">
-          <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5"><MdOutlinePerson className="text-lg text-accent" aria-hidden="true" /> Complainant</div>
+          <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5"><MdOutlinePerson className="text-lg text-accent" aria-hidden="true" />{t('Complainant')}</div>
           <div className="text-ink text-sm">{complaint.complainant_name}</div>
           <div className="text-ink-faint text-xs mt-1">{complaint.complainant_address}</div>
         </div>
         <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md">
-          <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5"><MdOutlinePersonOff className="text-lg text-accent" aria-hidden="true" /> Respondent</div>
+          <div className="text-ink-soft text-sm font-semibold mb-2 flex items-center gap-1.5"><MdOutlinePersonOff className="text-lg text-accent" aria-hidden="true" />{t('Respondent')}</div>
           <div className="text-ink text-sm">{complaint.respondent_name}</div>
           <div className="text-ink-faint text-xs mt-1">{complaint.respondent_address}</div>
         </div>
@@ -455,15 +455,15 @@ function CaseDetail() {
       {/* Pangkat Members */}
       {(members.length > 0 || complaint.status === 'pangkat_formed' || complaint.status === 'pangkat_hearing') && (
         <div className="bg-surface border border-border rounded-2xl p-4 mb-4 shadow-token-md">
-          <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineGroups className="text-lg text-accent" aria-hidden="true" /> Pangkat members (3 required)</div>
+          <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineGroups className="text-lg text-accent" aria-hidden="true" />{t('Pangkat members (3 required)')}</div>
           {members.length === 0 ? (
-            <div className="text-ink-faint text-sm mb-3">No members assigned yet.</div>
+            <div className="text-ink-faint text-sm mb-3">{t('No members assigned yet.')}</div>
           ) : (
             <div className="flex flex-wrap gap-2 mb-3">
               {members.map((m) => (
                 <span key={m.id} className="bg-surface-sunken text-ink text-sm px-3.5 py-1.5 rounded-full border border-border flex items-center gap-2">
-                  {m.member_name}{m.role === 'chairman' ? ' (Chairman)' : ''}
-                  <button onClick={() => setMemberToRemove(m)} aria-label={`Remove ${m.member_name}`} className="text-danger-strong hover:opacity-70 flex items-center"><MdClose aria-hidden="true" /></button>
+                  {m.member_name}{m.role === 'chairman' ? ` (${t('Chairman')})` : ''}
+                  <button onClick={() => setMemberToRemove(m)} aria-label={t('Remove {name}', { name: m.member_name })} className="text-danger-strong hover:opacity-70 flex items-center"><MdClose aria-hidden="true" /></button>
                 </span>
               ))}
             </div>
@@ -473,7 +473,7 @@ function CaseDetail() {
               <input
                 value={newMemberName}
                 onChange={(e) => setNewMemberName(e.target.value)}
-                placeholder="Member name"
+                placeholder={t('Member name')}
                 className="flex-1 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
               />
               <select
@@ -481,11 +481,11 @@ function CaseDetail() {
                 onChange={(e) => setNewMemberRole(e.target.value)}
                 className="bg-surface-sunken border border-border text-ink rounded-lg px-2.5 py-2 text-sm"
               >
-                <option value="member">Member</option>
-                <option value="chairman">Chairman</option>
+                <option value="member">{t('Member')}</option>
+                <option value="chairman">{t('Chairman')}</option>
               </select>
               <button onClick={addMember} disabled={!newMemberName.trim()} className="bg-surface-sunken hover:bg-surface-hover text-ink text-sm font-semibold rounded-lg px-4 border border-border disabled:opacity-50">
-                Add
+                {t('Add')}
               </button>
             </div>
           )}
@@ -496,7 +496,7 @@ function CaseDetail() {
       {complaint.settlement_terms && ['settled', 'execution', 'closed'].includes(complaint.status) && (
         <div className="bg-success-soft border border-success-strong/20 rounded-2xl p-4 mb-4">
           <div className="text-success-strong text-xs font-semibold mb-1.5">
-            {complaint.settlement_type === 'arbitration_award' ? 'Arbitration award' : 'Amicable settlement'}
+            {complaint.settlement_type === 'arbitration_award' ? t('Arbitration award') : t('Amicable settlement')}
             {complaint.settled_at && ` · ${longDate(complaint.settled_at)}`}
           </div>
           <div className="text-ink text-sm whitespace-pre-line">{complaint.settlement_terms}</div>
@@ -504,15 +504,15 @@ function CaseDetail() {
       )}
       {complaint.status === 'cfa_issued' && (complaint.cfa_type || complaint.cfa_reason) && (
         <div className="bg-neutral-soft border border-neutral-strong/20 rounded-2xl p-4 mb-4">
-          <div className="text-neutral-strong text-xs font-semibold mb-1.5">Certificate to File Action</div>
-          {complaint.cfa_type && <div className="text-ink text-sm">{CFA_TYPES[complaint.cfa_type]}</div>}
+          <div className="text-neutral-strong text-xs font-semibold mb-1.5">{t('Certificate to File Action')}</div>
+          {complaint.cfa_type && <div className="text-ink text-sm">{t(CFA_TYPES[complaint.cfa_type])}</div>}
           {complaint.cfa_reason && <div className="text-ink-soft text-sm mt-1">{complaint.cfa_reason}</div>}
         </div>
       )}
       {complaint.status === 'dismissed' && complaint.dismissal_reason && (
         <div className="bg-danger-soft border border-danger-strong/20 rounded-2xl p-4 mb-4">
-          <div className="text-danger-strong text-xs font-semibold mb-1.5">Reason for dismissal</div>
-          <div className="text-ink text-sm">{DISMISSAL_REASONS[complaint.dismissal_reason]}</div>
+          <div className="text-danger-strong text-xs font-semibold mb-1.5">{t('Reason for dismissal')}</div>
+          <div className="text-ink text-sm">{t(DISMISSAL_REASONS[complaint.dismissal_reason])}</div>
         </div>
       )}
 
@@ -520,16 +520,16 @@ function CaseDetail() {
       <div className="bg-surface border border-border rounded-2xl p-4 mb-4 shadow-token-md">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div className="text-ink-soft text-sm font-semibold flex items-center gap-1.5">
-            <MdOutlineDescription className="text-lg text-accent" aria-hidden="true" /> KP Forms
+            <MdOutlineDescription className="text-lg text-accent" aria-hidden="true" />{t('KP Forms')}
           </div>
           <div className="text-ink-faint text-xs flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-accent" aria-hidden="true" /> Suggested for the {STAGE_LABELS[complaint.status] || 'current'} stage
+            <span className="w-2 h-2 rounded-full bg-accent" aria-hidden="true" /> {t('Suggested for the {stage} stage', { stage: t(STAGE_LABELS[complaint.status] || 'current') })}
           </div>
         </div>
         <div className="flex flex-col gap-3.5">
           {FORM_GROUPS.map((g) => (
             <div key={g.title}>
-              <div className="text-ink-faint text-xs font-semibold uppercase tracking-wide mb-1.5">{g.title}</div>
+              <div className="text-ink-faint text-xs font-semibold uppercase tracking-wide mb-1.5">{t(g.title)}</div>
               <div className="flex flex-wrap gap-2">
                 {g.forms.map((n) => {
                   const suggested = suggestedForms.includes(n)
@@ -548,7 +548,7 @@ function CaseDetail() {
                       {FORM_LABELS[n] || `Form ${n}`}
                       {docStatus[n] && (
                         <span className={`text-xs font-bold rounded-full px-2 py-0.5 ${docStatus[n] === 'issued' ? 'bg-success-strong text-white' : 'bg-warning-soft text-warning-strong'}`}>
-                          {docStatus[n] === 'issued' ? 'Issued' : 'Draft'}
+                          {docStatus[n] === 'issued' ? t('Issued') : t('Draft')}
                         </span>
                       )}
                     </Link>
@@ -562,22 +562,22 @@ function CaseDetail() {
 
       {/* Activity Log */}
       <div className="bg-surface border border-border rounded-2xl p-4 shadow-token-md">
-        <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineHistory className="text-lg text-accent" aria-hidden="true" /> Activity log</div>
+        <div className="text-ink-soft text-sm font-semibold mb-3 flex items-center gap-1.5"><MdOutlineHistory className="text-lg text-accent" aria-hidden="true" />{t('Activity log')}</div>
 
         <div className="flex gap-2 mb-4">
           <input
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Add a note or minutes from a meeting..."
+            placeholder={t('Add a note or minutes from a meeting...')}
             className="flex-1 bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
           />
           <button onClick={addNote} disabled={savingNote} className="bg-surface-sunken hover:bg-surface-hover text-ink text-sm font-semibold rounded-lg px-4 border border-border disabled:opacity-50">
-            Add
+            {t('Add')}
           </button>
         </div>
 
         {logs.length === 0 ? (
-          <div className="text-ink-faint text-sm">No activity yet.</div>
+          <div className="text-ink-faint text-sm">{t('No activity yet.')}</div>
         ) : (
           <div className="flex flex-col gap-3">
             {logs.map((l) => (
@@ -601,12 +601,12 @@ function CaseDetail() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-5" onClick={() => setShowAdvanceModal(false)}>
           <div className="bg-surface border border-border rounded-2xl p-6 max-w-[460px] w-full shadow-token-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="text-ink text-lg font-bold mb-1">
-              {selectedNextStage === 'closed' ? 'Close the case' : selectedNextStage === 'execution' ? 'Start execution' : 'Advance case stage'}
+              {selectedNextStage === 'closed' ? t('Close the case') : selectedNextStage === 'execution' ? t('Start execution') : t('Advance case stage')}
             </div>
-            <div className="text-ink-faint text-xs mb-4">This updates the case status and notifies the resident. This action reflects a legal step — confirm before proceeding.</div>
+            <div className="text-ink-faint text-xs mb-4">{t('This updates the case status and notifies the resident. This action reflects a legal step — confirm before proceeding.')}</div>
 
             <div className="mb-4">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">New stage</label>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('New stage')}</label>
               <select
                 value={selectedNextStage}
                 onChange={(e) => setSelectedNextStage(e.target.value)}
@@ -614,7 +614,7 @@ function CaseDetail() {
               >
                 {nextStages.map((s) => (
                   <option key={s} value={s}>
-                    {s === 'settled' && complaint.status === 'arbitration' ? 'Arbitration award' : s === 'cfa_issued' && complaint.status === 'settled' ? 'Repudiated → Certificate to File Action' : STAGE_LABELS[s]}
+                    {s === 'settled' && complaint.status === 'arbitration' ? t('Arbitration award') : s === 'cfa_issued' && complaint.status === 'settled' ? t('Repudiated → Certificate to File Action') : t(STAGE_LABELS[s])}
                   </option>
                 ))}
               </select>
@@ -623,11 +623,11 @@ function CaseDetail() {
             {['summoned', 'pangkat_formed', 'pangkat_hearing', 'arbitration'].includes(selectedNextStage) && (
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Hearing date</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Hearing date')}</label>
                   <input type="date" value={hearingDate} onChange={(e) => setHearingDate(e.target.value)} className="w-full bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Hearing time</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Hearing time')}</label>
                   <input type="time" value={hearingTime} onChange={(e) => setHearingTime(e.target.value)} className="w-full bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm" />
                 </div>
               </div>
@@ -636,13 +636,13 @@ function CaseDetail() {
             {selectedNextStage === 'settled' && (
               <div className="mb-4">
                 <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">
-                  {complaint.status === 'arbitration' ? 'Arbitration award' : 'Settlement terms'}
+                  {complaint.status === 'arbitration' ? t('Arbitration award') : t('Settlement terms')}
                 </label>
                 <textarea
                   value={settlementTerms}
                   onChange={(e) => setSettlementTerms(e.target.value)}
                   rows={3}
-                  placeholder="What did both parties agree to?"
+                  placeholder={t('What did both parties agree to?')}
                   className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-vertical"
                 />
               </div>
@@ -650,34 +650,34 @@ function CaseDetail() {
 
             {selectedNextStage === 'settled' && (
               <div className="mb-4 text-xs text-ink-soft bg-surface-sunken border border-border rounded-lg px-3 py-2.5">
-                Either party may repudiate within 10 days. The case stays open until you record whether it was complied with.
+                {t('Either party may repudiate within 10 days. The case stays open until you record whether it was complied with.')}
               </div>
             )}
 
             {selectedNextStage === 'dismissed' && (
               <div className="mb-4">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Reason for dismissal</label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Reason for dismissal')}</label>
                 <select
                   value={dismissalReason}
                   onChange={(e) => setDismissalReason(e.target.value)}
                   className="w-full bg-surface-sunken border border-border text-ink rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                 >
-                  <option value="">Choose a reason</option>
+                  <option value="">{t('Choose a reason')}</option>
                   {Object.entries(DISMISSAL_REASONS).map(([k, v]) => (
                     <option key={k} value={k}>
-                      {v}
+                      {t(v)}
                     </option>
                   ))}
                 </select>
                 {dismissalReason === 'complainant_failed_to_appear' && (
-                  <div className="text-xs text-ink-faint mt-1.5">Prepare the Certification to Bar Action (Form 23).</div>
+                  <div className="text-xs text-ink-faint mt-1.5">{t('Prepare the Certification to Bar Action (Form 23).')}</div>
                 )}
               </div>
             )}
 
             {selectedNextStage === 'cfa_issued' && complaint.status !== 'settled' && (
               <div className="mb-4">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Reason for the certificate</label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Reason for the certificate')}</label>
                 <select
                   value={cfaType}
                   onChange={(e) => setCfaType(e.target.value)}
@@ -687,7 +687,7 @@ function CaseDetail() {
                     .filter(([k]) => k !== 'repudiated' || complaint.status === 'arbitration')
                     .map(([k, v]) => (
                       <option key={k} value={k}>
-                        {v}
+                        {t(v)}
                       </option>
                     ))}
                 </select>
@@ -697,21 +697,21 @@ function CaseDetail() {
             {selectedNextStage === 'cfa_issued' && cfaType === 'repudiated' && (
               <>
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Repudiated By</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Repudiated By')}</label>
                   <input
                     value={cfaRepudiatedBy}
                     onChange={(e) => setCfaRepudiatedBy(e.target.value)}
-                    placeholder="Name of party who repudiated the settlement"
+                    placeholder={t('Name of party who repudiated the settlement')}
                     className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Ground (fraud, violence or intimidation)</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Ground (fraud, violence or intimidation)')}</label>
                   <textarea
                     value={cfaReason}
                     onChange={(e) => setCfaReason(e.target.value)}
                     rows={3}
-                    placeholder="State the ground and details from the sworn statement"
+                    placeholder={t('State the ground and details from the sworn statement')}
                     className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-vertical"
                   />
                 </div>
@@ -719,20 +719,20 @@ function CaseDetail() {
             )}
 
             <div className="mb-5">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">Remarks</label>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint mb-1.5">{t('Remarks')}</label>
               <textarea
                 value={advanceRemarks}
                 onChange={(e) => setAdvanceRemarks(e.target.value)}
                 rows={3}
-                placeholder="Notes about this stage change..."
+                placeholder={t('Notes about this stage change...')}
                 className="w-full bg-surface-sunken border border-border text-ink placeholder-ink-faint rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 resize-vertical"
               />
             </div>
 
             <div className="flex gap-2.5">
-              <button onClick={() => setShowAdvanceModal(false)} className="flex-1 border border-border text-ink-soft rounded-lg py-2.5 text-sm font-medium">Cancel</button>
+              <button onClick={() => setShowAdvanceModal(false)} className="flex-1 border border-border text-ink-soft rounded-lg py-2.5 text-sm font-medium">{t('Cancel')}</button>
               <button onClick={confirmAdvance} disabled={saving || (selectedNextStage === 'dismissed' && !dismissalReason)} className="flex-[2] bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink font-semibold text-sm rounded-lg py-2.5 shadow-token-sm">
-                {saving ? 'Saving...' : 'Confirm and advance'}
+                {saving ? t('Saving...') : t('Confirm and advance')}
               </button>
             </div>
           </div>
@@ -740,9 +740,9 @@ function CaseDetail() {
       )}
       <ConfirmDialog
         open={!!memberToRemove}
-        title="Remove Pangkat member?"
-        message={`${memberToRemove?.member_name || 'This member'} will be removed from this case's Pangkat.`}
-        confirmLabel="Yes, remove"
+        title={t('Remove Pangkat member?')}
+        message={t("{name} will be removed from this case's Pangkat.", { name: memberToRemove?.member_name || t('This member') })}
+        confirmLabel={t('Yes, remove')}
         onConfirm={async () => {
           await removeMember(memberToRemove.id)
           setMemberToRemove(null)
