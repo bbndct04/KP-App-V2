@@ -164,7 +164,7 @@ function AppLayout({ title, children }) {
         <header className="h-16 bg-surface border-b border-border flex items-center gap-3 px-4 md:px-7 flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
+            aria-label={t('Open menu')}
             className="md:hidden w-10 h-10 rounded-lg hover:bg-surface-hover flex items-center justify-center text-ink"
           >
             <MdMenu className="text-2xl" aria-hidden="true" />

@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import AppLayout from '../../components/layout/AppLayout'
 import { useT } from '../../i18n/LanguageContext'
+import { translateNotification } from '../../i18n/notificationText'
 import { Card, EmptyState, Skeleton } from '../../components/ui'
 
 const TYPES = {
@@ -37,7 +38,7 @@ function stripLeadingEmoji(text) {
 
 function Notifications() {
   const { user } = useAuth()
-  const { t: tr } = useT()
+  const { t: tr, lang } = useT()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -107,7 +108,7 @@ function Notifications() {
                       <div className="text-base font-bold text-ink">{tr(stripLeadingEmoji(n.title) || 'Notification')}</div>
                       {!n.is_read && <span className="w-2.5 h-2.5 rounded-full bg-danger-strong flex-shrink-0" aria-label={tr('Unread')} />}
                     </div>
-                    <div className="text-sm text-ink-soft leading-relaxed mb-2">{n.message}</div>
+                    <div className="text-sm text-ink-soft leading-relaxed mb-2">{translateNotification(n.message, lang)}</div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="text-xs text-ink-faint">{timeAgo(n.created_at, tr)}</div>
                       {n.complaints?.reference_number && (
