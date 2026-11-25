@@ -8,6 +8,23 @@ import { useT } from '../../../i18n/LanguageContext'
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
+const ID_NUMBER_PATTERNS = {
+  national: [/\b(\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4})\b/],
+  passport: [/\b([A-Z]\d{7}[A-Z]|[A-Z]{1,2}\d{7})\b/],
+  drivers_license: [/\b([A-Z]\d{2}[-\s]?\d{2}[-\s]?\d{6})\b/],
+  umid: [/\b(\d{4}[-\s]?\d{7}[-\s]?\d)\b/],
+  prc: [/(?:Registration|Reg\.?)\s*(?:No|Number)\.?[:\s]*(\d{6,8})/i],
+  postal: [/(?:PRN|Postal\s*ID\s*No)\.?[:\s]*([A-Z0-9]{10,14})/i],
+}
+
+function readIdNumber(text, idType) {
+  for (const re of ID_NUMBER_PATTERNS[idType] || []) {
+    const m = text.match(re)
+    if (m?.[1]) return m[1].replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+  }
+  return ''
+}
+
 function readDetails(text) {
   const out = {}
   const name = text.match(/(?:Name|Pangalan)[:\s]+([A-Za-z ,.'-]+)/i)
@@ -124,7 +141,7 @@ function IdStep({ idType, setIdType, idFront, setIdFront, idBack, setIdBack, onS
       const text = data?.text || ''
       if (fnError || !text) return fail(t("We couldn't read the text on your ID. Retake it in a brighter place, flat and without glare."))
       if (!idMatches(text, idType)) return fail(t("This doesn't look like a {id}. Use the correct ID, or choose the ID type that matches your card.", { id: label }))
-      onScanned(readDetails(text))
+      onScanned({ ...readDetails(text), idNumber: readIdNumber(text, idType) })
       setStatus('ok')
     } catch {
       fail(t('Something went wrong while checking your ID. Please try again.'))

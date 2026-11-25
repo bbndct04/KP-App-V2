@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/toastContext'
 import AdminLayout from '../../components/layout/AdminLayout'
 import IdentityPanel from '../../components/admin/IdentityPanel'
+import RiskPanel from '../../components/admin/RiskPanel'
 import { Card, CardHeader, Button, Field, Select, StatusBadge, EmptyState, SkeletonRows, ConfirmDialog } from '../../components/ui'
 import { POSITIONS, isOfficial } from '../../lib/accounts'
 import { formatDate } from '../../lib/cases'
@@ -164,6 +165,7 @@ function AdminUserDetail() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-5 items-start">
         <div className="flex flex-col gap-5 min-w-0">
           {!official && <IdentityPanel userId={u.id} title={t('Identity')} onChange={load} />}
+          {!official && <RiskPanel userId={u.id} />}
 
           <Card className="overflow-hidden">
             <CardHeader icon={MdOutlineFolderOpen} title={t('Complaints filed')} subtitle={`${complaints.length} total`} />

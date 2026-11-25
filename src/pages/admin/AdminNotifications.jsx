@@ -112,10 +112,11 @@ function AdminNotifications() {
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="text-xs text-ink-faint">{timeAgo(n.created_at, t)}</div>
                       <Link
-                        to={n.complaint_id ? `/admin/complaints/${n.complaint_id}` : '/admin/complaints'}
+                        to={n.complaint_id ? `/admin/complaints/${n.complaint_id}` : /Duplicate Account/.test(n.title) ? '/admin/users?tab=flagged' : '/admin/complaints'}
                         className="text-sm font-semibold text-accent flex items-center gap-1"
                       >
-                        {n.complaint_id ? t('Open case') : t('View complaints')} <MdArrowForward aria-hidden="true" />
+                        {n.complaint_id ? t('Open case') : /Duplicate Account/.test(n.title) ? t('Open flagged accounts') : t('View complaints')}{' '}
+                        <MdArrowForward aria-hidden="true" />
                       </Link>
                     </div>
                   </div>

@@ -17,6 +17,7 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, StatusBadge, EmptyState, Skeleton, Button, LinkButton, ConfirmDialog, Select, Textarea } from '../../components/ui'
 import ComplaintDetails from '../../components/admin/ComplaintDetails'
 import IdentityPanel from '../../components/admin/IdentityPanel'
+import RiskPanel from '../../components/admin/RiskPanel'
 import { useT } from '../../i18n/LanguageContext'
 
 const DECLINE_REASONS = [
@@ -266,6 +267,7 @@ function ReviewComplaint() {
 
         <div className="flex flex-col gap-4 min-w-0">
           <IdentityPanel userId={complaint.user_id} />
+          {complaint.user_id && <RiskPanel userId={complaint.user_id} />}
 
           {isDeclined ? (
             <Card className="p-5 border-danger-strong/30">
