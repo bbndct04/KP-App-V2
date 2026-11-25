@@ -105,6 +105,14 @@ const ADMIN = [
     /^Complaint (.+?) was not confirmed in person by the deadline\. It is kept on record as not confirmed\.$/s,
     (ref) => `Hindi nakumpirma nang personal ang complaint ${ref} bago ang deadline. Nakatala ito bilang hindi kumpirmado.`,
   ],
+  [
+    /^Complaint (.+?) was filed by an account flagged as high risk\. Check the warning signs before accepting it\.$/s,
+    (ref) => `Ang complaint ${ref} ay na-file ng account na may mataas na risk. Tingnan ang mga babala bago ito i-accept.`,
+  ],
+  [
+    /^The new account of (.+?) has the same ID, contact number, or name and birthdate as another account\. Check it in Manage Users\.$/s,
+    (name) => `Ang bagong account ni ${name} ay may parehong ID, contact number, o pangalan at birthdate sa ibang account. Tingnan ito sa Mga User.`,
+  ],
   [/^Case (.+?) has exceeded the maximum 30-day Pangkat period\.$/s, (ref) => `Lampas na sa maximum na 30-day Pangkat period ang case ${ref}.`],
   [
     /^Case (.+?) has been in arbitration for over 15 days\. The award should be issued\.$/s,

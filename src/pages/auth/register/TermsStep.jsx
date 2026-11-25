@@ -47,7 +47,7 @@ const PRIVACY = [
   ],
   [
     'Personal Information Collected',
-    'Full name, date of birth, sex, home address, mobile number and email address; photos of the front and back of your government-issued ID; a live photo of your face; the complaints you file and related case records; and system logs such as log-in times and actions made by officials on your account.',
+    'Full name, date of birth, sex, home address, mobile number and email address; photos of the front and back of your government-issued ID; a live photo of your face; the complaints you file and related case records; system logs such as log-in times and actions made by officials on your account; and a one-way coded fingerprint of your ID number (not the number itself), used only to detect duplicate or fake accounts.',
   ],
   [
     'Purpose of Processing',

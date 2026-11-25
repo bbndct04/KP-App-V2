@@ -23,6 +23,13 @@ import FaceStep from './register/FaceStep'
 import CheckEmailStep from './register/CheckEmailStep'
 import { STEP_LABELS, ID_TYPES, latestBirthDate, ageOn } from './register/constants'
 
+async function idFingerprint(type, number) {
+  if (!number || !window.crypto?.subtle) return null
+  const bytes = new TextEncoder().encode(`kp-app:${type}:${number}`)
+  const hash = await window.crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 const NAME_RE = /^[A-Za-zÀ-ÿÑñ.'\- ]+$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^09\d{9}$/
@@ -115,6 +122,7 @@ function Register() {
   const [idType, setIdType] = useState('')
   const [idFront, setIdFront] = useState(null)
   const [idBack, setIdBack] = useState(null)
+  const [idNumber, setIdNumber] = useState('')
   const [faceImage, setFaceImage] = useState(null)
 
   const [form, setForm] = useState({ firstName: '', middleName: '', lastName: '', dob: '', sex: '', contact: '', address: '', email: '' })
@@ -138,6 +146,7 @@ function Register() {
   const blur = (field) => () => setErrors((x) => ({ ...x, [field]: fieldError(field, form[field]) }))
 
   function applyScan(details) {
+    setIdNumber(details.idNumber || '')
     setForm((f) => ({
       ...f,
       firstName: details.firstName || f.firstName,
@@ -189,6 +198,7 @@ function Register() {
 
     setSubmitting(true)
     const email = form.email.trim().toLowerCase()
+    const idFp = await idFingerprint(idType, idNumber)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -202,6 +212,7 @@ function Register() {
           contact_number: form.contact,
           address: form.address.trim(),
           id_type: idType,
+          id_fp: idFp,
           language: lang,
         },
       },

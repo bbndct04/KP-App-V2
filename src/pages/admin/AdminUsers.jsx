@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   MdSearch,
   MdOutlineGroups,
@@ -20,6 +20,7 @@ import { useToast } from '../../context/toastContext'
 import { Card, Input, EmptyState, SkeletonRows, Button, Field } from '../../components/ui'
 import { isOfficial } from '../../lib/accounts'
 import { Avatar, UserBadges } from '../../components/admin/UserBits'
+import { RiskBadge } from '../../components/admin/RiskPanel'
 import { formatDate } from '../../lib/cases'
 import { useT } from '../../i18n/LanguageContext'
 
@@ -31,6 +32,7 @@ const TABS = [
   { key: 'verified', label: 'Verified', test: (u) => !isOfficial(u.role) && !!u.verified_at },
   { key: 'officials', label: 'Officials', test: (u) => isOfficial(u.role) },
   { key: 'limited', label: 'Restricted & blocked', test: (u) => u.effective_status !== 'active' },
+  { key: 'flagged', label: 'Flagged', test: (u, flagged) => !!flagged[u.id] },
 ]
 
 function InviteDialog({ open, onClose, onInvited }) {
@@ -109,12 +111,16 @@ function AdminUsers() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [search, setSearch] = useState('')
-  const [tab, setTab] = useState('all')
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState(() => (TABS.some((x) => x.key === searchParams.get('tab')) ? searchParams.get('tab') : 'all'))
   const [page, setPage] = useState(1)
   const [inviteOpen, setInviteOpen] = useState(false)
 
+  const [flagged, setFlagged] = useState({})
+
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc('admin_list_users')
+    const [{ data, error }, { data: f }] = await Promise.all([supabase.rpc('admin_list_users'), supabase.rpc('flagged_accounts')])
+    setFlagged(Object.fromEntries((f || []).map((x) => [x.id, x])))
     setUsers(data || [])
     setLoadError(error ? error.message : '')
     setLoading(false)
@@ -140,10 +146,10 @@ function AdminUsers() {
     const s = search.trim().toLowerCase()
     return users.filter(
       (u) =>
-        tabDef.test(u) &&
+        tabDef.test(u, flagged) &&
         (!s || u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s) || u.contact_number?.replace(/\D/g, '').includes(s.replace(/\D/g, '') || '\u0000'))
     )
-  }, [users, tab, search])
+  }, [users, tab, search, flagged])
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const current = Math.min(page, pages)
@@ -184,7 +190,7 @@ function AdminUsers() {
 
       <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 mb-3 md:mx-0 md:px-0 md:flex-wrap">
         {TABS.map((tb) => {
-          const count = users.filter(tb.test).length
+          const count = users.filter((u) => tb.test(u, flagged)).length
           return (
             <button
               key={tb.key}
@@ -239,7 +245,10 @@ function AdminUsers() {
                         {u.full_name || '—'} {u.id === currentUser?.id && <span className="text-ink-faint font-normal">{t('(You)')}</span>}
                       </div>
                       <div className="text-ink-faint text-xs truncate mb-1.5">{u.email}</div>
-                      <UserBadges u={u} />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <UserBadges u={u} />
+                        {flagged[u.id] && <RiskBadge level={flagged[u.id].level} />}
+                      </div>
                     </div>
                     <MdArrowForward className="text-accent mt-1 flex-shrink-0" aria-hidden="true" />
                   </Link>
@@ -274,7 +283,10 @@ function AdminUsers() {
                         </div>
                       </td>
                       <td className="px-5 py-3">
-                        <UserBadges u={u} />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <UserBadges u={u} />
+                          {flagged[u.id] && <RiskBadge level={flagged[u.id].level} />}
+                        </div>
                       </td>
                       <td className="px-5 py-3 text-ink text-sm font-semibold">{u.complaint_count}</td>
                       <td className="px-5 py-3 text-ink-faint text-sm whitespace-nowrap">{formatDate(u.created_at)}</td>
