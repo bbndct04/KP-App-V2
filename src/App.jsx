@@ -26,6 +26,7 @@ const Profile = lazy(() => import('./pages/resident/Profile'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminComplaints = lazy(() => import('./pages/admin/AdminComplaints'))
 const AdminWalkIn = lazy(() => import('./pages/admin/AdminWalkIn'))
+const AdminActivity = lazy(() => import('./pages/admin/AdminActivity'))
 const AdminCases = lazy(() => import('./pages/admin/AdminCases'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminUserDetail = lazy(() => import('./pages/admin/AdminUserDetail'))
@@ -73,6 +74,7 @@ const ADMIN_ROUTES = [
   ['/admin/dashboard', AdminDashboard],
   ['/admin/complaints', AdminComplaints],
   ['/admin/walk-in', AdminWalkIn],
+  ['/admin/activity', AdminActivity],
   ['/admin/complaints/:id', ComplaintRouter],
   ['/admin/cases', AdminCases],
   ['/admin/cases/:id', ComplaintRouter],
