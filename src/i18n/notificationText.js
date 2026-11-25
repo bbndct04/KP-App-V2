@@ -44,6 +44,20 @@ const PATTERNS = [
     /^Your complaint \(Ref: (.+?)\) was filed at the barangay hall\. You will be notified when a summons is issued\.$/s,
     (ref) => `Na-file sa Barangay Hall ang iyong complaint (Ref: ${ref}). Aabisuhan ka kapag naipadala na ang Summons.`,
   ],
+  [
+    /^You cannot file complaints online(?: until (.+?))?\. Reason: (.*)\. You can still file a complaint in person at the Barangay Hall and view your existing cases\.$/s,
+    (until, reason) =>
+      `Hindi ka muna makakapag-file ng complaint online${until ? ` hanggang ${until}` : ''}. Dahilan: ${reason}. Puwede ka pa ring mag-file nang personal sa Barangay Hall at makita ang iyong mga kaso.`,
+  ],
+  [
+    /^Your complaint \(Ref: (.+?)\) needs to be confirmed in person\. Please visit the Barangay Hall by (.+?), 5:00 PM and bring a valid ID\. Reason: (.*)\.$/s,
+    (ref, date, reason) =>
+      `Kailangang personal na kumpirmahin ang iyong complaint (Ref: ${ref}). Pumunta po sa Barangay Hall bago ang ${date}, 5:00 PM at magdala ng valid ID. Dahilan: ${TL[reason] ?? reason}.`,
+  ],
+  [
+    /^Your complaint \(Ref: (.+?)\) was not confirmed in person by the deadline\. It is kept on record\. You may still visit the Barangay Hall to continue it\.$/s,
+    (ref) => `Hindi nakumpirma nang personal ang iyong complaint (Ref: ${ref}) bago ang deadline. Nakatala pa rin ito. Puwede ka pa ring pumunta sa Barangay Hall para ituloy ito.`,
+  ],
   [/^Your account has been restored\. You can file complaints again\.$/, () => 'Naibalik na ang iyong account. Puwede ka nang mag-file ulit ng complaint.'],
 ]
 
@@ -86,6 +100,10 @@ const ADMIN = [
   [
     /^Case (.+?) has reached the 15-day Pangkat period\. An extension of up to 15 days may be granted\.$/s,
     (ref) => `Umabot na sa 15-day Pangkat period ang case ${ref}. Puwedeng magbigay ng extension hanggang 15 araw.`,
+  ],
+  [
+    /^Complaint (.+?) was not confirmed in person by the deadline\. It is kept on record as not confirmed\.$/s,
+    (ref) => `Hindi nakumpirma nang personal ang complaint ${ref} bago ang deadline. Nakatala ito bilang hindi kumpirmado.`,
   ],
   [/^Case (.+?) has exceeded the maximum 30-day Pangkat period\.$/s, (ref) => `Lampas na sa maximum na 30-day Pangkat period ang case ${ref}.`],
   [

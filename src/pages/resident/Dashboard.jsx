@@ -15,7 +15,7 @@ import AppLayout from '../../components/layout/AppLayout'
 import { useT } from '../../i18n/LanguageContext'
 import { Card, CardHeader, EmptyState, Skeleton, SkeletonRows, LinkButton } from '../../components/ui'
 import { HearingCard, CaseRow } from '../../components/cases'
-import { ACTIVE_STAGES } from '../../components/status'
+import { ACTIVE_STAGES, PENDING_INTAKE } from '../../components/status'
 import { upcomingHearings } from '../../lib/cases'
 
 function Dashboard() {
@@ -48,8 +48,8 @@ function Dashboard() {
 
   const firstName = (profile?.full_name || '').split(' ')[0]
   const nextHearing = upcomingHearings(complaints)[0]
-  const awaiting = complaints.filter((c) => c.status === 'submitted')
-  const open = complaints.filter((c) => c.status === 'submitted' || ACTIVE_STAGES.includes(c.status))
+  const awaiting = complaints.filter((c) => PENDING_INTAKE.includes(c.status))
+  const open = complaints.filter((c) => PENDING_INTAKE.includes(c.status) || ACTIVE_STAGES.includes(c.status))
   const closedCount = complaints.length - open.length
 
   return (

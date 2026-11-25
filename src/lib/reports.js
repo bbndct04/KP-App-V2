@@ -91,7 +91,7 @@ export function buildMonthlyReport(ym, complaints, allLogs) {
       if (c.reviewed_at && inMonth(c.reviewed_at)) sum.declined++
       continue
     }
-    if (c.status === 'submitted') continue
+    if (c.status === 'submitted' || c.status === 'for_appearance' || c.status === 'not_confirmed') continue
     const filed = new Date(filedAt(c)).getTime()
     if (filed >= end) continue
 

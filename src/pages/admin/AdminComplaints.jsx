@@ -4,7 +4,7 @@ import { MdSearch, MdOutlineTaskAlt, MdOutlineSearchOff, MdOutlineBlock, MdArrow
 import { supabase } from '../../lib/supabaseClient'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, Input, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
-import { INTAKE_STATUSES } from '../../components/status'
+import { INTAKE_STATUSES, APPEARANCE_STATUSES } from '../../components/status'
 import { useT } from '../../i18n/LanguageContext'
 
 function waitInfo(createdAt, now, t) {
@@ -16,6 +16,18 @@ function waitInfo(createdAt, now, t) {
 
 function shortDate(d) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+}
+
+function AppearancePill({ c }) {
+  const { t } = useT()
+  if (c.status === 'not_confirmed') {
+    return <span className="text-xs font-semibold rounded-full px-2.5 py-1 whitespace-nowrap bg-neutral-soft text-neutral-strong">{t('Not confirmed')}</span>
+  }
+  return (
+    <span className="text-xs font-semibold rounded-full px-2.5 py-1 whitespace-nowrap bg-warning-soft text-warning-strong">
+      {c.appearance_due ? shortDate(c.appearance_due) : '—'}
+    </span>
+  )
 }
 
 function AdminComplaints() {
@@ -41,12 +53,13 @@ function AdminComplaints() {
   }, [])
 
   const awaiting = complaints.filter((c) => c.status === 'submitted')
+  const appearance = complaints.filter((c) => APPEARANCE_STATUSES.includes(c.status))
   const declined = complaints
     .filter((c) => c.status === 'declined')
     .sort((a, b) => new Date(b.reviewed_at || b.created_at) - new Date(a.reviewed_at || a.created_at))
 
   const s = search.trim().toLowerCase()
-  const list = (tab === 'submitted' ? awaiting : declined).filter(
+  const list = (tab === 'submitted' ? awaiting : tab === 'appearance' ? appearance : declined).filter(
     (c) =>
       !s ||
       c.reference_number?.toLowerCase().includes(s) ||
@@ -79,6 +92,7 @@ function AdminComplaints() {
 
       <div className="flex gap-2 mb-4 flex-wrap">
         {tabBtn('submitted', 'Awaiting review', awaiting.length)}
+        {tabBtn('appearance', 'For appearance', appearance.length)}
         {tabBtn('declined', 'Declined', declined.length)}
       </div>
 
@@ -103,6 +117,8 @@ function AdminComplaints() {
             <EmptyState icon={MdOutlineSearchOff} title={t('No matching complaints')} message={t('Try a different name or reference number.')} />
           ) : tab === 'submitted' ? (
             <EmptyState icon={MdOutlineTaskAlt} title={t("You're all caught up")} message={t('There are no complaints waiting for review.')} />
+          ) : tab === 'appearance' ? (
+            <EmptyState icon={MdOutlineTaskAlt} title={t('No one to wait for')} message={t('Complaints that need personal confirmation will be listed here.')} />
           ) : (
             <EmptyState icon={MdOutlineBlock} title={t('No declined complaints')} message={t('Complaints you decline will be listed here.')} />
           )
@@ -117,6 +133,7 @@ function AdminComplaints() {
                       <div className="flex items-start justify-between gap-3 mb-1.5">
                         <span className="text-accent font-mono text-sm font-semibold">{c.reference_number}</span>
                         {tab === 'submitted' && <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${w.cls}`}>{w.label}</span>}
+                        {tab === 'appearance' && <AppearancePill c={c} />}
                       </div>
                       <div className="text-ink text-sm font-medium mb-0.5">{c.profiles?.full_name || c.complainant_name || '—'}</div>
                       <div className="text-ink-soft text-sm mb-2">{t(c.category)}</div>
@@ -124,7 +141,7 @@ function AdminComplaints() {
                       <div className="flex items-center justify-between">
                         <span className="text-ink-faint text-xs">{shortDate(tab === 'declined' && c.reviewed_at ? c.reviewed_at : c.created_at)}</span>
                         <span className="text-accent text-sm font-semibold flex items-center gap-1">
-                          {tab === 'submitted' ? t('Review') : t('Open')} <MdArrowForward aria-hidden="true" />
+                          {tab === 'declined' ? t('Open') : t('Review')} <MdArrowForward aria-hidden="true" />
                         </span>
                       </div>
                     </Link>
@@ -141,6 +158,8 @@ function AdminComplaints() {
                     <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Complainant')}</th>
                     {tab === 'submitted' ? (
                       <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Waiting')}</th>
+                    ) : tab === 'appearance' ? (
+                      <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Appear by')}</th>
                     ) : (
                       <th className="px-4 py-3 font-semibold whitespace-nowrap">{t('Reason')}</th>
                     )}
@@ -167,6 +186,10 @@ function AdminComplaints() {
                           <td className="px-4 py-3">
                             <span className={`text-xs font-semibold rounded-full px-2.5 py-1 whitespace-nowrap ${w.cls}`}>{w.label}</span>
                           </td>
+                        ) : tab === 'appearance' ? (
+                          <td className="px-4 py-3">
+                            <AppearancePill c={c} />
+                          </td>
                         ) : (
                           <td className="px-4 py-3 text-ink-soft text-sm max-w-[260px] truncate">{c.declined_reason || '—'}</td>
                         )}
@@ -176,7 +199,7 @@ function AdminComplaints() {
                             onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center gap-1 h-9 px-3.5 rounded-lg bg-accent text-accent-ink text-sm font-semibold whitespace-nowrap hover:bg-accent-hover"
                           >
-                            {tab === 'submitted' ? t('Review') : t('Open')} <MdArrowForward aria-hidden="true" />
+                            {tab === 'declined' ? t('Open') : t('Review')} <MdArrowForward aria-hidden="true" />
                           </Link>
                         </td>
                       </tr>

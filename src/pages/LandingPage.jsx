@@ -49,8 +49,8 @@ const FAQS = [
     a: 'Most disputes between residents, such as unpaid debts, property and boundary conflicts, noise, slander, threats, and minor physical injuries. Serious crimes, cases involving the government, and some other disputes are outside the barangay and go directly to the proper office.',
   },
   {
-    q: 'Can I file about an incident outside Barangay New Kababae?',
-    a: 'No. This app is for Barangay New Kababae. If the incident happened elsewhere, please go to the barangay where it took place.',
+    q: 'Can I file about an complaint outside Barangay New Kababae?',
+    a: 'No. This app is for Barangay New Kababae. If the complaint happened elsewhere, please go to the barangay where it took place.',
   },
   {
     q: 'Do I still need to go to the Barangay Hall?',

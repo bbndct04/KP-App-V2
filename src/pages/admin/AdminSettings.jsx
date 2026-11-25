@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MdOutlineAccountBalance, MdOutlineBadge, MdOutlineSave } from 'react-icons/md'
+import { MdOutlineAccountBalance, MdOutlineBadge, MdOutlineSave, MdOutlineHowToReg } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/toastContext'
@@ -7,7 +7,7 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import { Card, CardHeader, Field, Input, Select, Button, Skeleton } from '../../components/ui'
 import { useT } from '../../i18n/LanguageContext'
 
-const EMPTY = { province: '', locality_type: 'City', locality: '', barangay: '', punong_barangay: '', secretary: '' }
+const EMPTY = { province: '', locality_type: 'City', locality: '', barangay: '', punong_barangay: '', secretary: '', appearance_days: 1 }
 
 function AdminSettings() {
   const { t } = useT()
@@ -43,6 +43,7 @@ function AdminSettings() {
       barangay: form.barangay.trim(),
       punong_barangay: form.punong_barangay.trim(),
       secretary: form.secretary.trim(),
+      appearance_days: Number(form.appearance_days) || 1,
       updated_at: new Date().toISOString(),
       updated_by: user.id,
     })
@@ -94,6 +95,24 @@ function AdminSettings() {
               </Field>
               <Field label={t('Barangay Secretary')}>
                 <Input value={form.secretary} onChange={(e) => update('secretary', e.target.value)} placeholder={t('Full name')} aria-label={t('Barangay Secretary')} />
+              </Field>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader icon={MdOutlineHowToReg} title={t('Complaint confirmation')} subtitle={t('Barangay policy, not a legal deadline')} />
+            <div className="p-5">
+              <Field
+                label={t('Working days to confirm in person')}
+                hint={t('When a complaint needs personal appearance, the complainant must come to the Barangay Hall within this many working days (until 5:00 PM). Saturdays and Sundays are skipped.')}
+              >
+                <Select value={form.appearance_days} onChange={(e) => update('appearance_days', Number(e.target.value))} className="sm:w-60">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <option key={n} value={n}>
+                      {n === 1 ? t('Next working day') : t('{n} working days', { n })}
+                    </option>
+                  ))}
+                </Select>
               </Field>
             </div>
           </Card>

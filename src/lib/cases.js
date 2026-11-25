@@ -50,6 +50,7 @@ export function upcomingHearings(complaints) {
 }
 
 export function progressOf(status) {
+  if (status === 'for_appearance' || status === 'not_confirmed') status = 'submitted'
   const idx = DONE.includes(status)
     ? PROGRESS_STEPS.length - 1
     : OUTCOMES.includes(status)
