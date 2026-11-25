@@ -1209,6 +1209,7 @@ const TL = {
   "Unusual Admin Activity": "Kakaibang Admin Activity",
   "🔐 Admin Access Given": "🔐 Binigyan ng Admin Access",
   "Admin Access Given": "Binigyan ng Admin Access",
+  "Statistics could not be loaded.": "Hindi ma-load ang statistics.",
 }
 
 export default TL

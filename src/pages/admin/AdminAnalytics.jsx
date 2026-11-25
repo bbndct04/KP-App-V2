@@ -24,11 +24,14 @@ function AdminAnalytics() {
   const { t } = useT()
   const [complaints, setComplaints] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('complaints').select('status, category, created_at, source')
+      let { data, error } = await supabase.from('complaints').select('status, category, created_at, source')
+      if (error) ({ data, error } = await supabase.from('complaints').select('status, category, created_at'))
       setComplaints(data || [])
+      setLoadError(error ? error.message : '')
       setLoading(false)
     }
     load()
@@ -80,6 +83,11 @@ function AdminAnalytics() {
 
   return (
     <AdminLayout title={t('Reports & Analytics')}>
+      {loadError && (
+        <div role="alert" className="bg-danger-soft border border-danger-strong/20 text-danger-strong text-sm rounded-lg px-4 py-3 mb-4">
+          {t('Statistics could not be loaded.')} {loadError}
+        </div>
+      )}
       <p className="text-ink-soft text-sm mb-5">{t('Print monthly reports and case records, and view complaint statistics')}</p>
 
       <PrintReports />
