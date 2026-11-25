@@ -153,7 +153,7 @@ function AdminUserDetail() {
         {limited && (
           <div className="mt-4 bg-danger-soft border border-danger-strong/20 rounded-xl px-4 py-3 text-sm text-danger-strong">
             <div className="font-semibold">
-              {u.effective_status === 'blocked' ? t('Blocked') : t('Restricted from filing')}
+              {u.effective_status === 'blocked' ? t('Blocked') : t('Restricted from online filing')}
               {u.status_until ? ` ${t('until {date}', { date: formatDateTime(u.status_until) })}` : ` ${t('until removed')}`}
             </div>
             {u.status_reason && <div className="mt-0.5">{t('Reason:')} {u.status_reason}</div>}
@@ -263,7 +263,7 @@ function AdminUserDetail() {
                 <>
                   <p className="text-ink-faint text-sm">{t('Use this for spam, fake or abusive complaints.')}</p>
                   <Button variant="secondary" icon={MdOutlineDoNotDisturbOn} onClick={() => setStatusMode('restricted')}>
-                    {t('Restrict filing')}
+                    {t('Restrict online filing')}
                   </Button>
                   <Button variant="danger" icon={MdOutlineBlock} onClick={() => setStatusMode('blocked')}>
                     {t('Block account')}

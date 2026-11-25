@@ -153,7 +153,7 @@ function SubmitComplaint() {
 
     setSubmitting(false)
     if (insertError) {
-      setError(`${t('Your complaint could not be submitted.')} ${insertError.message}`)
+      setError(`${t('Your complaint could not be submitted.')} ${t(insertError.message)}`)
       return
     }
     setSuccessRef(inserted.reference_number)
@@ -169,14 +169,16 @@ function SubmitComplaint() {
           <div className="w-14 h-14 rounded-full bg-danger-soft text-danger-strong flex items-center justify-center mx-auto mb-4">
             <MdOutlineDoNotDisturbOn className="text-3xl" aria-hidden="true" />
           </div>
-          <h2 className="text-ink text-xl font-bold mb-2">{t("You can't file complaints right now")}</h2>
+          <h2 className="text-ink text-xl font-bold mb-2">{t("You can't file complaints online right now")}</h2>
           <p className="text-ink-soft text-sm leading-relaxed">
             {profile.status_until
               ? t('Your account has been restricted until {date}.', { date: formatDate(profile.status_until, { month: 'long', day: 'numeric', year: 'numeric' }) })
               : t('Your account has been restricted.')}
             {profile.status_reason ? ` ${t('Reason')}: ${profile.status_reason}.` : ''} {t('You can still view and track your existing cases.')}
           </p>
-          <p className="text-ink-faint text-sm mt-3">{t('Please visit the Barangay Hall if you have questions.')}</p>
+          <p className="text-ink text-sm font-semibold mt-3">
+            {t('You can still file your complaint in person at the Barangay Hall (8AM–5PM, Monday to Friday).')}
+          </p>
           <Button className="mt-6" onClick={() => navigate('/my-reports')}>
             {t('View my reports')}
           </Button>

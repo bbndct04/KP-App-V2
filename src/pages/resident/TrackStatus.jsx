@@ -63,6 +63,7 @@ function buildSteps(c, stageDates) {
 }
 
 function currentIndex(steps, status) {
+  if (status === 'for_appearance' || status === 'not_confirmed') return 0
   if (status === 'closed' || status === 'execution') return steps.length - 1
   if (OUTCOMES.includes(status)) return steps.findIndex((s) => s.key === 'outcome')
   return steps.findIndex((s) => s.key === status)
@@ -185,6 +186,33 @@ function CaseView({ complaint, stageDates }) {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5 items-start">
         <div className="flex flex-col gap-5 min-w-0">
           {hearing && <HearingCard complaint={hearing} showLink={false} />}
+
+          {complaint.status === 'for_appearance' && (
+            <div className="flex gap-3 bg-warning-soft border border-warning-strong/25 rounded-2xl p-4 text-warning-strong">
+              <MdOutlineSchedule className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="text-sm leading-relaxed">
+                <div className="font-bold text-base">{t('Please confirm your complaint in person')}</div>
+                {t('Visit the Barangay Hall by {date} and bring a valid ID. No summons will be issued until you confirm.', {
+                  date: formatDate(complaint.appearance_due, { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }),
+                })}
+                {complaint.appearance_reason && (
+                  <div className="mt-1">
+                    {t('Reason')}: {t(complaint.appearance_reason)}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {complaint.status === 'not_confirmed' && (
+            <div className="flex gap-3 bg-surface-sunken border border-border rounded-2xl p-4 text-ink-soft">
+              <MdOutlineSchedule className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="text-sm leading-relaxed">
+                <div className="font-bold text-base text-ink">{t('Not confirmed in person')}</div>
+                {t('Your complaint was not confirmed by the deadline. It is kept on record. You may still visit the Barangay Hall to continue it.')}
+              </div>
+            </div>
+          )}
 
           {complaint.status === 'submitted' && (
             <div className="flex gap-3 bg-warning-soft border border-warning-strong/25 rounded-2xl p-4 text-warning-strong">

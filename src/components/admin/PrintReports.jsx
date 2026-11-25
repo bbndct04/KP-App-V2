@@ -146,7 +146,7 @@ function PrintReports() {
         supabase
           .from('complaints')
           .select('id, reference_number, status, category, complainant_name, respondent_name, created_at')
-          .neq('status', 'submitted')
+          .not('status', 'in', '(submitted,for_appearance,not_confirmed)')
           .order('created_at', { ascending: false }),
         supabase.from('record_requests').select('*, complaints(reference_number)').order('created_at', { ascending: false }).limit(8),
       ])

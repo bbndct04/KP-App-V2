@@ -75,7 +75,7 @@ export function StatusDialog({ mode, user, onClose, onDone }) {
     })
     setSaving(false)
     if (rpcError) return setError(rpcError.message)
-    toast.success(t(block ? '{name} has been blocked.' : '{name} can no longer file complaints.', { name: user.full_name }))
+    toast.success(t(block ? '{name} has been blocked.' : '{name} can no longer file complaints online.', { name: user.full_name }))
     setReason('')
     onDone()
     onClose()
@@ -96,7 +96,7 @@ export function StatusDialog({ mode, user, onClose, onDone }) {
             <div className="text-ink-soft text-sm mt-0.5">
               {block
                 ? t('{name} will not be able to use the app at all until you unblock them.', { name: user.full_name })
-                : t('{name} can still log in and view their cases, but cannot file new complaints.', { name: user.full_name })}
+                : t('{name} can still log in and view their cases, but cannot file complaints online. They can still file in person at the Barangay Hall.', { name: user.full_name })}
             </div>
           </div>
           <button type="button" onClick={onClose} aria-label={t('Close')} className="text-ink-faint hover:text-ink p-1">

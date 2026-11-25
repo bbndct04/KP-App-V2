@@ -12,6 +12,8 @@ import {
   MdOutlineBalance,
   MdOutlineAssignmentLate,
   MdOutlineTaskAlt,
+  MdOutlineHowToReg,
+  MdOutlineHelpOutline,
 } from 'react-icons/md'
 
 export const STATUS = {
@@ -27,9 +29,13 @@ export const STATUS = {
   closed: { hint: 'Settlement complied with', label: 'Closed', icon: MdOutlineTaskAlt, className: 'bg-success-soft text-success-strong' },
   cfa_issued: { hint: 'You may now file in court', label: 'CFA Issued', icon: MdOutlineDescription, className: 'bg-neutral-soft text-neutral-strong' },
   dismissed: { hint: 'Case dismissed', label: 'Dismissed', icon: MdOutlineCancel, className: 'bg-danger-soft text-danger-strong' },
+  for_appearance: { hint: 'Visit the barangay hall to confirm', label: 'For Personal Appearance', icon: MdOutlineHowToReg, className: 'bg-warning-soft text-warning-strong' },
+  not_confirmed: { hint: 'Not confirmed in person · kept on record', label: 'Not Confirmed', icon: MdOutlineHelpOutline, className: 'bg-neutral-soft text-neutral-strong' },
   declined: { hint: 'Not accepted · see the reason', label: 'Declined', icon: MdOutlineBlock, className: 'bg-danger-soft text-danger-strong' },
 }
 
-export const INTAKE_STATUSES = ['submitted', 'declined']
+export const INTAKE_STATUSES = ['submitted', 'for_appearance', 'not_confirmed', 'declined']
+export const PENDING_INTAKE = ['submitted', 'for_appearance', 'not_confirmed']
+export const APPEARANCE_STATUSES = ['for_appearance', 'not_confirmed']
 export const ACTIVE_STAGES = ['filed', 'summoned', 'mediation', 'pangkat_formed', 'pangkat_hearing', 'arbitration', 'settled', 'execution']
 export const CLOSED_STAGES = ['closed', 'cfa_issued', 'dismissed']

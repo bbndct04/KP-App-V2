@@ -24,7 +24,7 @@ import { caseDeadline, loadStageDates, daysFromToday, formatTime, relativeDay, u
 
 const URGENCY = { danger: 0, warning: 1 }
 import { Card, CardHeader, StatusBadge, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
-import { ACTIVE_STAGES, CLOSED_STAGES } from '../../components/status'
+import { ACTIVE_STAGES, CLOSED_STAGES, INTAKE_STATUSES } from '../../components/status'
 import ComplaintCards from '../../components/ComplaintCards'
 import { useT } from '../../i18n/LanguageContext'
 
@@ -206,7 +206,7 @@ function AdminDashboard() {
               {attention.map((c) => (
                 <li key={c.id}>
                   <Link
-                    to={`/admin/${c.status === 'submitted' ? 'complaints' : 'cases'}/${c.id}`}
+                    to={`/admin/${INTAKE_STATUSES.includes(c.status) ? 'complaints' : 'cases'}/${c.id}`}
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 px-5 py-3.5 hover:bg-surface-hover transition-colors"
                   >
                     <div className="min-w-0">

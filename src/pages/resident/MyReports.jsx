@@ -6,9 +6,9 @@ import AppLayout from '../../components/layout/AppLayout'
 import { useT } from '../../i18n/LanguageContext'
 import { Card, EmptyState, SkeletonRows, LinkButton } from '../../components/ui'
 import { CaseRow } from '../../components/cases'
-import { ACTIVE_STAGES } from '../../components/status'
+import { ACTIVE_STAGES, PENDING_INTAKE } from '../../components/status'
 
-const isOpen = (c) => c.status === 'submitted' || ACTIVE_STAGES.includes(c.status)
+const isOpen = (c) => PENDING_INTAKE.includes(c.status) || ACTIVE_STAGES.includes(c.status)
 
 const FILTERS = [
   { key: 'all', label: 'All', test: () => true },
