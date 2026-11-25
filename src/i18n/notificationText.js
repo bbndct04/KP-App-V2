@@ -113,6 +113,9 @@ const ADMIN = [
     /^The new account of (.+?) has the same ID, contact number, or name and birthdate as another account\. Check it in Manage Users\.$/s,
     (name) => `Ang bagong account ni ${name} ay may parehong ID, contact number, o pangalan at birthdate sa ibang account. Tingnan ito sa Mga User.`,
   ],
+  [/^(.+?) viewed the IDs of (\d+) residents within one hour\.$/s, (who, n) => `Tiningnan ni ${who} ang ID ng ${n} residente sa loob ng isang oras.`],
+  [/^(.+?) declined (\d+) complaints within one hour\.$/s, (who, n) => `Hindi nag-accept si ${who} ng ${n} complaint sa loob ng isang oras.`],
+  [/^(.+?) gave admin access to (.+?)\.$/s, (who, to) => `Binigyan ni ${who} ng admin access si ${to}.`],
   [/^Case (.+?) has exceeded the maximum 30-day Pangkat period\.$/s, (ref) => `Lampas na sa maximum na 30-day Pangkat period ang case ${ref}.`],
   [
     /^Case (.+?) has been in arbitration for over 15 days\. The award should be issued\.$/s,

@@ -8,6 +8,7 @@ import {
   MdOutlineManageAccounts,
   MdOutlineInsights,
   MdOutlineSettings,
+  MdOutlineHistory,
   MdOutlineLightMode,
   MdOutlineDarkMode,
   MdOutlineInfo,
@@ -36,6 +37,7 @@ const navItems = [
   { to: '/admin/notifications', label: 'Notifications', icon: MdOutlineNotifications },
   { to: '/admin/users', label: 'Manage Users', icon: MdOutlineManageAccounts },
   { to: '/admin/analytics', label: 'Analytics', icon: MdOutlineInsights },
+  { to: '/admin/activity', label: 'Admin Activity', icon: MdOutlineHistory },
   { to: '/admin/settings', label: 'Barangay Settings', icon: MdOutlineSettings },
 ]
 
