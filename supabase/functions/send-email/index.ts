@@ -1,16 +1,9 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
 
 const appUrl = (Deno.env.get("APP_URL") ?? Deno.env.get("ALLOWED_ORIGIN") ?? "").replace(/\/$/, "");
-const gmailUser = Deno.env.get("GMAIL_USER") ?? "";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: { user: gmailUser, pass: Deno.env.get("GMAIL_APP_PASSWORD") ?? "" },
-});
+const senderName = Deno.env.get("SENDER_NAME") ?? "KP App - Barangay New Kababae";
+const senderEmail = Deno.env.get("SENDER_EMAIL") ?? "no-reply@kpapp-newkababae.com";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -80,16 +73,17 @@ Deno.serve(async (req) => {
   const ref = (n.complaints as { reference_number?: string } | null)?.reference_number ?? null;
   const message = n.message ?? "";
 
-  try {
-    await transporter.sendMail({
-      from: `"${Deno.env.get("SENDER_NAME") ?? "KP App - Barangay New Kababae"}" <${gmailUser}>`,
-      to: email,
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY") ?? ""}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: `${senderName} <${senderEmail}>`,
+      to: [email],
       subject: ref ? `${title} – ${ref}` : title,
       text: `${title}\n\n${message}${appUrl ? `\n\n${appUrl}` : ""}`,
       html: render(p.full_name ?? "", title, message, ref),
-    });
-  } catch (e) {
-    return json({ error: (e as Error).message }, 502);
-  }
+    }),
+  });
+  if (!res.ok) return json({ error: await res.text() }, 502);
   return json({ sent: true });
 });
