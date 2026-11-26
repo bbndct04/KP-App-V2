@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { Button, Field, Input, Select, Textarea } from '../../components/ui'
 import { CATEGORIES } from '../../lib/categories'
+import CategorySuggestion from '../../components/CategorySuggestion'
 import { useT } from '../../i18n/LanguageContext'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -304,6 +305,7 @@ function AdminWalkIn() {
               <Field label={t('Statement of facts')} required hint={t('Write what the complainant said happened, who were involved, and whether it happened before.')}>
                 <Textarea value={form.description} onChange={set('description')} required minLength={20} rows={6} />
               </Field>
+              <CategorySuggestion className="-mt-1" text={form.description} value={form.category} onUse={(category) => setForm((f) => ({ ...f, category }))} />
               <Field label={t('Relief sought')} required hint={t('What the complainant is asking the barangay to do.')}>
                 <Textarea value={form.reliefRequested} onChange={set('reliefRequested')} required rows={3} />
               </Field>

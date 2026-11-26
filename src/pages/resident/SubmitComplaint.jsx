@@ -8,6 +8,7 @@ import { Button, Field, Input, Select, Textarea } from '../../components/ui'
 import { formatDate, formatTime } from '../../lib/cases'
 import { accountState } from '../../lib/accounts'
 import { CATEGORIES } from '../../lib/categories'
+import CategorySuggestion from '../../components/CategorySuggestion'
 import {
   MdOutlineCheckCircle,
   MdOutlineSend,
@@ -302,6 +303,7 @@ function SubmitComplaint() {
       <Field label={t('Statement of facts')} required hint={t('State clearly what happened, who were involved, and whether it happened before.')}>
         <Textarea value={form.description} onChange={set('description')} required minLength={20} rows={desktop ? 6 : 5} />
       </Field>
+      <CategorySuggestion className="-mt-1" text={form.description} value={form.category} onUse={(category) => setForm((f) => ({ ...f, category }))} />
       <Field
         label={t('Relief sought')}
         required
