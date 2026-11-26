@@ -1209,7 +1209,13 @@ const TL = {
   "Unusual Admin Activity": "Kakaibang Admin Activity",
   "🔐 Admin Access Given": "🔐 Binigyan ng Admin Access",
   "Admin Access Given": "Binigyan ng Admin Access",
-  "Statistics could not be loaded.": "Hindi ma-load ang statistics.",
+  "Suggested nature of complaint": "Iminumungkahing uri ng reklamo",
+  "Matches the suggested nature of complaint": "Tugma sa iminumungkahing uri ng reklamo",
+  "High confidence": "Mataas ang kumpiyansa",
+  "Medium confidence": "Katamtaman ang kumpiyansa",
+  "Low confidence": "Mababa ang kumpiyansa",
+  "Use this": "Gamitin ito",
+  "Suggested by the KP App from the statement of facts. You can still choose another category.": "Iminungkahi ng KP App batay sa salaysay ng pangyayari. Maaari ka pa ring pumili ng ibang uri.",
 }
 
 export default TL
