@@ -5,6 +5,7 @@ import { DocContext } from '../../context/docContext'
 import { PAPER, MARGIN_PX } from '../../lib/formsKit'
 import { Button, Select } from '../ui'
 import { FORM_CSS } from './formStyles'
+import PrintFrame from './PrintFrame'
 import { useT } from '../../i18n/LanguageContext'
 
 function readPaper() {
@@ -55,7 +56,7 @@ function PrintShell({ title, docTitle, backTo, backLabel = 'Back', fields, notic
 
   return (
     <DocContext.Provider value={{ fields, set: () => {}, edit: false }}>
-      <style>{`${FORM_CSS}@page{size:${paper.css};margin:0.75in}`}</style>
+      <style>{`${FORM_CSS}@page{size:${paper.css};margin:0}`}</style>
       <div className="kp-page-bg min-h-screen bg-bg py-5 px-3 sm:px-5">
         <div className="kp-noprint max-w-[1000px] mx-auto mb-4">
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
@@ -84,7 +85,7 @@ function PrintShell({ title, docTitle, backTo, backLabel = 'Back', fields, notic
         <div ref={wrap} className="kp-fit-wrap max-w-[1000px] mx-auto" style={{ height: fit.height ? fit.height * fit.scale : undefined }}>
           <div ref={inner} className="kp-fit" style={{ width: paper.w, transform: `scale(${fit.scale})`, transformOrigin: 'top left', margin: fit.scale < 1 ? 0 : '0 auto' }}>
             <div className="kp-paper border border-black/20" style={{ padding: MARGIN_PX * 0.75, minHeight: paper.h }}>
-              {children}
+              <PrintFrame margin="0.75in">{children}</PrintFrame>
             </div>
           </div>
         </div>
