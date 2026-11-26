@@ -1221,6 +1221,15 @@ const TL = {
   "Off": "Sarado",
   "You will get case updates by email.": "Makakatanggap ka ng mga update sa kaso sa iyong email.",
   "Email updates turned off.": "Pinatay ang mga update sa email.",
+  "Waiting for the barangay to review": "Hinihintay ang review ng barangay",
+  "Only if the barangay asks. Most complaints are reviewed online. If a personal visit is needed, you will be notified of the deadline (8AM–5PM, Monday to Friday).": "Kung hihilingin lang ng barangay. Karamihan ng complaint ay nire-review online. Kung kailangan mong pumunta nang personal, aabisuhan ka kung hanggang kailan (8AM–5PM, Lunes hanggang Biyernes).",
+  "Barangay review": "Review ng barangay",
+  "The barangay checks your complaint and may ask you to confirm in person.": "Sinusuri ng barangay ang iyong complaint at maaaring hilingin na kumpirmahin mo ito nang personal.",
+  "Waiting for barangay review": "Hinihintay ang review ng barangay",
+  "The barangay will review your complaint. If they need to confirm details in person, you will get a notification with the date to visit the Barangay Hall.": "Rerebyuhin ng barangay ang iyong complaint. Kung kailangan nilang kumpirmahin ang detalye nang personal, makakatanggap ka ng abiso kung kailan pupunta sa Barangay Hall.",
+  "The barangay reviews it and may ask you to confirm in person.": "Rerebyuhin ito ng barangay at maaaring hilingin na kumpirmahin mo nang personal.",
+  "What happens next": "Ano ang susunod",
+  "The barangay will review it. If a personal visit is needed, you will be notified of the date.": "Rerebyuhin ito ng barangay. Kung kailangan mong pumunta nang personal, aabisuhan ka kung kailan.",
 }
 
 export default TL

@@ -218,8 +218,8 @@ function CaseView({ complaint, stageDates }) {
             <div className="flex gap-3 bg-warning-soft border border-warning-strong/25 rounded-2xl p-4 text-warning-strong">
               <MdOutlineSchedule className="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="text-sm leading-relaxed">
-                <div className="font-bold text-base">{t('Next step: visit the Barangay Hall')}</div>
-                {t('Please appear in person within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can review and accept your complaint.')}
+                <div className="font-bold text-base">{t('Waiting for barangay review')}</div>
+                {t('The barangay will review your complaint. If they need to confirm details in person, you will get a notification with the date to visit the Barangay Hall.')}
               </div>
             </div>
           )}

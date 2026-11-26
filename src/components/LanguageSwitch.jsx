@@ -16,7 +16,7 @@ export default function LanguageSwitch({ className = '' }) {
           aria-pressed={lang === value}
           aria-label={label}
           onClick={() => lang !== value && setLanguage(value)}
-          className={`rounded-full px-2.5 py-1.5 transition-colors ${lang === value ? 'bg-accent text-accent-ink' : 'text-ink-soft hover:text-ink'}`}
+          className={`rounded-full px-2 sm:px-2.5 py-1.5 transition-colors ${lang === value ? 'bg-accent text-accent-ink' : 'text-ink-soft hover:text-ink'}`}
         >
           <span className="sm:hidden">{short}</span>
           <span className="hidden sm:inline">{label}</span>
