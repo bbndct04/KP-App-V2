@@ -44,14 +44,16 @@ function HearingList({ items, showDay = false }) {
               <div className="text-accent font-bold text-sm">{c.hearing_time ? formatTime(c.hearing_time) : t('TBA')}</div>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-ink text-sm font-semibold truncate">
+              <div className="text-ink text-sm font-semibold leading-snug line-clamp-2">
                 {t('{a} against {b}', { a: c.complainant_name || c.profiles?.full_name || '—', b: c.respondent_name || '—' })}
               </div>
               <div className="text-ink-faint text-xs truncate">
                 <span className="font-mono">{c.reference_number}</span> · {t(c.category)}
               </div>
             </div>
-            <StatusBadge status={c.status} />
+            <span className="hidden sm:block flex-shrink-0">
+              <StatusBadge status={c.status} />
+            </span>
           </Link>
         </li>
       ))}

@@ -61,7 +61,7 @@ export function CaseRow({ complaint, to }) {
     <Link to={to} className="block px-5 py-4 hover:bg-surface-hover active:bg-surface-hover transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
         <div className="min-w-0">
-          <div className="text-ink text-base font-semibold truncate">{t(complaint.category)}</div>
+          <div className="text-ink text-base font-semibold leading-snug line-clamp-2">{t(complaint.category)}</div>
           <div className="text-ink-faint text-xs font-mono">{complaint.reference_number}</div>
         </div>
         <StatusBadge status={complaint.status} />

@@ -17,7 +17,7 @@ import {
 } from 'react-icons/md'
 
 export const STATUS = {
-  submitted: { hint: 'Visit the barangay hall within 24 hours', label: 'Awaiting Review', icon: MdOutlinePendingActions, className: 'bg-warning-soft text-warning-strong' },
+  submitted: { hint: 'Waiting for the barangay to review', label: 'Awaiting Review', icon: MdOutlinePendingActions, className: 'bg-warning-soft text-warning-strong' },
   filed: { hint: 'Accepted · summons will be issued soon', label: 'Filed', icon: MdOutlineInbox, className: 'bg-warning-soft text-warning-strong' },
   summoned: { hint: 'The other party has been summoned', label: 'Summoned', icon: MdOutlineMarkEmailRead, className: 'bg-info-soft text-info-strong' },
   mediation: { hint: 'In mediation with the Punong Barangay', label: 'Mediation', icon: MdOutlineHandshake, className: 'bg-accent-soft text-accent' },

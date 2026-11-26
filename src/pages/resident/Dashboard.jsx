@@ -85,7 +85,7 @@ function Dashboard() {
                 <div className="font-bold text-base">
                   {awaiting.length === 1 ? t('Your complaint is waiting for review') : t('{n} complaints are waiting for review', { n: awaiting.length })}
                 </div>
-                {t('Please visit the Barangay Hall within 24 hours of filing (8AM–5PM, Monday to Friday) so the barangay can accept it.')}
+                {t('The barangay will review it. If a personal visit is needed, you will be notified of the date.')}
               </div>
             </div>
           )}

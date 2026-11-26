@@ -222,7 +222,7 @@ function Help({ onBack }) {
   const { t } = useT()
   const steps = [
     t('File your complaint in the app.'),
-    t('Visit the Barangay Hall within 24 hours so it can be accepted.'),
+    t('The barangay reviews it and may ask you to confirm in person.'),
     t('Attend the mediation and conciliation hearings on your schedule.'),
     t('Follow your case and get updates here in the app.'),
   ]

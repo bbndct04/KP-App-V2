@@ -223,7 +223,7 @@ function AdminLayout({ title, children }) {
           >
             <MdMenu className="text-2xl" aria-hidden="true" />
           </button>
-          <div className="text-ink text-lg font-bold truncate">{title}</div>
+          <div className="text-ink text-base sm:text-lg font-bold truncate">{title}</div>
           <div className="flex-1" />
           <LanguageSwitch className="flex-shrink-0" />
           <NavLink

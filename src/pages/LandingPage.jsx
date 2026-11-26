@@ -54,7 +54,7 @@ const FAQS = [
   },
   {
     q: 'Do I still need to go to the Barangay Hall?',
-    a: 'Yes. After filing online, appear in person at the Barangay Hall within 24 hours (8AM–5PM, Monday to Friday) so the barangay can accept your complaint.',
+    a: 'Only if the barangay asks. Most complaints are reviewed online. If a personal visit is needed, you will be notified of the deadline (8AM–5PM, Monday to Friday).',
   },
   {
     q: 'How long does the process take?',
@@ -76,7 +76,7 @@ const FAQS = [
 
 const STEPS = [
   { icon: MdOutlineNoteAdd, title: 'File online', text: 'Fill in a short 4-step form from your phone.' },
-  { icon: MdOutlineAccountBalance, title: 'Visit the hall', text: 'Appear at the Barangay Hall within 24 hours so it can be accepted.' },
+  { icon: MdOutlineAccountBalance, title: 'Barangay review', text: 'The barangay checks your complaint and may ask you to confirm in person.' },
   { icon: MdOutlineHandshake, title: 'Mediation', text: 'The Punong Barangay or a Pangkat helps both sides talk it out.' },
   { icon: MdOutlineVerified, title: 'Resolution', text: 'Reach a settlement, or receive a Certificate to File Action.' },
 ]

@@ -102,7 +102,7 @@ export function CardHeader({ icon: Icon, title, subtitle, action }) {
           </div>
         )}
         <div className="min-w-0">
-          <div className="text-ink text-base font-semibold truncate">{title}</div>
+          <div className="text-ink text-base font-semibold leading-snug line-clamp-2">{title}</div>
           {subtitle && <div className="text-ink-faint text-xs mt-0.5">{subtitle}</div>}
         </div>
       </div>

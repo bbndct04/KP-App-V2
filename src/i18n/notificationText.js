@@ -84,6 +84,10 @@ export function translateNotification(message, lang) {
 
 const ADMIN = [
   [
+    /^Case (.+?) \((.+?)\) was filed by (.+?)\. Review it in New Complaints\.$/s,
+    (ref, cat, who) => `Na-file ni ${who === 'a resident' ? 'isang residente' : who} ang case ${ref} (${TL[cat] ?? cat}). I-review ito sa New Complaints.`,
+  ],
+  [
     /^Case (.+?) \((.+?)\) was filed by (.+?)\. The complainant should appear at the barangay hall within 24 hours\.$/s,
     (ref, cat, who) => `Na-file ni ${who === 'a resident' ? 'isang residente' : who} ang case ${ref} (${TL[cat] ?? cat}). Dapat pumunta ang complainant sa Barangay Hall sa loob ng 24 oras.`,
   ],

@@ -12,7 +12,6 @@ import CategorySuggestion from '../../components/CategorySuggestion'
 import {
   MdOutlineCheckCircle,
   MdOutlineSend,
-  MdOutlineWarningAmber,
   MdOutlineLocationOn,
   MdOutlineSchedule,
   MdOutlineCloudUpload,
@@ -201,11 +200,11 @@ function SubmitComplaint() {
               <div className="text-2xl font-bold text-accent font-mono">{successRef}</div>
             </div>
 
-            <div className="bg-warning-soft border border-warning-strong/20 rounded-xl px-4 py-3.5 mb-5 text-left flex gap-2.5">
-              <MdOutlineWarningAmber className="text-2xl text-warning-strong flex-shrink-0" aria-hidden="true" />
-              <div className="text-sm text-warning-strong leading-relaxed">
-                <div className="font-bold mb-1">{t('Next step: visit the Barangay Hall within 24 hours')}</div>
-                {t('You need to appear in person so the barangay can formally accept your complaint.')}
+            <div className="bg-accent-soft border border-accent/20 rounded-xl px-4 py-3.5 mb-5 text-left flex gap-2.5">
+              <MdOutlineSchedule className="text-2xl text-accent flex-shrink-0" aria-hidden="true" />
+              <div className="text-sm text-ink leading-relaxed">
+                <div className="font-bold mb-1">{t('What happens next')}</div>
+                {t('The barangay will review your complaint. If they need to confirm details in person, you will get a notification with the date to visit the Barangay Hall.')}
                 <div className="text-xs mt-2 font-semibold space-y-0.5">
                   <span className="flex items-center gap-1.5">
                     <MdOutlineLocationOn className="text-base" aria-hidden="true" /> Barangay New Kababae Hall, Olongapo City
