@@ -44,7 +44,15 @@ export const FORM_CSS = `
 .kp-table tr{break-inside:avoid}
 .kp-h{font-weight:700;margin:18px 0 4px}
 .kp-meta{display:flex;justify-content:space-between;gap:16px;font-size:10.5pt;margin-top:10px}
+.kp-frame{width:100%;border-collapse:collapse}
+.kp-frame>thead,.kp-frame>tfoot{display:none}
+.kp-frame>tbody>tr>td{padding:0;vertical-align:top}
 @media print{
+  html,body{margin:0 !important;padding:0 !important;background:#fff !important}
+  .kp-frame>thead{display:table-header-group}
+  .kp-frame>tfoot{display:table-footer-group}
+  .kp-frame>thead>tr>td,.kp-frame>tfoot>tr>td{height:var(--kp-margin);padding:0}
+  .kp-frame>tbody>tr>td{padding:0 var(--kp-margin)}
   .kp-noprint{display:none !important}
   .kp-page-bg{background:#fff !important;padding:0 !important}
   .kp-fit-wrap{height:auto !important}

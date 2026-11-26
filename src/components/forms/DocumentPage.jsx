@@ -17,6 +17,7 @@ import { PAPER, MARGIN_PX } from '../../lib/formsKit'
 import { Button, Select, Textarea, ConfirmDialog } from '../ui'
 import { FormSkeleton } from '../../pages/admin/forms/FormShell'
 import { FORM_CSS } from './formStyles'
+import PrintFrame from './PrintFrame'
 import { useT } from '../../i18n/LanguageContext'
 
 function useFitScale(paperWidth, ready) {
@@ -156,7 +157,7 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
 
   return (
     <DocContext.Provider value={{ fields: doc.fields, set: doc.set, edit: editing }}>
-      <style>{`${FORM_CSS}@page{size:${paper.css};margin:1in}`}</style>
+      <style>{`${FORM_CSS}@page{size:${paper.css};margin:0}`}</style>
       <div className="kp-page-bg min-h-screen bg-bg py-5 px-3 sm:px-5">
         <div className="kp-noprint max-w-[1000px] mx-auto mb-4">
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
@@ -229,7 +230,9 @@ function DocumentPage({ formNo, title, makeDefaults, Body }) {
           <div ref={innerRef} className="kp-fit" style={{ width: paper.w, transform: `scale(${scale})`, transformOrigin: 'top left', margin: scale < 1 ? 0 : '0 auto' }}>
             <div className="kp-paper border border-black/20" style={{ padding: MARGIN_PX, minHeight: paper.h }}>
               {!isIssued && !issuing && <div className="kp-watermark" aria-hidden="true">DRAFT</div>}
-              <Body />
+              <PrintFrame margin="1in">
+                <Body />
+              </PrintFrame>
             </div>
           </div>
         </div>
