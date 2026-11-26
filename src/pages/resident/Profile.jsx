@@ -17,6 +17,7 @@ import {
   MdOutlineLocationOn,
   MdOutlineSchedule,
   MdOutlineInfo,
+  MdOutlineMarkEmailRead,
 } from 'react-icons/md'
 import { supabase } from '../../lib/supabaseClient'
 import { passwordProblem } from '../../lib/accounts'
@@ -307,6 +308,13 @@ function Profile() {
     setUploading(false)
   }
 
+  async function setEmailUpdates(on) {
+    const { error } = await supabase.from('profiles').update({ email_updates: on }).eq('id', user.id)
+    if (error) return toast.error(error.message)
+    await refreshProfile()
+    toast.success(on ? t('You will get case updates by email.') : t('Email updates turned off.'))
+  }
+
   async function removePhoto() {
     const old = profile?.avatar_path
     const { error } = await supabase.from('profiles').update({ avatar_path: null }).eq('id', user.id)
@@ -315,7 +323,6 @@ function Profile() {
     await refreshProfile()
     toast.success(t('Profile photo removed.'))
   }
-
 
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString(lang === 'tl' ? 'fil-PH' : 'en-US', { month: 'long', year: 'numeric' })
@@ -399,6 +406,17 @@ function Profile() {
                   options={[
                     { value: 'en', label: 'English' },
                     { value: 'tl', label: 'Filipino' },
+                  ]}
+                />
+              </Row>
+              <Row icon={MdOutlineMarkEmailRead} label={t('Email updates')}>
+                <Segmented
+                  label={t('Email updates')}
+                  value={profile?.email_updates === false ? 'off' : 'on'}
+                  onChange={(v) => setEmailUpdates(v === 'on')}
+                  options={[
+                    { value: 'on', label: t('On') },
+                    { value: 'off', label: t('Off') },
                   ]}
                 />
               </Row>

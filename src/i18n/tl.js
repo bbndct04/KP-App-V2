@@ -1216,6 +1216,11 @@ const TL = {
   "Low confidence": "Mababa ang kumpiyansa",
   "Use this": "Gamitin ito",
   "Suggested by the KP App from the statement of facts. You can still choose another category.": "Iminungkahi ng KP App batay sa salaysay ng pangyayari. Maaari ka pa ring pumili ng ibang uri.",
+  "Email updates": "Mga update sa email",
+  "On": "Bukas",
+  "Off": "Sarado",
+  "You will get case updates by email.": "Makakatanggap ka ng mga update sa kaso sa iyong email.",
+  "Email updates turned off.": "Pinatay ang mga update sa email.",
 }
 
 export default TL
