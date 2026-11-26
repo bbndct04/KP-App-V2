@@ -26,7 +26,7 @@ import useReveal from '../hooks/useReveal'
 import logo from '../assets/kp-app-logo.png'
 import barangayLogo from '../assets/barangay-newkababae-logo.jpg'
 
-const APP_URL = 'https://kp-app-v2.vercel.app'
+const APP_URL = 'https://kpapp-newkababae.com'
 
 const NAV = [
   { href: '#how-it-works', label: 'How it works' },
